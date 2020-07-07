@@ -79,6 +79,7 @@ if (!argv.format || argv.format === 'es') {
       file: 'dist/vue-flatsurf.esm.js',
       format: 'esm',
       exports: 'named',
+      sourcemap: true,
     },
     plugins: [
       replace({
@@ -116,6 +117,7 @@ if (!argv.format || argv.format === 'cjs') {
       format: 'cjs',
       name: 'VueFlatsurf',
       exports: 'named',
+      sourcemap: true,
       globals,
     },
     plugins: [
@@ -147,6 +149,7 @@ if (!argv.format || argv.format === 'iife') {
       format: 'iife',
       name: 'VueFlatsurf',
       exports: 'named',
+      sourcemap: true,
       globals,
     },
     plugins: [

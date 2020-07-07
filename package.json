@@ -2,19 +2,16 @@
   "name": "vue-flatsurf",
   "version": "1.0.0",
   "description": "",
-
   "main": "dist/vue-flatsurf.ssr.js",
   "browser": "dist/vue-flatsurf.esm.js",
   "module": "dist/vue-flatsurf.esm.js",
   "unpkg": "dist/vue-flatsurf.min.js",
   "types": "vue-flatsurf.d.ts",
-
   "files": [
     "dist/*",
     "vue-flatsurf.d.ts",
     "src/**/*.vue"
   ],
-
   "scripts": {
     "serve": "vue-cli-service serve demo/serve.ts",
     "build": "cross-env NODE_ENV=production rollup --config build/rollup.config.js",
