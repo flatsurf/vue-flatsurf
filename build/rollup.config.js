@@ -8,6 +8,8 @@ import replace from '@rollup/plugin-replace';
 import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import minimist from 'minimist';
+import typescript from "rollup-plugin-typescript2";
+import resolve from "@rollup/plugin-node-resolve";
 
 // Get browserslist config and remove ie from es build targets
 const esbrowserslist = fs.readFileSync('./.browserslistrc')
@@ -33,6 +35,10 @@ const baseConfig = {
     replace: {
       'process.env.NODE_ENV': JSON.stringify('production'),
       'process.env.ES_BUILD': JSON.stringify('false'),
+    },
+    typescript: {
+      tsconfig: "tsconfig.json",
+      useTsconfigDeclarationDir: true,
     },
     vue: {
       css: true,
@@ -79,6 +85,8 @@ if (!argv.format || argv.format === 'es') {
         ...baseConfig.plugins.replace,
         'process.env.ES_BUILD': JSON.stringify('true'),
       }),
+      resolve(),
+      typescript(baseConfig.plugins.typescript),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
       babel({
@@ -112,6 +120,8 @@ if (!argv.format || argv.format === 'cjs') {
     },
     plugins: [
       replace(baseConfig.plugins.replace),
+      resolve(),
+      typescript(baseConfig.plugins.typescript),
       ...baseConfig.plugins.preVue,
       vue({
         ...baseConfig.plugins.vue,
@@ -141,6 +151,8 @@ if (!argv.format || argv.format === 'iife') {
     },
     plugins: [
       replace(baseConfig.plugins.replace),
+      resolve(),
+      typescript(baseConfig.plugins.typescript),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
       babel(baseConfig.plugins.babel),
