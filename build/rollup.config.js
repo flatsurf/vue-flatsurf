@@ -24,7 +24,7 @@ const baseConfig = {
   plugins: {
     preVue: [
       alias({
-        resolve: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
+        resolve: ['.js', '.jsx', '.ts', '.vue'],
         entries: {
           '@': path.resolve(projectRoot, 'src'),
         },
@@ -42,7 +42,7 @@ const baseConfig = {
     },
     babel: {
       exclude: 'node_modules/**',
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
+      extensions: ['.js', '.jsx', '.ts', '.vue'],
     },
   },
 };
