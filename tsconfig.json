@@ -14,7 +14,12 @@
         "baseUrl": ".",
         "types": [
             "node",
-            "vue"
+            "vue",
+            "vuetify"
+        ],
+        "typeRoots": [
+            "./node_modules/@types",
+            "./node_modules/vuetify/types"
         ],
         "paths": {
             "@/*": [
