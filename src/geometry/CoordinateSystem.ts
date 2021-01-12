@@ -24,12 +24,23 @@ import Flatten from "@flatten-js/core";
 
 import Point from "./Point";
 import Box from "./Box";
+import Vector from "./Vector";
+import Segment from "./Segment";
 
 export type Coordinate = number;
 
 export default class CoordinateSystem {
   public constructor(positive: boolean) {
     this.positive = positive;
+  }
+
+  public static inverse(A: Flatten.Matrix) {
+    const [a00, a01, a02, a10, a11, a12, a20, a21, a22] = [A.a, A.c, A.tx, A.b, A.d, A.ty, 0, 0, 1];
+    const adj = [a11*a22 - a21*a12, a10*a22 - a20*a12, a10*a21 - a20*a11, a01*a22 - a21*a02, a00*a22 - a20*a02, a00*a21 - a20*a01, a01*a12 - a11*a02, a00*a12 - a10*a02, a00*a11 - a10*a01];
+    const det = a00*adj[0] - a01*adj[1] + a02*adj[2];
+    const inv = [adj[0], -adj[3], adj[6], -adj[1], adj[4], -adj[7], adj[2], -adj[5], adj[8]].map(a => a / det);
+    const affine = inv.map(a => a / inv[8]);
+    return new Flatten.Matrix(affine[0], affine[3], affine[1], affine[4], affine[2], affine[5]);
   }
 
   public readonly positive: boolean;
@@ -58,12 +69,13 @@ export default class CoordinateSystem {
 
   public embed(box: Box): Box;
   public embed(point: Point): Point;
-  public embed(value: Box | Point) : Box | Point {
-    if ((value as Box).aspectRatio !== undefined) {
+  public embed(vector: Vector): Vector;
+  public embed(segment: Segment): Segment;
+  public embed(value: Box | Point | Vector | Segment) : Box | Point | Vector | Segment {
+    if (value instanceof Box) {
       let box = value as Box;
       return new Box(this, this.embed(box.low).xy, this.embed(box.high).xy);
-      return value;
-    } else {
+    } else if (value instanceof Point) {
       let point = value as Point;
       while(true) {
         if (this === point.parent)
@@ -81,17 +93,15 @@ export default class CoordinateSystem {
 
       point = this.embeddedInto.embed(point);
 
-      const inverse = (A: Flatten.Matrix) => {
-        const [a00, a01, a02, a10, a11, a12, a20, a21, a22] = [A.a, A.c, A.tx, A.b, A.d, A.ty, 0, 0, 1];
-        const adj = [a11*a22 - a21*a12, a10*a22 - a20*a12, a10*a21 - a20*a11, a01*a22 - a21*a02, a00*a22 - a20*a02, a00*a21 - a20*a01, a01*a12 - a11*a02, a00*a12 - a10*a02, a00*a11 - a10*a01];
-        const det = a00*adj[0] - a01*adj[1] + a02*adj[2];
-        const inv = [adj[0], -adj[3], adj[6], -adj[1], adj[4], -adj[7], adj[2], -adj[5], adj[8]].map(a => a / det);
-        const affine = inv.map(a => a / inv[8]);
-        return new Flatten.Matrix(affine[0], affine[3], affine[1], affine[4], affine[2], affine[5]);
-      };
-
-      return new Point(this, ...inverse(this.embedding!).transform([point.x, point.y]));
+      return new Point(this, ...CoordinateSystem.inverse(this.embedding!).transform([point.x, point.y]));
+    } else if (value instanceof Vector) {
+      const point = this.embed(new Point(value.parent, value.x, value.y));
+      return new Vector(this, point.x, point.y);
+    } else if (value instanceof Segment) {
+      return new Segment(this, this.embed(value.start).value, this.embed(value.end).value);
     }
+
+    throw Error("cannot embed this type of object into coordinate system yet");
   }
 }
 

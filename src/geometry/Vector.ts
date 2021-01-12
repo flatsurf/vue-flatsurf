@@ -21,76 +21,44 @@
  * *****************************************************************************/
 
 import assert from "assert";
-
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
-import Vector from './Vector';
-import Polygon from './Polygon';
+import Point from './Point';
 
-export default class Point {
+export default class Vector {
   public constructor(parent: CoordinateSystem, x: Coordinate, y: Coordinate);
-  public constructor(parent: CoordinateSystem, p: Flatten.Point);
-  public constructor(parent: CoordinateSystem, x: Coordinate | Flatten.Point, y?: Coordinate) {
+  public constructor(parent: CoordinateSystem, p: Flatten.Vector);
+  public constructor(parent: CoordinateSystem, a: Point, b: Point);
+  public constructor(parent: CoordinateSystem, x: Coordinate | Flatten.Vector | Point, y?: Coordinate | Point) {
     this.parent = parent;
-    if (typeof(x) === "number")
-      this.value = new Flatten.Point(x, y);
-    else
+    if (typeof(x) === "number") {
+      assert(typeof(y) === "number");
+      this.value = new Flatten.Vector(x, y);
+    } else if (x instanceof Flatten.Vector) {
+      assert(y == null);
       this.value = x;
+    } else {
+      assert(x instanceof Point);
+      assert(y instanceof Point);
+      const a = parent.embed(x);
+      const b = parent.embed(y);
+      this.value = new Flatten.Vector(a.value, b.value);
+    }
   }
   
   public get x() { return this.value.x; }
   public get y() { return this.value.y; }
   public get xy() : [Coordinate, Coordinate] { return [this.x, this.y]; }
 
-  // Compute the convex hull of the points (using the slow Jarvis march
-  // algorithm.)
-  public static convexHull(points: Point[]): Polygon {
-    assert(points.length !== 0);
-
-    const coordinateSystem = points[0].parent;
-
-    const vertices = points.map((p) => coordinateSystem.embed(p).value);
-
-    assert(vertices.some((p) => !p.equalTo(vertices[0])));
-
-    const hull = [vertices.reduce((p, q) => {
-      if (p.x < q.x)
-        return p;
-      if (p.x > q.x)
-        return q
-      if (p.y < q.y)
-        return p;
-      return q;
-    })];
-
-    do {
-      const last = hull[hull.length - 1];
-      let next = vertices[0].equalTo(last) ? vertices[1] : vertices[0];
-      for (let p of vertices) {
-        if (p.leftTo(new Flatten.Line(last, next)))
-          next = p;
-      }
-      hull.push(next);
-    } while(!hull[hull.length - 1].equalTo(hull[0]));
-
-    hull.pop();
-
-    const polygon = new Flatten.Polygon();
-    polygon.addFace(hull);
-    return new Polygon(coordinateSystem, polygon);
-  }
-
-  public equalTo(rhs: Point, epsilon: number = 0): boolean {
+  public equalTo(rhs: Vector, epsilon: number = 0): boolean {
     if (this.parent === rhs.parent)
       return Math.abs(this.x - rhs.x) <= epsilon && Math.abs(this.y - rhs.y) <= epsilon;
     return this.parent.embed(rhs).equalTo(this);
   }
 
-  public translate(vector: Vector): Point {
-    return new Point(this.parent, this.value.translate(this.parent.embed(vector).value));
-  }
-
   public readonly parent: CoordinateSystem;
-  public readonly value: Flatten.Point;
+  public readonly value: Flatten.Vector;
 }
+
+

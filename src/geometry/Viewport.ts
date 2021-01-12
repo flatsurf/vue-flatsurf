@@ -27,8 +27,8 @@ import Box from "./Box";
 import Point from "./Point";
 
 export default class Viewport {
-  public constructor(ideal: CoordinateSystem, width: number = 640, height: number = 640) {
-    this.idealCoordinateSystem = ideal;
+  public constructor(ideal?: CoordinateSystem, width: number = 640, height: number = 640) {
+    this.idealCoordinateSystem = ideal || new CoordinateSystem(true);
     this.viewportCoordinateSystem = new CoordinateSystem(false);
     this.width = width;
     this.height = height;
@@ -47,7 +47,7 @@ export default class Viewport {
   }
 
   public focus(focused: Box) {
-    this.focused = focused;
+    this.focused = this.idealCoordinateSystem.embed(focused);
     this.visible = this.idealCoordinateSystem.embed(this.focused.contain(this.width / this.height));
     // We now need to embed the "ideal" coordinate system into the actual
     // "viewport" coordinate system so that the "visible" box fills the (0,
@@ -72,6 +72,7 @@ export default class Viewport {
         [center.x - width / 2, center.y - height / 2],
         [center.x + width / 2, center.y + height / 2]));
     } else {
+      center = this.idealCoordinateSystem.embed(center);
       const centerBefore = this.viewportCoordinateSystem.embed(center);
       this.zoom(factor);
       const centerAfter = this.viewportCoordinateSystem.embed(center);
@@ -83,7 +84,7 @@ export default class Viewport {
   public embed(point: Point) : Point;
   public embed(box: Box) : Box;
   public embed(value: Point | Box) : Point | Box {
-    return this.viewportCoordinateSystem.embed(value as Box);
+    return this.viewportCoordinateSystem.embed(value as any);
   }
 
   public get viewport() : Box {
@@ -94,7 +95,7 @@ export default class Viewport {
   private height: number;
   // The underlying ideal coordinate system that is stable under resizing the
   // viewport, translating it and such.
-  private readonly idealCoordinateSystem: CoordinateSystem;
+  public readonly idealCoordinateSystem: CoordinateSystem;
   // Coordinates on screen, i.e., inside the viewport starting at (0, 0) in
   // the top-left corner.
   public readonly viewportCoordinateSystem: CoordinateSystem;

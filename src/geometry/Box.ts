@@ -20,15 +20,38 @@
  * SOFTWARE.
  * *****************************************************************************/
 
+import assert from "assert";
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
 import Point from "./Point";
+import Segment from './Segment';
 
 export default class Box {
-  public constructor(parent: CoordinateSystem, xy0: [Coordinate, Coordinate], xy1: [Coordinate, Coordinate]) {
+  public constructor(parent: CoordinateSystem, box: Flatten.Box);
+  public constructor(parent: CoordinateSystem, xy0: [Coordinate, Coordinate], xy1: [Coordinate, Coordinate]);
+  public constructor(parent: CoordinateSystem, xy0: [Coordinate, Coordinate] | Flatten.Box, xy1?: [Coordinate, Coordinate]) {
     this.parent = parent;
-    this.value = new Flatten.Box(Math.min(xy0[0], xy1[0]), Math.min(xy0[1], xy1[1]), Math.max(xy0[0], xy1[0]), Math.max(xy0[1], xy1[1]));
+
+    if (xy0 instanceof Flatten.Box) {
+      this.value = xy0;
+    } else {
+      assert(xy1 instanceof Array);
+      this.value = new Flatten.Box(Math.min(xy0[0], xy1[0]), Math.min(xy0[1], xy1[1]), Math.max(xy0[0], xy1[0]), Math.max(xy0[1], xy1[1]));
+    }
+  }
+
+  public static bbox(shapes: Array<Point|Segment>): Box {
+    if (shapes.length === 0)
+      throw Error("cannot create bounding box of nothing");
+
+    const boxes = shapes.map((shape) => {
+      if (shape instanceof Point)
+        return new Box(shape.parent, [shape.value.x, shape.value.y], [shape.value.x, shape.value.y]);
+      else
+        return new Box(shape.parent, shape.value.box);
+    });
+    return boxes.reduce((a: Box, b: Box) => a.merge(b));
   }
 
   // Return an enlargened version of this box that has the prescribed aspect
@@ -39,6 +62,10 @@ export default class Box {
       return new Box(this.parent, [this.value.xmin - (this.height * aspectRatio - this.width) / 2, this.value.ymin], [this.value.xmax + (this.height * aspectRatio - this.width) / 2, this.value.ymax]);
     else
       return new Box(this.parent, [this.value.xmin, this.value.ymin - (this.width / aspectRatio - this.height) / 2], [this.value.xmax, this.value.ymax + (this.width / aspectRatio - this.height) / 2]);
+  }
+
+  public merge(other: Box): Box {
+    return new Box(this.parent, this.value.merge(this.parent.embed(other).value));
   }
 
   public translate(x: Coordinate, y: Coordinate) {
@@ -54,7 +81,7 @@ export default class Box {
   }
 
   public get aspectRatio() {
-    return this.height / this.width;
+    return this.width / this.height;
   }
 
   public get width() {
