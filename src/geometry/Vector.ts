@@ -51,6 +51,14 @@ export default class Vector {
   public get y() { return this.value.y; }
   public get xy() : [Coordinate, Coordinate] { return [this.x, this.y]; }
 
+  public invert() {
+    return new Vector(this.parent, this.value.invert());
+  }
+
+  public add(v: Vector) {
+    return new Vector(this.parent, this.value.add(this.parent.embed(v).value));
+  }
+
   public equalTo(rhs: Vector, epsilon: number = 0): boolean {
     if (this.parent === rhs.parent)
       return Math.abs(this.x - rhs.x) <= epsilon && Math.abs(this.y - rhs.y) <= epsilon;

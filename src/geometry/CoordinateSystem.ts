@@ -101,7 +101,7 @@ export default class CoordinateSystem {
       return new Segment(this, this.embed(value.start).value, this.embed(value.end).value);
     }
 
-    throw Error("cannot embed this type of object into coordinate system yet");
+    throw Error(`cannot embed this type of object into coordinate system yet`);
   }
 }
 

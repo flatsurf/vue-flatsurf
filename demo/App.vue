@@ -48,12 +48,13 @@ import YAML from "yaml";
   }
 })
 export default class App extends Vue {
+  private readonly idealCoordinateSystem = new CoordinateSystem(true);
+
   raw = square;
   editor = false;
-  surface = FlatTriangulation.parse(YAML.parse(this.raw))
+  surface = FlatTriangulation.parse(YAML.parse(this.raw), this.idealCoordinateSystem)
   error = null as string | null;
 
-  private readonly idealCoordinateSystem = new CoordinateSystem(true);
 
   focus = this.idealCoordinateSystem.box([-1, -1], [1, 1]);
 
@@ -64,7 +65,7 @@ export default class App extends Vue {
   @Watch("raw")
   onRawChanged() {
     try {
-      this.surface = FlatTriangulation.parse(YAML.parse(this.raw));
+      this.surface = FlatTriangulation.parse(YAML.parse(this.raw), this.idealCoordinateSystem);
       this.error = null;
     } catch(e) {
       this.error = e.message;

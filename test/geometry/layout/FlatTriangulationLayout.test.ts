@@ -31,6 +31,7 @@ import CoordinateSystem from '@/geometry/CoordinateSystem';
 chai.use(chaiEquals);
 
 describe("Layout Triangulation", () => {
+  const coordinateSystem = new CoordinateSystem(true);
   const torus = FlatTriangulation.parse({
     vertices: [[3, 2, -1, -3, -2, 1]],
     vectors: {
@@ -38,13 +39,10 @@ describe("Layout Triangulation", () => {
       2: { x: 0, y: 1 },
       3: { x: 1, y: 1 }
     }
-  });
+  }, coordinateSystem);
 
   describe("Layout for a Torus", () => {
-    const layout = new FlatTriangulationLayout({
-      surface: torus,
-      coordinateSystem: new CoordinateSystem(true),
-    });
+    const layout = new FlatTriangulationLayout(torus);
 
     it("lays out all half edges", () => {
       for (const he of torus.halfEdges) {

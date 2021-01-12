@@ -21,23 +21,26 @@
  * *****************************************************************************/
 
 import xor from "lodash-es/xor";
-import Flatten from "@flatten-js/core";
 
 import HalfEdge from "./HalfEdge";
 import Permutation from "./Permutation";
+
+import Vector from "../Vector";
+import CoordinateSystem from '../CoordinateSystem';
+import Flatten from '@flatten-js/core';
 
 export default class FlatTriangulation {
   public static parse(yaml: {
     vertices: Array<HalfEdge[]>,
     vectors: { [key: number]: { x: number, y: number } }
-  }) : FlatTriangulation {
+  }, coordinateSystem: CoordinateSystem) : FlatTriangulation {
     return new FlatTriangulation(
       Permutation.fromCycles(yaml.vertices),
-      Object.fromEntries(Object.entries(yaml.vectors).map(([halfEdge, vector]) => [halfEdge, new Flatten.Vector(vector.x, vector.y)]))
+      Object.fromEntries(Object.entries(yaml.vectors).map(([halfEdge, vector]) => [halfEdge, new Vector(coordinateSystem, vector.x, vector.y)]))
     );
   }
 
-  private constructor(vertices: Permutation<HalfEdge>, vectors: {[key: string]: Flatten.Vector}) {
+  private constructor(vertices: Permutation<HalfEdge>, vectors: {[key: string]: Vector}) {
     this.vertices = vertices;
     this.halfEdges = vertices.domain;
     this.faces = Permutation.fromMapping(this.halfEdges.map((he) => [-this.vertices.image(he), he]));
@@ -51,17 +54,17 @@ export default class FlatTriangulation {
       throw Error(`Provided vectors {${Object.keys(this.vectors)}} and present half edges {${this.halfEdges}} do not coincide.`);
 
     for (const face of this.faces.cycles) {
-      if (!face.reduce((sum, he) => sum.translate(this.vector(he)), new Flatten.Point()).equalTo(new Flatten.Point(0, 0)))
+      if (!face.reduce((sum, he) => sum.translate(this.vector(he).value), new Flatten.Point()).equalTo(new Flatten.Point()))
         throw Error(`Face ${face} is not closed.`);
     }
   }
 
-  public vector(halfEdge: HalfEdge): Flatten.Vector {
+  public vector(halfEdge: HalfEdge): Vector {
     return this.vectors[halfEdge] || this.vectors[-halfEdge].invert();
   }
 
   public readonly vertices: Permutation<HalfEdge>;
   public readonly halfEdges : HalfEdge[];
   public readonly faces : Permutation<HalfEdge>;
-  private readonly vectors : {[key: string]: Flatten.Vector };
+  private readonly vectors : {[key: string]: Vector };
 }

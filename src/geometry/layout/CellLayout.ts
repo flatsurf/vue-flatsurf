@@ -46,7 +46,7 @@ export default class CellLayout {
       let end = origin;
       this.layout = Object.fromEntries(cell.map((he: HalfEdge) => {
         const start = end;
-        end = end.translate(new Vector(origin.parent, surface.vector(he)));
+        end = end.translate(surface.vector(he));
         return [he, {
           segment: new Segment(origin.parent, start.value, end.value),
           inner: false,

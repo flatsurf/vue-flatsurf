@@ -20,7 +20,7 @@ export default class Ngon extends SVG {
   }
 }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 polygon {
 	stroke: #d1d1d1;
 	stroke-width: 1px;

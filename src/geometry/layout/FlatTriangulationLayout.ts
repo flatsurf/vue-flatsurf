@@ -20,7 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import CoordinateSystem from '../CoordinateSystem';
 import Point from '../Point';
 import FlatTriangulation from "../triangulation/FlatTriangulation";
 import HalfEdge from '../triangulation/HalfEdge';
@@ -29,9 +28,8 @@ import HalfEdgeLayout from './HalfEdgeLayout';
 import Box from '../Box';
 
 export default class FlatTriangulationLayout {
-  public constructor({ surface, coordinateSystem }: { surface: FlatTriangulation, coordinateSystem: CoordinateSystem }) {
+  public constructor(surface: FlatTriangulation) {
     this.surface = surface;
-    this.coordinateSystem = coordinateSystem;
     this.recompute();
   }
 
@@ -48,7 +46,12 @@ export default class FlatTriangulationLayout {
     //     happen anymore.
 
     // (1) Elementary Cells
-    const origin = new Point(this.coordinateSystem, 0, 0);
+    if (this.surface.halfEdges.length === 0) {
+      this.halfEdges = {};
+      return;
+    }
+
+    const origin = new Point(this.surface.vector(this.surface.halfEdges[0]).parent, 0, 0);
     let cells = this.surface.faces.cycles.map((face) => new CellLayout(this.surface, face, origin));
 
     // (2) Glue Cells
@@ -70,6 +73,5 @@ export default class FlatTriangulationLayout {
   }
 
   private readonly surface: FlatTriangulation;
-  private readonly coordinateSystem: CoordinateSystem;
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
 }

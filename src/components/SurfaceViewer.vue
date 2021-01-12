@@ -5,47 +5,35 @@ A reactive SVG that displays a Flat Triangulation.
 -->
 <template>
   <svg :width="viewport.width" :height="viewport.height">
-    <flat-triangulation-component surface="surface" />
+    <flat-triangulation-component :surface="surface" @layout="onLayoutChanged" />
   </svg>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
+import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 
 import Viewport from "../geometry/Viewport";
 import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
 import FlatTriangulationComponent from "./FlatTriangulation.vue";
-import FlatTriangulationLayout from "../geometry/layout/FlatTriangulationLayout";
-
-import Ngon from "./svg/Ngon.vue";
 
 import Point from "@/geometry/Point";
+import FlatTriangulationLayout from '@/geometry/layout/FlatTriangulationLayout';
 
 @Component({
   components: {
     FlatTriangulationComponent,
-    Ngon,
   }
 })
 export default class SurfaceViewer extends Vue {
   @Prop({ required: true }) viewport!: Viewport;
   @Prop({ required: true }) surface!: FlatTriangulation;
 
-  private get layout() {
-    return new FlatTriangulationLayout({ surface: this.surface, coordinateSystem: this.viewport.idealCoordinateSystem });
-  }
-
-  protected get faces() {
-    return this.surface.faces.cycles.map((face) => face.map((he) => this.layout.layout(he).segment.end));
-  }
-
-  @Watch("layout", { immediate: true })
-  layoutChanged() {
-    this.$emit("layout", this.layout);
-  }
-
   @Provide()
   svg(xy: Point) {
     return this.viewport.viewportCoordinateSystem.embed(xy);
+  }
+
+  onLayoutChanged(layout: FlatTriangulationLayout) {
+    this.$emit('layout', layout);
   }
 }
 </script>
