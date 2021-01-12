@@ -5,7 +5,7 @@ A reactive SVG that displays a Flat Triangulation.
 -->
 <template>
   <svg :width="viewport.width" :height="viewport.height">
-    <ngon v-for="(face, i) of faces" :key="i" :vertices="face" />
+    <flat-triangulation-component surface="surface" />
   </svg>
 </template>
 <script lang="ts">
@@ -13,6 +13,7 @@ import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 
 import Viewport from "../geometry/Viewport";
 import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
+import FlatTriangulationComponent from "./FlatTriangulation.vue";
 import FlatTriangulationLayout from "../geometry/layout/FlatTriangulationLayout";
 
 import Ngon from "./svg/Ngon.vue";
@@ -21,7 +22,8 @@ import Point from "@/geometry/Point";
 
 @Component({
   components: {
-    Ngon
+    FlatTriangulationComponent,
+    Ngon,
   }
 })
 export default class SurfaceViewer extends Vue {
