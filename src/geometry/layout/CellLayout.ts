@@ -184,8 +184,6 @@ export default class CellLayout {
 
     const delaunay = det(a.x, a.y, a.x * a.x + a.y * a.y, b.x, b.y, b.x * b.x + b.y * b.y, c.x, c.y, c.x * c.x + c.y * c.y);
 
-    console.log(delaunay);
-
     if (Math.abs(delaunay) < (Flatten.Utils as any).getTolerance())
       return -1/0;
 
