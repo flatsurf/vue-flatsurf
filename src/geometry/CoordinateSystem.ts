@@ -96,7 +96,8 @@ export default class CoordinateSystem {
       return new Point(this, ...CoordinateSystem.inverse(this.embedding!).transform([point.x, point.y]));
     } else if (value instanceof Vector) {
       const point = this.embed(new Point(value.parent, value.x, value.y));
-      return new Vector(this, point.x, point.y);
+      const origin = this.embed(new Point(value.parent, 0, 0));
+      return new Vector(this, point.x - origin.x, point.y - origin.y);
     } else if (value instanceof Segment) {
       return new Segment(this, this.embed(value.start).value, this.embed(value.end).value);
     }

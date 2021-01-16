@@ -2,14 +2,12 @@
   <polygon :points="points" />
 </template>
 <script lang="ts">
-import { Component, Prop, } from "vue-property-decorator";
+import { Component, Inject, Prop, Vue } from "vue-property-decorator";
 
 import Point from "@/geometry/Point";
 
-import SVG from "./SVG";
-
 @Component
-export default class Ngon extends SVG {
+export default class Ngon extends Vue {
   @Prop({ required: true, type: Array }) vertices!: Point[];
 
   get points() {
@@ -18,12 +16,8 @@ export default class Ngon extends SVG {
       return `${xy.x},${xy.y}`;
     }).join(",");
   }
+
+  @Inject()
+  svg!: (xy: Point) => Point;
 }
 </script>
-<style lang="scss" scoped>
-polygon {
-	stroke: #d1d1d1;
-	stroke-width: 1px;
-	fill: rgba(lightcyan, .5);
-}
-</style>

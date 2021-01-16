@@ -29,6 +29,8 @@ import Point from "./Point";
 export default class Viewport {
   public constructor(ideal?: CoordinateSystem, width: number = 640, height: number = 640) {
     this.idealCoordinateSystem = ideal || new CoordinateSystem(true);
+    if (!this.idealCoordinateSystem.positive)
+      throw new Error("ideal coordinate system must be positive");
     this.viewportCoordinateSystem = new CoordinateSystem(false);
     this.width = width;
     this.height = height;
@@ -54,9 +56,9 @@ export default class Viewport {
     // 0), (width, height) box.
     this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
       this.width / this.visible.width, 0,
-      0, this.height / this.visible.height,
+      0, -this.height / this.visible.height,
       -this.visible.low.x * this.width / this.visible.width,
-      -this.visible.low.y * this.height / this.visible.height
+      this.visible.high.y * this.height / this.visible.height,
     ));
   }
 

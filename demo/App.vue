@@ -59,7 +59,8 @@ export default class App extends Vue {
   focus = this.idealCoordinateSystem.box([-1, -1], [1, 1]);
 
   protected onLayoutChanged(layout: FlatTriangulationLayout) {
-    this.focus = layout.bbox;
+    if (!this.focus.equalTo(layout.bbox))
+      this.focus = layout.bbox;
   }
 
   @Watch("raw")

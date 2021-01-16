@@ -28,18 +28,18 @@ import HalfEdgeLayout from './HalfEdgeLayout';
 import Box from '../Box';
 
 export default class FlatTriangulationLayout {
-  public constructor(surface: FlatTriangulation) {
+  public constructor(surface: FlatTriangulation, force: HalfEdge[]) {
     this.surface = surface;
+    this.force = force;
     this.recompute();
   }
 
   private recompute() {
     // Layout Algorithm:
-    // (1) Start from relatively elementary cells, e.g., Delaunay cells or
-    //     simply triangular faces.
+    // (1) Start from elementary cells, i.e., triangular faces.
     // (2) Greedily glue any two cells as long as no overlap is produced,
-    //     prefering the gluing that minimizes the area of a bounding
-    //     rectangle.
+    //     prefering metrics such as the gluing that minimizes the area of a
+    //     bounding rectangle.
     // (3) Pack the resulting cells into a box by randomly aligning
     //     corresponding half edges to create a single polygon (with self intersections)
     //     and move the pieces away from each other orthogonally until no overlaps
@@ -56,7 +56,7 @@ export default class FlatTriangulationLayout {
 
     // (2) Glue Cells
     for (const _ of Array(cells.length - 1))
-      cells = CellLayout.merge(cells);
+      cells = CellLayout.merge(cells, this.force);
 
     // (3) Pack Cells
     cells = CellLayout.pack(cells);
@@ -73,5 +73,6 @@ export default class FlatTriangulationLayout {
   }
 
   private readonly surface: FlatTriangulation;
+  private force: HalfEdge[];
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
 }

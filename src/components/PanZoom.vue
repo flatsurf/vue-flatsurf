@@ -1,5 +1,5 @@
 <template>
-  <div ref="viewport">
+  <div ref="viewport" @mousedown="onMouseDown" @mouseup="onMouseUp" :class="{ pan }">
     <slot v-bind:viewport="viewport" />
   </div>
 </template>
@@ -19,6 +19,7 @@ export default class PanZoom extends Vue {
   private viewport = new Viewport(this.coordinateSystem);
   private observer = new ResizeObserver(this.resize);
   private unpanzoom = () => {};
+  private pan = false;
 
   private resize() {
     this.viewport.resize(
@@ -42,6 +43,14 @@ export default class PanZoom extends Vue {
     this.observer.unobserve(this.$el);
   }
 
+  onMouseDown() {
+    this.pan = true;
+  }
+
+  onMouseUp() {
+    this.pan = false;
+  }
+
   private panzoom(e: any) {
     // We either zoom or pan; mixing this is probably confusing.
     if (e.dz !== 0) {
@@ -56,5 +65,10 @@ export default class PanZoom extends Vue {
 div {
   /* So the div is no higher than the SVG it contains. */
   line-height: 0;
+  cursor: grab;
+}
+
+div.pan {
+  cursor: grabbing;  
 }
 </style>

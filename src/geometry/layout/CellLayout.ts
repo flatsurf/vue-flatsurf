@@ -72,7 +72,6 @@ export default class CellLayout {
 
   // Return the half edges of this cell that overlap parts of the other cell.
   overlaps(other: CellLayout): HalfEdge[] {
-    // TODO: Test this explicitly.
     const otherPolygon = other.polygon;
     return this.halfEdges.filter((halfEdge) => {
       return this.layout[halfEdge].segment.intersect(otherPolygon) && !this.layout[halfEdge].segment.touch(otherPolygon);
@@ -125,7 +124,7 @@ export default class CellLayout {
   }
 
   // Merge two of the cells by identifying two opposite half edges.
-  static merge(cells: CellLayout[]): CellLayout[] {
+  static merge(cells: CellLayout[], force: HalfEdge[]): CellLayout[] {
     if (cells.length === 1)
       return cells;
 
@@ -141,7 +140,7 @@ export default class CellLayout {
         if (glue < 0) continue;
         const other = cells.find((other) => other.halfEdges.includes(-glue))!;
         if (cell === other) continue;
-        const score = CellLayout.score(glue, cell, other, cells);
+        const score = CellLayout.score(glue, cell, other, cells, force);
 
         if (score === null)
           continue;
@@ -163,7 +162,7 @@ export default class CellLayout {
   // Return the score (lower is better) to the visual glueing of glue of
   // parent and -glue of other; or return null if the two cannot be glued
   // without overlaps in the resulting picture.
-  private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[]): number | null {
+  private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[], force: HalfEdge[]): number | null {
     assert(parent.halfEdges.includes(glue) && other.halfEdges.includes(-glue));
     assert(!parent.layout[glue].inner && !other.layout[-glue].inner);
 
@@ -171,29 +170,41 @@ export default class CellLayout {
     if (parent.overlaps(other).length !== 0)
       return null;
 
+    // Prefer edges that have been explicitly selected.
+    if (force) {
+      if (force.includes(glue))
+        return -force.indexOf(glue);
+      if (force.includes(-glue))
+        return -force.indexOf(-glue);
+    }
+
     // Prefer edges that keep Delaunay cells intact.
-    const ca = parent.surface.vector(glue);
-    const cb = parent.surface.vector(parent.surface.vertices.image(glue));
-    const dc = parent.surface.vector(-parent.surface.faces.image(-glue));
+    {
+      const ca = parent.surface.vector(glue);
+      const cb = parent.surface.vector(parent.surface.vertices.image(glue));
+      const dc = parent.surface.vector(-parent.surface.faces.image(-glue));
 
-    const a = dc.add(ca);
-    const b = dc.add(cb);
-    const c = dc;
+      const a = dc.add(ca);
+      const b = dc.add(cb);
+      const c = dc;
 
-    const det = (x00: number, x01: number, x02: number, x10: number, x11: number, x12: number, x20: number, x21: number, x22: number) => x00 * (x11 * x22 - x12 * x21) - x10 * (x01 * x22 - x21 * x02) + x20 * (x01 * x12 - x11 * x02);
+      const det = (x00: number, x01: number, x02: number, x10: number, x11: number, x12: number, x20: number, x21: number, x22: number) => x00 * (x11 * x22 - x12 * x21) - x10 * (x01 * x22 - x21 * x02) + x20 * (x01 * x12 - x11 * x02);
 
-    const delaunay = det(a.x, a.y, a.x * a.x + a.y * a.y, b.x, b.y, b.x * b.x + b.y * b.y, c.x, c.y, c.x * c.x + c.y * c.y);
+      const delaunay = det(a.x, a.y, a.x * a.x + a.y * a.y, b.x, b.y, b.x * b.x + b.y * b.y, c.x, c.y, c.x * c.x + c.y * c.y);
 
-    if (Math.abs(delaunay) < (Flatten.Utils as any).getTolerance())
-      return -1/0;
+      if (Math.abs(delaunay) < (Flatten.Utils as any).getTolerance())
+        return 0;
+    }
 
     // Prefer edges that minimize the area of a bounding rectangle of the glued area.
-    const ungluedArea = cells.map((cell) => cell.polygon.boundingRect.area()).reduce((a, b) => a+b);
+    {
+      const ungluedArea = cells.map((cell) => cell.polygon.boundingRect.area()).reduce((a, b) => a+b);
 
-    const gluedArea = cells.filter((cell) => cell !== parent && cell !== other).map((cell) => cell.polygon.boundingRect.area()).reduce((a, b) => a + b, 0)
-      + CellLayout.glue(glue, parent, other).polygon.boundingRect.area();
+      const gluedArea = cells.filter((cell) => cell !== parent && cell !== other).map((cell) => cell.polygon.boundingRect.area()).reduce((a, b) => a + b, 0)
+        + CellLayout.glue(glue, parent, other).polygon.boundingRect.area();
 
-    return gluedArea / ungluedArea;
+      return gluedArea / ungluedArea;
+    }
   }
 
   // Glue parent and other along glue and return the resulting cell.

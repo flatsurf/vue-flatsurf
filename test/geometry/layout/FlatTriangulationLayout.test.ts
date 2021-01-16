@@ -42,7 +42,7 @@ describe("Layout Triangulation", () => {
   }, coordinateSystem);
 
   describe("Layout for a Torus", () => {
-    const layout = new FlatTriangulationLayout(torus);
+    const layout = new FlatTriangulationLayout(torus, []);
 
     it("lays out all half edges", () => {
       for (const he of torus.halfEdges) {

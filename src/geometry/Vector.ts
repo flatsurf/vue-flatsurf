@@ -51,6 +51,26 @@ export default class Vector {
   public get y() { return this.value.y; }
   public get xy() : [Coordinate, Coordinate] { return [this.x, this.y]; }
 
+  public rotate90CW() {
+    return new Vector(this.parent, this.parent.positive ? this.value.rotate90CW(): this.value.rotate90CCW());
+  }
+
+  public rotate90CCW() {
+    return new Vector(this.parent, this.parent.positive ? this.value.rotate90CCW(): this.value.rotate90CW());
+  }
+
+  public normalize() {
+    return new Vector(this.parent, this.value.normalize());
+  }
+
+  public multiply(scalar: number) {
+    return new Vector(this.parent, this.value.multiply(scalar));
+  }
+
+  public angleTo(ccw: Vector) {
+    return this.parent.positive ? this.parent.embed(ccw).value.angleTo(this.value) : this.value.angleTo(this.parent.embed(ccw).value);
+  }
+
   public invert() {
     return new Vector(this.parent, this.value.invert());
   }

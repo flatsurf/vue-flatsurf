@@ -40,7 +40,9 @@ export default class Segment {
   }
   
   public get start() { return new Point(this.parent, this.value.start); }
+  public get middle() { return new Point(this.parent, this.value.middle()); }
   public get end() { return new Point(this.parent, this.value.end); }
+  public get tangentInStart() { return new Vector(this.parent, this.value.tangentInStart()); }
 
   public translate(delta: Vector): Segment {
     delta = this.parent.embed(delta);
