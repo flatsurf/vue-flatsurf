@@ -19,7 +19,7 @@ export default class PanZoom extends Vue {
   private viewport = new Viewport(this.coordinateSystem);
   private observer = new ResizeObserver(this.resize);
   private unpanzoom = () => {};
-  private pan = false;
+  protected pan = false;
 
   private resize() {
     this.viewport.resize(

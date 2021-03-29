@@ -20,6 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
+import assert from "assert";
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem from "./CoordinateSystem";
@@ -28,21 +29,37 @@ import Polygon from './Polygon';
 import Vector from './Vector';
 
 export default class Segment {
+  public constructor(start: Point, end: Point);
   public constructor(parent: CoordinateSystem, value: Flatten.Segment);
   public constructor(parent: CoordinateSystem, start: Flatten.Point, end: Flatten.Point);
-  public constructor(parent: CoordinateSystem, value: Flatten.Point | Flatten.Segment, end?: Flatten.Point){
+  public constructor(parent: CoordinateSystem | Point, value: Point | Flatten.Point | Flatten.Segment, end?: Flatten.Point){
+    if (!(parent instanceof CoordinateSystem)) {
+      assert(value instanceof Point);
+      ({parent, value, end} = {
+        parent: parent.parent,
+        value: parent.value,
+        end: parent.parent.embed(value).value,
+      });
+    }
+
     this.parent = parent;
     if (end !== undefined) {
       const start = value as Flatten.Point;
       this.value = new Flatten.Segment(start, end);
-    } else
+    } else {
       this.value = value as Flatten.Segment;
+    }
   }
   
   public get start() { return new Point(this.parent, this.value.start); }
   public get middle() { return new Point(this.parent, this.value.middle()); }
   public get end() { return new Point(this.parent, this.value.end); }
   public get tangentInStart() { return new Vector(this.parent, this.value.tangentInStart()); }
+  public get tangentInEnd() { return new Vector(this.parent, this.value.tangentInEnd()); }
+
+  public at(relative: number) {
+    return this.start.translate(new Vector(this.parent, this.start, this.end).multiply(relative));
+  }
 
   public translate(delta: Vector): Segment {
     delta = this.parent.embed(delta);
@@ -55,6 +72,10 @@ export default class Segment {
 
   public touch(shape: Polygon): boolean {
     return Flatten.Relations.touch(shape.parent.embed(this).value, shape.value);
+  }
+
+  public get length() {
+    return this.value.length;
   }
 
   public equalTo(rhs: Segment, epsilon: number = 0): boolean {

@@ -18,7 +18,9 @@ import HalfEdge from "../geometry/triangulation/HalfEdge";
 
 import Point from "@/geometry/Point";
 import Vector from "@/geometry/Vector";
+import Segment from "@/geometry/Segment";
 import FlatTriangulationLayout from '@/geometry/layout/FlatTriangulationLayout';
+import { IHalfEdgeConfiguration } from "./HalfEdgeConfiguration";
 
 @Component({
   components: {
@@ -32,6 +34,7 @@ export default class SurfaceViewer extends Vue {
   forced = [] as HalfEdge[];
   selected = [] as HalfEdge[];
   hovered = [] as HalfEdge[];
+  indicator = {} as Record<HalfEdge, number | null>;
 
   @Provide()
   svg(xy: Vector | Point) : Vector | Point {
@@ -63,26 +66,38 @@ export default class SurfaceViewer extends Vue {
     this.selected = this.selected.filter((he) => he !== halfEdge && he !== -halfEdge);
   }
 
-  hover(halfEdge: HalfEdge) {
+  hover(halfEdge: HalfEdge, at: number) {
     this.hovered.push(halfEdge);
+    this.indicator[halfEdge] = at;
+    this.indicator[-halfEdge] = 1 - at;
   }
 
   unhover(halfEdge: HalfEdge) {
     this.hovered = this.hovered.filter((he) => he !== halfEdge && he !== -halfEdge);
+    this.indicator[halfEdge] = null;
+    this.indicator[-halfEdge] = null;
+  }
+
+  private relativizeOntoSegment(segment: Segment, point: Point): number {
+    const e = segment.value.tangentInStart();
+    const toPoint = new Vector(segment.parent, segment.start, point).value;
+    return e.dot(toPoint) / segment.value.length;
   }
 
   @Provide()
-  halfEdgeConfiguration(halfEdge: HalfEdge) {
+  halfEdgeConfiguration(halfEdge: HalfEdge): IHalfEdgeConfiguration {
     return {
       interactions: {
         click: () => this.glue(halfEdge),
-        enter: () => this.hover(halfEdge),
+        enter: (ev: MouseEvent, segment: Segment) => this.hover(halfEdge, this.relativizeOntoSegment(segment, new Point(this.viewport.viewportCoordinateSystem, ev.clientX, ev.clientY))),
         leave: () => this.unhover(halfEdge),
+        hover: (ev: MouseEvent, segment: Segment) => this.hover(halfEdge, this.relativizeOntoSegment(segment, new Point(this.viewport.viewportCoordinateSystem, ev.clientX, ev.clientY))),
       },
       state: {
         selected: this.selected.includes(halfEdge) || this.selected.includes(-halfEdge),
         glued: this.forced.includes(halfEdge) || this.forced.includes(-halfEdge),
         labeled: this.hovered.includes(halfEdge) || this.hovered.includes(-halfEdge),
+        indicator: this.indicator[halfEdge],
       },
     };
   }

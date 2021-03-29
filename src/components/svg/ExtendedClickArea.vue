@@ -1,5 +1,5 @@
 <template>
-  <g class="extended-click-area" @mousedown.prevent.stop="$emit('mousedown')" @click="$emit('click')" @mouseenter="$emit('mouseenter')" @mouseleave="$emit('mouseleave')" @mousemove="(e) => $emit('mousemove', e)" >
+  <g class="extended-click-area" @mousedown.prevent.stop="(e) => $emit('mousedown', e)" @click="(e) => $emit('click', e)" @mouseenter="(e) => $emit('mouseenter', e)" @mouseleave="(e) => $emit('mouseleave', e)" @mousemove="(e) => $emit('mousemove', e)" >
     <slot/>
     <g class="extension">
       <slot/>

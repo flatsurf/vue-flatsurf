@@ -1,38 +1,46 @@
 <template>
   <g>
+    <arrow class="indicator" v-if="indicator" :segment="indicator" />
     <segment-label v-if="halfEdgeConfiguration(halfEdge).state.labeled" :at="segment">{{ halfEdge }}</segment-label>
-    <extended-click-area @click="onClick" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
-      <segment :segment="segment" :class="{ selected, glued }" />
+    <extended-click-area @click="onClick" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @mousemove="onMouseMove">
+      <segment-component :segment="segment" :class="{ selected, glued }" />
     </extended-click-area>
   </g>
 </template>
 <script lang="ts">
 import { Component, Prop, Inject, Vue } from "vue-property-decorator";
 
-import Segmnt from "@/geometry/Segment";
-import Segment from "./svg/Segment.vue";
-import HalfEdg from "@/geometry/triangulation/HalfEdge";
+import Segment from "@/geometry/Segment";
+import Vector from "@/geometry/Vector";
+import SegmentComponent from "./svg/Segment.vue";
+import HalfEdge from "@/geometry/triangulation/HalfEdge";
 import SegmentLabel from "./svg/SegmentLabel.vue";
+import Arrow from "./svg/Arrow.vue";
 
 import ExtendedClickArea from "./svg/ExtendedClickArea.vue";
+import { IHalfEdgeConfiguration, DefaultHalfEdgeConfiguration } from "./HalfEdgeConfiguration";
 
 @Component({
-  components: { ExtendedClickArea, Segment, SegmentLabel },
+  components: { Arrow, ExtendedClickArea, SegmentComponent, SegmentLabel },
 })
-export default class HalfEdge extends Vue {
-  @Prop({required: true, type: Number}) halfEdge!: HalfEdg;
-  @Prop({required: true, type: Object}) segment!: Segmnt;
+export default class HalfEdgeComponent extends Vue {
+  @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
+  @Prop({required: true, type: Object}) segment!: Segment;
 
-  onClick() {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.click();
+  onClick(ev: MouseEvent) {
+    this.halfEdgeConfiguration(this.halfEdge).interactions.click(ev, this.segment);
   }
 
-  onMouseEnter() {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.enter();
+  onMouseEnter(ev: MouseEvent) {
+    this.halfEdgeConfiguration(this.halfEdge).interactions.enter(ev, this.segment);
   }
 
-  onMouseLeave() {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.leave();
+  onMouseLeave(ev: MouseEvent) {
+    this.halfEdgeConfiguration(this.halfEdge).interactions.leave(ev, this.segment);
+  }
+
+  onMouseMove(ev: MouseEvent) {
+    this.halfEdgeConfiguration(this.halfEdge).interactions.hover(ev, this.segment);
   }
 
   get selected() {
@@ -43,16 +51,20 @@ export default class HalfEdge extends Vue {
     return this.halfEdgeConfiguration(this.halfEdge).state.glued;
   }
 
-  @Inject({ default: (_halfEdge: HalfEdge) => {
-    return {
-      interactions: {
-        click: () => {},
-        enter: () => {},
-        leave: () => {},
-      },
+	get indicator() {
+    let indicator = this.halfEdgeConfiguration(this.halfEdge).state.indicator;
+    if (indicator) {
+		  const end = this.segment.at(indicator);
+		  const start = end.translate(this.svg(this.segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
+      return new Segment(start, end);
     }
-  }})
-  halfEdgeConfiguration: any;
+	}
+
+  @Inject({ default: () => DefaultHalfEdgeConfiguration })
+  halfEdgeConfiguration!: (halfEdge: HalfEdge) => IHalfEdgeConfiguration;
+
+  @Inject()
+  svg!: (xy: Vector) => Vector;
 }
 </script>
 <style lang="scss" scoped>
