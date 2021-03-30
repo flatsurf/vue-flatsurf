@@ -73,6 +73,10 @@ export default class Point {
       }
       hull.push(next);
       // TODO: This is numerically too unstable (and hangs sometimes.)
+      if (hull.length > vertices.length + 1) {
+        console.error("Convex Hull incorrect");
+        break;
+      }
     } while(!hull[hull.length - 1].equalTo(hull[0]));
 
     hull.pop();
