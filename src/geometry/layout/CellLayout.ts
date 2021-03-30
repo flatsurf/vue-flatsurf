@@ -215,9 +215,9 @@ export default class CellLayout {
     // Prefer edges that have been explicitly selected.
     if (force) {
       if (force.includes(glue))
-        return -force.indexOf(glue);
+        return -force.length + force.indexOf(glue);
       if (force.includes(-glue))
-        return -force.indexOf(-glue);
+        return -force.length + force.indexOf(-glue);
     }
 
     // Prefer edges that keep Delaunay cells intact.
