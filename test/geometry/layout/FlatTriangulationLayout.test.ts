@@ -41,8 +41,8 @@ describe("Layout Triangulation", () => {
     }
   }, coordinateSystem);
 
-  describe("Layout for a Torus", () => {
-    const layout = new FlatTriangulationLayout(torus, []);
+  describe("Layout for a Torus", async () => {
+    const layout = await FlatTriangulationLayout.layout(torus, []);
 
     it("lays out all half edges", () => {
       for (const he of torus.halfEdges) {

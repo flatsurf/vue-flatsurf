@@ -26,15 +26,22 @@ import HalfEdge from '../triangulation/HalfEdge';
 import CellLayout from './CellLayout';
 import HalfEdgeLayout from './HalfEdgeLayout';
 import Box from '../Box';
+import CancellationToken from "@/CancellationToken";
+import Progress from "@/Progress";
 
 export default class FlatTriangulationLayout {
-  public constructor(surface: FlatTriangulation, force: HalfEdge[]) {
+  private constructor(surface: FlatTriangulation, force: HalfEdge[]) {
     this.surface = surface;
     this.force = force;
-    this.recompute();
   }
 
-  private recompute() {
+  public static async layout(surface: FlatTriangulation, force: HalfEdge[], cancellation = new CancellationToken(), progress = new Progress()) {
+    const layout = new FlatTriangulationLayout(surface, force);
+    await layout.recompute(cancellation, progress);
+    return layout;
+  }
+
+  private async recompute(cancellation: CancellationToken, progress: Progress) {
     // Layout Algorithm:
     // (1) Start from elementary cells, i.e., triangular faces.
     // (2) Greedily glue any two cells as long as no overlap is produced,
@@ -54,12 +61,17 @@ export default class FlatTriangulationLayout {
     const origin = new Point(this.surface.vector(this.surface.halfEdges[0]).parent, 0, 0);
     let cells = this.surface.faces.cycles.map((face) => new CellLayout(this.surface, face, origin));
 
+
     // (2) Glue Cells
-    for (const _ of Array(cells.length - 1))
-      cells = CellLayout.merge(cells, this.force);
+    progress.task("Gluing Cells", cells.length - 1);
+    const cache = {};
+    for (const _ of Array(cells.length - 1)) {
+      progress.progress();
+      cells = await CellLayout.merge(cells, this.force, cache, cancellation, progress);
+    }
 
     // (3) Pack Cells
-    cells = CellLayout.pack(cells);
+    cells = CellLayout.pack(cells, progress);
 
     this.halfEdges = Object.assign({}, ...cells.map((cell) => cell.layout));
   }

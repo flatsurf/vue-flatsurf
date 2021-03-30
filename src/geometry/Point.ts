@@ -72,6 +72,7 @@ export default class Point {
           next = p;
       }
       hull.push(next);
+      // TODO: This is numerically too unstable (and hangs sometimes.)
     } while(!hull[hull.length - 1].equalTo(hull[0]));
 
     hull.pop();

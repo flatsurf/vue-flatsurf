@@ -31,6 +31,8 @@ import Point from '../Point';
 import Segment from '../Segment';
 import Polygon from '../Polygon';
 import FlatTriangulation from '../triangulation/FlatTriangulation';
+import Progress from "@/Progress";
+import CancellationToken from "@/CancellationToken";
 
 export default class CellLayout {
   // Create a layout by walking the boundary of the cell in counter-clockwise
@@ -55,26 +57,53 @@ export default class CellLayout {
     } else {
       this.layout = cell;
     }
+
+    this.boundingRectArea = this.polygon.boundingRect.area();
   }
 
   // Translate this cell so that half edge coincides with segment.
-  translate(halfEdge: HalfEdge, segment: Segment): void {
-    const before = this.layout[halfEdge].segment;
-    const delta = new Vector(before.parent, before.start, segment.start);
-    
-    // https://github.com/alexbol99/flatten-js/pull/75
-    assert(before.translate(delta).equalTo(segment, (Flatten.Utils as any).getTolerance()));
-    
-    this.halfEdges.map((halfEdge) => {
-      this.layout[halfEdge].segment = this.layout[halfEdge].segment.translate(delta);
-    });
+  translate(delta: Vector): void;
+  translate(halfEdge: HalfEdge, segment: Segment): void;
+  translate(halfEdge: HalfEdge | Vector, segment?: Segment) {
+    if (halfEdge instanceof Vector) {
+      const delta = halfEdge as Vector;
+      this.halfEdges.map((halfEdge) => {
+        this.layout[halfEdge].segment = this.layout[halfEdge].segment.translate(delta);
+      });
+    } else {
+      const before = this.layout[halfEdge].segment;
+      const delta = new Vector(before.parent, before.start, segment!.start);
+      
+      // https://github.com/alexbol99/flatten-js/pull/75
+      assert(before.translate(delta).equalTo(segment!, (Flatten.Utils as any).getTolerance()));
+
+      this.translate(delta);
+    }
   }
 
   // Return the half edges of this cell that overlap parts of the other cell.
   overlaps(other: CellLayout): HalfEdge[] {
     const otherPolygon = other.polygon;
     return this.halfEdges.filter((halfEdge) => {
-      return this.layout[halfEdge].segment.intersect(otherPolygon) && !this.layout[halfEdge].segment.touch(otherPolygon);
+      return !this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersect(otherPolygon) && !this.layout[halfEdge].segment.touch(otherPolygon);
+    });
+  }
+
+  someOverlaps(other: CellLayout): boolean {
+    const otherPolygon = other.polygon;
+    if (this.halfEdges.length > other.halfEdges.length)
+      return other.someOverlaps(this);
+    for (const halfEdge of this.halfEdges) {
+      if (!this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersect(otherPolygon) && !this.layout[halfEdge].segment.touch(otherPolygon))
+        return true;
+    }
+    return false;
+  }
+
+  touches(other: CellLayout): HalfEdge[] {
+    const otherPolygon = other.polygon;
+    return this.halfEdges.filter((halfEdge) => {
+      return !this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersect(otherPolygon) || this.layout[halfEdge].segment.touch(otherPolygon);
     });
   }
 
@@ -124,7 +153,7 @@ export default class CellLayout {
   }
 
   // Merge two of the cells by identifying two opposite half edges.
-  static merge(cells: CellLayout[], force: HalfEdge[]): CellLayout[] {
+  static async merge(cells: CellLayout[], force: HalfEdge[], cache: Record<HalfEdge, number | null> = {}, cancellation = new CancellationToken(), _progress = new Progress()): Promise<CellLayout[]> {
     if (cells.length === 1)
       return cells;
 
@@ -136,11 +165,19 @@ export default class CellLayout {
     }[];
 
     for (const cell of cells) {
+      if (await cancellation.cancellationRequested())
+        break;
+
       for (const glue of cell.halfEdges) {
         if (glue < 0) continue;
         const other = cells.find((other) => other.halfEdges.includes(-glue))!;
         if (cell === other) continue;
-        const score = CellLayout.score(glue, cell, other, cells, force);
+
+        if (cache[glue] === undefined) {
+          cache[glue] = CellLayout.score(glue, cell, other, cells, force);
+        }
+
+        const score = cache[glue];
 
         if (score === null)
           continue;
@@ -156,6 +193,11 @@ export default class CellLayout {
 
     const cell = CellLayout.glue(best.glue, best.cell, best.other);
 
+    for (let halfEdge of cell.halfEdges) {
+      delete cache[halfEdge];
+      delete cache[-halfEdge];
+    }
+
     return [cell, ...cells.filter((c) => c !== best.cell && c !== best.other)];
   }
 
@@ -167,7 +209,7 @@ export default class CellLayout {
     assert(!parent.layout[glue].inner && !other.layout[-glue].inner);
 
     other.translate(-glue, parent.layout[glue].segment.reverse());
-    if (parent.overlaps(other).length !== 0)
+    if (parent.someOverlaps(other))
       return null;
 
     // Prefer edges that have been explicitly selected.
@@ -198,10 +240,10 @@ export default class CellLayout {
 
     // Prefer edges that minimize the area of a bounding rectangle of the glued area.
     {
-      const ungluedArea = cells.map((cell) => cell.polygon.boundingRect.area()).reduce((a, b) => a+b);
+      const ungluedArea = cells.map((cell) => cell.boundingRectArea).reduce((a, b) => a+b);
 
-      const gluedArea = cells.filter((cell) => cell !== parent && cell !== other).map((cell) => cell.polygon.boundingRect.area()).reduce((a, b) => a + b, 0)
-        + CellLayout.glue(glue, parent, other).polygon.boundingRect.area();
+      const gluedArea = cells.filter((cell) => cell !== parent && cell !== other).map((cell) => cell.boundingRectArea).reduce((a, b) => a + b, 0)
+        + CellLayout.glue(glue, parent, other).boundingRectArea;
 
       return gluedArea / ungluedArea;
     }
@@ -220,10 +262,61 @@ export default class CellLayout {
     return new CellLayout(parent.surface, {...parent.layout, ...other.layout, [glue]: { segment: parent.layout[glue].segment, inner: true }, [-glue]: { segment: other.layout[-glue].segment, inner: true }});
   }
 
-  static pack(cells: CellLayout[]): CellLayout[] {
-    return cells;
+  private static packable(cells: CellLayout[], packed: CellLayout[]) {
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+
+      // Find a half edge that connects to something that has already been packed
+      for (let halfEdge of cell.halfEdges) {
+        for (let cell_ of packed) {
+          for (let halfEdge_ of cell_.halfEdges) {
+            if (halfEdge === -halfEdge_) {
+              cells.splice(i, 1);
+              return {
+                cell,
+                cell_,
+                halfEdge,
+                halfEdge_,
+              };
+            }
+          }
+        }
+      }
+    }
+
+    assert(false, `Could not find any cells packable with ${packed} among ${cells}`);
+  }
+
+  static pack(cells: CellLayout[], progress: Progress): CellLayout[] {
+    if (cells.length <= 1) return cells;
+
+    const packed = [cells.pop()] as CellLayout[];
+
+    progress.task("Packing Cells", cells.length);
+
+    while (cells.length) {
+      progress.progress();
+
+      const {cell, cell_, halfEdge, halfEdge_} = CellLayout.packable(cells, packed);
+
+      const segment = cell.layout[halfEdge].segment;
+      const segment_ = cell_.layout[halfEdge_].segment.reverse();
+
+      cell.translate(halfEdge, segment_);
+
+      const delta = segment.tangentInStart.rotate90CCW();
+      
+      do {
+        cell.translate(delta);
+      } while(packed.some((other) => cell.touches(other).length))
+
+      packed.push(cell);
+    }
+
+    return packed;
   }
 
   protected readonly surface: FlatTriangulation;
+  protected readonly boundingRectArea: number;
   public readonly layout: Record<HalfEdge, HalfEdgeLayout>;
 }

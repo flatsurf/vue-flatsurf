@@ -31,6 +31,7 @@ export default class SurfaceViewer extends Vue {
   @Prop({ required: true }) viewport!: Viewport;
   @Prop({ required: true }) surface!: FlatTriangulation;
   
+  layout = null as FlatTriangulationLayout | null;
   forced = [] as HalfEdge[];
   selected = [] as HalfEdge[];
   hovered = [] as HalfEdge[];
@@ -50,6 +51,7 @@ export default class SurfaceViewer extends Vue {
   }
 
   onLayoutChanged(layout: FlatTriangulationLayout) {
+    this.layout = layout;
     this.$emit('layout', layout);
   }
 
@@ -61,7 +63,7 @@ export default class SurfaceViewer extends Vue {
 
     this.selected.push(halfEdge); 
 
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     this.selected = this.selected.filter((he) => he !== halfEdge && he !== -halfEdge);
   }
@@ -88,7 +90,10 @@ export default class SurfaceViewer extends Vue {
   halfEdgeConfiguration(halfEdge: HalfEdge): IHalfEdgeConfiguration {
     return {
       interactions: {
-        click: () => this.glue(halfEdge),
+        click: () => {
+          this.unhover(halfEdge)
+          this.glue(halfEdge)
+        },
         enter: (ev: MouseEvent, segment: Segment) => this.hover(halfEdge, this.relativizeOntoSegment(segment, new Point(this.viewport.viewportCoordinateSystem, ev.clientX, ev.clientY))),
         leave: () => this.unhover(halfEdge),
         hover: (ev: MouseEvent, segment: Segment) => this.hover(halfEdge, this.relativizeOntoSegment(segment, new Point(this.viewport.viewportCoordinateSystem, ev.clientX, ev.clientY))),

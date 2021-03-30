@@ -25,8 +25,6 @@ import Flatten from "@flatten-js/core";
 import CoordinateSystem from "./CoordinateSystem";
 import Point from "./Point";
 
-import minBy from "lodash-es/minBy";
-
 export default class Polygon {
   public constructor(parent: CoordinateSystem, value: Flatten.Polygon) {
     this.parent = parent;
@@ -34,7 +32,7 @@ export default class Polygon {
   }
 
   public get convexHull(): Polygon {
-    return Point.convexHull(this.value.vertices.map((vertex) => new Point(this.parent, vertex)));
+    return Point.convexHull(this.vertices);
   }
 
   // Return a bounding rectangle of minimal area. (The rectangle might not be
@@ -42,11 +40,14 @@ export default class Polygon {
   public get boundingRect(): Polygon {
     const hull = this.convexHull;
 
+    let minArea = 1./0.;
+    let minAreaRect = null;
+
     // Algorithm: The minimal bounding rect of a convex polygon must be aligned to one of its sides.
-    const rects = [...hull.value.edges].map((edge) => {
+    for (const edge of hull.value.edges) {
       // Rotate such that the edge is horizontal.
       const segment: Flatten.Segment = edge.shape;
-      const direction = new Flatten.Vector(segment.pe.x - segment.ps.x, segment.pe.y - segment.ps.y);
+      const direction = segment.tangentInStart();
       const theta = new Flatten.Vector(1, 0).angleTo(direction);
       const rotation = new Flatten.Matrix(
         Math.cos(-theta), -Math.sin(-theta),
@@ -54,14 +55,22 @@ export default class Polygon {
       );
       const aligned = hull.value.transform(rotation);
 
-      // Construct the bounding box.
-      const box = aligned.box;
+      // Compute the area of this bounding box.
+      const area = aligned.area();
 
-      // Rotate the box back.
-      return new Polygon(this.parent, new Flatten.Polygon(box.toPoints()).transform(CoordinateSystem.inverse(rotation)));
-    });
+      if (area < minArea) {
+        minArea = area;
 
-    return minBy(rects, (rect) => rect.area())!;
+        // Rotate the box back.
+        minAreaRect = new Polygon(this.parent, new Flatten.Polygon(aligned.box.toPoints()).transform(CoordinateSystem.inverse(rotation)));
+      }
+    }
+
+    return minAreaRect!;
+  }
+
+  public get vertices(): Point[] {
+    return this.value.vertices.map((vertex) => new Point(this.parent, vertex));
   }
 
   public area(): number {

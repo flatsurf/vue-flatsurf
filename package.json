@@ -20,7 +20,7 @@
     "src/**/*.vue"
   ],
   "dependencies": {
-    "@flatten-js/core": "^1.2.13",
+    "@flatten-js/core": "^1.2.22",
     "lodash-es": "^4.17.15",
     "pan-zoom": "3.5.0"
   },
