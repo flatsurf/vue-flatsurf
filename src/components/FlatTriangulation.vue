@@ -1,5 +1,5 @@
 <template>
-  <g v-if="ready" class="FlatTriangulation">
+  <g v-if="layout != null" class="FlatTriangulation">
     <g>
       <face v-for="(face, i) of faces" :key="i" :vertices="face" />
     </g>
@@ -12,6 +12,7 @@
 import { Vue, Component, Inject, Prop, Watch } from "vue-property-decorator";
 import Triangulation from "../geometry/triangulation/FlatTriangulation";
 import Face from "./Face.vue";
+import Point from "../geometry/Point";
 import HalfEdgeComponent from "./HalfEdge.vue";
 import FlatTriangulationLayout from "../geometry/layout/FlatTriangulationLayout";
 import HalfEdge from "../geometry/triangulation/HalfEdge";
@@ -30,21 +31,8 @@ export default class FlatTriangulation extends Vue {
 
   private layout = null as FlatTriangulationLayout | null;
   private cancellation = new CancellationToken();
-
-  protected get faces() {
-    const layout = this.layout;
-    if (layout === null)
-      return [];
-    return this.surface.faces.cycles.map((face) => face.map((he) => layout.layout(he).segment.end));
-  }
-
-  protected get halfEdges() {
-    return this.surface.halfEdges;
-  }
-
-  protected get ready() {
-    return this.layout != null;
-  }
+  protected halfEdges = [] as HalfEdge[];
+  protected faces = [] as Point[];
 
   created() {
     this.relayout();
@@ -74,6 +62,8 @@ export default class FlatTriangulation extends Vue {
         throw e;
       }
       this.$emit("layout", this.layout);
+      this.halfEdges = this.surface.halfEdges;
+      this.faces = this.surface.faces.cycles.map((face) => face.map((he) => this.layout!.layout(he).segment.end)) as any;
     });
 
   }
