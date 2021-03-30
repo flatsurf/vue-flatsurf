@@ -1,5 +1,5 @@
 <template>
-  <v-overlay class="loading-overlay" v-if="cancellation != null" :z-index="0">
+  <v-overlay class="loading-overlay" :opacity=".2" v-if="cancellation != null && visible" :z-index="0">
     <v-container>
       <v-row>
         <v-col>
@@ -16,7 +16,7 @@
   </v-overlay>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import CancellationToken from "../src/CancellationToken";
 import Progress from "../src/Progress";
 
@@ -24,6 +24,19 @@ import Progress from "../src/Progress";
 export default class Overlay extends Vue {
   @Prop({required: true}) cancellation!: CancellationToken | null;
   @Prop({required: true}) progress!: Progress | null;
+
+  visible = false;
+
+  @Watch("cancellation", {immediate: true})
+  onCancellation(value: CancellationToken) {
+    if (value == null)
+      this.visible = false;
+    else
+      setTimeout(() => {
+        if (this.cancellation === value)
+          this.visible = true
+      }, 150);
+  }
 
   get name() {
     return this.progress!.stats.name;

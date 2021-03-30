@@ -63,7 +63,9 @@ export default class SurfaceViewer extends Vue {
 
     this.selected.push(halfEdge); 
 
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => this.$once("layout", resolve));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     this.selected = this.selected.filter((he) => he !== halfEdge && he !== -halfEdge);
   }

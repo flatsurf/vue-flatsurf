@@ -81,10 +81,10 @@ line {
   stroke: red;
   stroke-width: 2px;
   stroke-dasharray: 10;
-  animation: dash 1000ms linear;
+  animation: dash 1000ms linear infinite;
 }
 
 @keyframes dash {
-  to { stroke-dashoffset: 25; }
+  to { stroke-dashoffset: 20; }
 }
 </style>

@@ -66,7 +66,6 @@ export default class FlatTriangulation extends Vue {
   run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => void;
 
   async relayout() {
-    this.layout = null;
     this.cancellation.abort();
     this.run(async (cancellation, progress) => {
       this.cancellation = cancellation;
