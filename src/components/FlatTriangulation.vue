@@ -1,12 +1,10 @@
 <template>
-  <g>
-    <g v-if="ready">
-      <g>
-        <face v-for="(face, i) of faces" :key="i" :vertices="face" />
-      </g>
-      <g>
-        <half-edge-component v-for="halfEdge of halfEdges" :key="halfEdge" :segment="layout.layout(halfEdge).segment" :half-edge="halfEdge" />
-      </g>
+  <g v-if="ready" class="FlatTriangulation">
+    <g>
+      <face v-for="(face, i) of faces" :key="i" :vertices="face" />
+    </g>
+    <g>
+      <half-edge-component v-for="halfEdge of halfEdges" :key="halfEdge" :class="{ inner: layout.layout(halfEdge).inner }" :segment="layout.layout(halfEdge).segment" :half-edge="halfEdge" />
     </g>
   </g>
 </template>
@@ -81,3 +79,12 @@ export default class FlatTriangulation extends Vue {
   }
 }
 </script>
+<style>
+.FlatTriangulation .inner {
+  display: none;
+}
+
+.FlatTriangulation:hover .inner {
+  display: unset;
+}
+</style>
