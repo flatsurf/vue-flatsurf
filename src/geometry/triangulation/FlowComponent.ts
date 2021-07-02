@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,22 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-// Currently, HalfEdge is just a plain number since wrapping it into an object
-// makes our live much harder in several places, e.g., it cannot be used as a
-// key in an object anymore.
+import CoordinateSystem from '../CoordinateSystem';
+import FlowConnection, { FlowConnectionSchema } from "./FlowConnection";
 
-type HalfEdge = number;
+export default class FlowComponent {
+  public static parse(yaml: {
+    cylinder: boolean,
+    perimeter: FlowConnectionSchema[],
+  }, coordinateSystem: CoordinateSystem) : FlowComponent {
+    return new FlowComponent(yaml.cylinder, yaml.perimeter.map(connection => FlowConnection.parse(connection, coordinateSystem)));
+  }
 
-export type HalfEdgeSchema = number;
+  private constructor(cylinder: boolean, perimeter: FlowConnection[]) {
+    this.cylinder = cylinder;
+    this.perimeter = perimeter;
+  }
 
-export default HalfEdge;
+  public readonly cylinder: boolean;
+  public readonly perimeter: FlowConnection[];
+}

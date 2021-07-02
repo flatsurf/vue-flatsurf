@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,19 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-// Currently, HalfEdge is just a plain number since wrapping it into an object
-// makes our live much harder in several places, e.g., it cannot be used as a
-// key in an object anymore.
+import iwanthue from "iwanthue";
 
-type HalfEdge = number;
+export default class Palette {
+  constructor(colors: number = 2) {
+    // TODO: Typings in iwanthue are wrong.
+    this.palette = iwanthue(colors >= 2 ? colors : 2, { seed: 1337 as any });
+  }
 
-export type HalfEdgeSchema = number;
+  color(i: number) {
+    if (i >= this.palette.length)
+      console.warn("Color outside of palette bounds requested.");
+    return this.palette[i % this.palette.length];
+  }
 
-export default HalfEdge;
+  private readonly palette;
+}

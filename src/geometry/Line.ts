@@ -22,43 +22,31 @@
 
 import Flatten from "@flatten-js/core";
 
-import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
-import Vector from './Vector';
-import Polygon from './Polygon';
+import Point from "./Point";
+import Vector from "./Vector";
+import CoordinateSystem from "./CoordinateSystem";
 
-export default class Point {
-  public constructor(parent: CoordinateSystem, x: Coordinate, y: Coordinate);
-  public constructor(parent: CoordinateSystem, p: Flatten.Point);
-  public constructor(parent: CoordinateSystem, x: Coordinate | Flatten.Point, y?: Coordinate) {
-    this.parent = parent;
-    if (typeof(x) === "number")
-      this.value = new Flatten.Point(x, y);
+export default class Line {
+  constructor(pt: Point, norm: Vector);
+  constructor(a: Point, b: Point);
+  public constructor(pt: Point, norm: Point | Vector) {
+    this.parent = pt.parent;
+    if (norm instanceof Point)
+      this.value = new Flatten.Line(pt.value, this.parent.embed(norm).value);
     else
-      this.value = x;
-  }
-  
-  public get x() { return this.value.x; }
-  public get y() { return this.value.y; }
-  public get xy() : [Coordinate, Coordinate] { return [this.x, this.y]; }
-
-  public equalTo(rhs: Point, epsilon: number = 0): boolean {
-    if (this.parent === rhs.parent)
-      return Math.abs(this.x - rhs.x) <= epsilon && Math.abs(this.y - rhs.y) <= epsilon;
-    return this.parent.embed(rhs).equalTo(this);
+      this.value = new Flatten.Line(pt.value, this.parent.embed(norm).value);
   }
 
-  public toString(): string {
-    return `(${this.x}, ${this.y})`;
+  public intersect(other: Line): Point | null {
+    const intersections = other.parent.embed(this).value.intersect(other.value).map((intersection) => new Point(other.parent, intersection));
+    if (intersections.length === 0) return null;
+    if (intersections.length !== 1) throw Error("not implemented: Line.intersection()");
+    return intersections[0];
   }
 
-  public on(shape: Polygon): boolean {
-    return shape.parent.embed(this).value.on(shape.value);
-  }
-
-  public translate(vector: Vector): Point {
-    return new Point(this.parent, this.value.translate(this.parent.embed(vector).value));
-  }
+  public get pt() { return new Point(this.parent, this.value.pt); }
+  public get norm() { return new Vector(this.parent, this.value.norm); }
 
   public readonly parent: CoordinateSystem;
-  public readonly value: Flatten.Point;
+  public readonly value: Flatten.Line;
 }

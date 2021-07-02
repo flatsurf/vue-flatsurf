@@ -20,7 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem from "./CoordinateSystem";
@@ -34,11 +33,11 @@ export default class Segment {
   public constructor(parent: CoordinateSystem, start: Flatten.Point, end: Flatten.Point);
   public constructor(parent: CoordinateSystem | Point, value: Point | Flatten.Point | Flatten.Segment, end?: Flatten.Point){
     if (!(parent instanceof CoordinateSystem)) {
-      assert(value instanceof Point);
+      console.assert(value instanceof Point, value);
       ({parent, value, end} = {
         parent: parent.parent,
         value: parent.value,
-        end: parent.parent.embed(value).value,
+        end: parent.parent.embed(value as Point).value,
       });
     }
 
@@ -66,12 +65,33 @@ export default class Segment {
     return new Segment(this.parent, this.value.translate(delta.value));
   }
 
-  public intersect(shape: Polygon): boolean {
+  // Return the points of intersection between this segment and the segments
+  // forming the boundary of the polygon. If this segment overlaps with one of
+  // the boundary segments, the end points of the overlap are included. If it
+  // touches, the point of touching is included.
+  public intersect(shape: Polygon): Point[] {
+    const intersections = shape.parent.embed(this).value.intersect(shape.value).map(value => new Point(shape.parent, value));
+    if(this.start.on(shape))
+      // TODO: Bug in flatten.
+      intersections.push(this.start);
+    if (this.end.on(shape))
+      // TODO: Bug in flatten.
+      intersections.push(this.end);
+    return intersections;
+  }
+
+  // Return whether this segment and the (filled) shape have at least one point
+  // in common.
+  public intersects(shape: Polygon): boolean {
     return Flatten.Relations.intersect(shape.parent.embed(this).value, shape.value);
   }
 
   public touch(shape: Polygon): boolean {
     return Flatten.Relations.touch(shape.parent.embed(this).value, shape.value);
+  }
+
+  public toString(): string {
+    return `((${this.value.start.x}, ${this.value.start.y}), (${this.value.end.x}, ${this.value.end.y}))`;
   }
 
   public get length() {

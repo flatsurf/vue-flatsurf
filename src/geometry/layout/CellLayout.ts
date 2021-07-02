@@ -81,29 +81,87 @@ export default class CellLayout {
     }
   }
 
-  // Return the half edges of this cell that overlap parts of the other cell.
-  overlaps(other: CellLayout): HalfEdge[] {
+  // Return the HalfEdges that glue correctly between this layout and `other`
+  // currently or return an empty array if something overlaps or touches
+  // incorrectly.
+  glues(other: CellLayout): HalfEdge[] {
     const otherPolygon = other.polygon;
-    return this.halfEdges.filter((halfEdge) => {
-      return !this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersect(otherPolygon) && !this.layout[halfEdge].segment.touch(otherPolygon);
-    });
-  }
 
-  someOverlaps(other: CellLayout): boolean {
-    const otherPolygon = other.polygon;
-    if (this.halfEdges.length > other.halfEdges.length)
-      return other.someOverlaps(this);
+    const glued = [];
+
     for (const halfEdge of this.halfEdges) {
-      if (!this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersect(otherPolygon) && !this.layout[halfEdge].segment.touch(otherPolygon))
-        return true;
+      if (this.layout[halfEdge].segment.intersects(otherPolygon)) {
+        // This half edge and the other cell have at least a point in common.
+
+        if (this.layout[halfEdge].segment.middle.on(otherPolygon)) {
+          if (other.halfEdges.includes(-halfEdge)) {
+            // If this half edge has its counterpart in the other cell, then we
+            // want them to be glued correctly.
+            if (this.layout[halfEdge].segment.equalTo(other.layout[-halfEdge].segment.reverse(), Flatten.Utils.getTolerance())) {
+              glued.push(halfEdge);
+              continue;
+            } else {
+              return [];
+            }
+          } else {
+            return [];
+          }
+        }
+
+        const intersections = this.layout[halfEdge].segment.intersect(otherPolygon);
+        if (intersections.length === 0) {
+          // This half edge is completely inside the other cell.
+          return [];
+        }
+
+        // Check whether the intersection points are consistently glued.
+        for (const intersection of intersections) {
+          const touchConsistent = (source: HalfEdge) => {
+              for (const vertex of this.surface.vertices.cycles) {
+                if (!vertex.includes(source)) continue;
+
+                for (const touch of vertex) {
+                  if (!other.halfEdges.includes(touch)) continue;
+
+                  if (intersection.equalTo(other.layout[touch].segment.start, Flatten.Utils.getTolerance()))
+                    return true;
+              }
+            };
+            // Not touching at a vertex or not touching at this vertex.
+            return false;
+          }
+
+          if (intersection.equalTo(this.layout[halfEdge].segment.start, Flatten.Utils.getTolerance())) {
+            // The cells touch at the starting point of this half edge. We
+            // check whether what it touches is the same vertex in the other
+            // cell.
+            if (!touchConsistent(halfEdge)) {
+              return [];
+            }
+          }
+          else if (intersection.equalTo(this.layout[halfEdge].segment.end, Flatten.Utils.getTolerance())) {
+            // The cells touch at the end point of this half edge. We
+            // check whether what it touches is the same vertex in the other
+            // cell.
+            if (!touchConsistent(-halfEdge)) {
+              return [];
+            }
+          } else {
+            // The cells touch not at the end point of a half edge.
+            return [];
+          }
+        }
+      }
     }
-    return false;
+
+    assert(glued.length !== 0);
+    return glued;
   }
 
   touches(other: CellLayout): HalfEdge[] {
     const otherPolygon = other.polygon;
     return this.halfEdges.filter((halfEdge) => {
-      return !this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersect(otherPolygon) || this.layout[halfEdge].segment.touch(otherPolygon);
+      return !this.layout[halfEdge].inner && this.layout[halfEdge].segment.intersects(otherPolygon) || this.layout[halfEdge].segment.touch(otherPolygon);
     });
   }
 
@@ -146,6 +204,10 @@ export default class CellLayout {
 
   private get parent() {
     return this.layout[this.halfEdges[0]].segment.parent;
+  }
+
+  public toString(): string {
+    return "{" + this.halfEdges.map((he) => `${he}: ${this.layout[he].segment}`).join(", ") + "}";
   }
 
   get halfEdges(): HalfEdge[] {
@@ -209,8 +271,10 @@ export default class CellLayout {
     assert(!parent.layout[glue].inner && !other.layout[-glue].inner);
 
     other.translate(-glue, parent.layout[glue].segment.reverse());
-    if (parent.someOverlaps(other))
+    if (parent.glues(other).length === 0) {
       return null;
+    }
+
 
     // Prefer edges that have been explicitly selected.
     if (force) {
@@ -250,6 +314,7 @@ export default class CellLayout {
   }
 
   // Glue parent and other along glue and return the resulting cell.
+  // TODO: Also glue everything else that happens to glue.
   private static glue(glue: HalfEdge, parent: CellLayout, other: CellLayout): CellLayout {
     other.translate(-glue, parent.layout[glue].segment.reverse());
 

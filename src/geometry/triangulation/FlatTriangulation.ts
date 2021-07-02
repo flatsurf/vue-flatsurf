@@ -25,18 +25,20 @@ import xor from "lodash-es/xor";
 import HalfEdge from "./HalfEdge";
 import Permutation from "./Permutation";
 
-import Vector from "../Vector";
+import Vector, { VectorSchema } from "../Vector";
+import Point from "../Point";
 import CoordinateSystem from '../CoordinateSystem';
-import Flatten from '@flatten-js/core';
+
+export interface FlatTriangulationSchema {
+  vertices: Array<HalfEdge[]>,
+  vectors: { [key: number]: VectorSchema }
+};
 
 export default class FlatTriangulation {
-  public static parse(yaml: {
-    vertices: Array<HalfEdge[]>,
-    vectors: { [key: number]: { x: number, y: number } }
-  }, coordinateSystem: CoordinateSystem) : FlatTriangulation {
+  public static parse(yaml: FlatTriangulationSchema, coordinateSystem: CoordinateSystem) : FlatTriangulation {
     return new FlatTriangulation(
       Permutation.fromCycles(yaml.vertices),
-      Object.fromEntries(Object.entries(yaml.vectors).map(([halfEdge, vector]) => [halfEdge, new Vector(coordinateSystem, vector.x, vector.y)]))
+      Object.fromEntries(Object.entries(yaml.vectors).map(([halfEdge, vector]) => [halfEdge, Vector.parse(vector, coordinateSystem)]))
     );
   }
 
@@ -53,9 +55,13 @@ export default class FlatTriangulation {
     ).length !== 0)
       throw Error(`Provided vectors {${Object.keys(this.vectors)}} and present half edges {${this.halfEdges}} do not coincide.`);
 
+    const coordinateSystem = this.vectors['1'].parent;
+
     for (const face of this.faces.cycles) {
-      if (!face.reduce((sum, he) => sum.translate(this.vector(he).value), new Flatten.Point()).equalTo(new Flatten.Point()))
-        throw Error(`Face ${face} is not closed.`);
+      const sum = face.reduce((sum, he) => sum.translate(this.vector(he)), new Point(coordinateSystem, 0, 0));
+      if (!sum.equalTo(new Point(coordinateSystem, 0, 0), 1e-6))
+        throw Error(`Face ${face} is not closed. Going around the face gives (${sum.x}, ${sum.y}) but should be zero.`);
+      // TODO: Wiggle the half edges to a place to make the faces closed in double coordinates.
     }
   }
 

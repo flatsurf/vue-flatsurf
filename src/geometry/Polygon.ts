@@ -20,6 +20,8 @@
  * SOFTWARE.
  * *****************************************************************************/
 
+import assert from "assert";
+
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem from "./CoordinateSystem";
@@ -32,7 +34,50 @@ export default class Polygon {
   }
 
   public get convexHull(): Polygon {
-    return Point.convexHull(this.vertices);
+    return Polygon.convexHull(this.vertices);
+  }
+
+  // Compute the convex hull of the points (using the slow Jarvis march
+  // algorithm.)
+  public static convexHull(points: Point[]): Polygon {
+    assert(points.length !== 0);
+
+    const coordinateSystem = points[0].parent;
+
+    const vertices = points.map((p) => coordinateSystem.embed(p).value);
+
+    assert(vertices.some((p) => !p.equalTo(vertices[0])));
+
+    const hull = [vertices.reduce((p, q) => {
+      if (p.x < q.x)
+        return p;
+      if (p.x > q.x)
+        return q
+      if (p.y < q.y)
+        return p;
+      return q;
+    })];
+
+    do {
+      const last = hull[hull.length - 1];
+      let next = vertices[0].equalTo(last) ? vertices[1] : vertices[0];
+      for (let p of vertices) {
+        if (p.leftTo(new Flatten.Line(last, next)))
+          next = p;
+      }
+      hull.push(next);
+      // TODO: This is numerically too unstable (and hangs sometimes.)
+      if (hull.length > vertices.length + 1) {
+        console.error("Convex Hull incorrect");
+        break;
+      }
+    } while(!hull[hull.length - 1].equalTo(hull[0]));
+
+    hull.pop();
+
+    const polygon = new Flatten.Polygon();
+    polygon.addFace(hull);
+    return new Polygon(coordinateSystem, polygon);
   }
 
   // Return a bounding rectangle of minimal area. (The rectangle might not be

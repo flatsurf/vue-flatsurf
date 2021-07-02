@@ -26,6 +26,11 @@ import Flatten from "@flatten-js/core";
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
 import Point from './Point';
 
+export interface VectorSchema {
+  x: number,
+  y: number,
+};
+
 export default class Vector {
   public constructor(parent: CoordinateSystem, x: Coordinate, y: Coordinate);
   public constructor(parent: CoordinateSystem, p: Flatten.Vector);
@@ -45,6 +50,10 @@ export default class Vector {
       const b = parent.embed(y);
       this.value = new Flatten.Vector(a.value, b.value);
     }
+  }
+
+  public static parse(yaml: VectorSchema, coordinateSystem: CoordinateSystem): Vector {
+    return new Vector(coordinateSystem, yaml.x, yaml.y);
   }
   
   public get x() { return this.value.x; }

@@ -26,6 +26,7 @@ import Point from "./Point";
 import Box from "./Box";
 import Vector from "./Vector";
 import Segment from "./Segment";
+import Line from "./Line";
 
 export type Coordinate = number;
 
@@ -71,7 +72,8 @@ export default class CoordinateSystem {
   public embed(point: Point): Point;
   public embed(vector: Vector): Vector;
   public embed(segment: Segment): Segment;
-  public embed(value: Box | Point | Vector | Segment) : Box | Point | Vector | Segment {
+  public embed(line: Line): Line;
+  public embed(value: Box | Point | Vector | Segment | Line) : Box | Point | Vector | Segment | Line {
     if (value instanceof Box) {
       let box = value as Box;
       return new Box(this, this.embed(box.low).xy, this.embed(box.high).xy);
@@ -100,6 +102,8 @@ export default class CoordinateSystem {
       return new Vector(this, point.x - origin.x, point.y - origin.y);
     } else if (value instanceof Segment) {
       return new Segment(this, this.embed(value.start).value, this.embed(value.end).value);
+    } else if (value instanceof Line) {
+      return new Line(this.embed(value.pt), this.embed(value.norm));
     }
 
     throw Error(`cannot embed this type of object into coordinate system yet`);

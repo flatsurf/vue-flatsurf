@@ -9,7 +9,7 @@ import Viewport from "../geometry/Viewport";
 import CoordinateSystem from "../geometry/CoordinateSystem";
 import Point from "../geometry/Point";
 import Box from "../geometry/Box";
-import panzoom from "pan-zoom";
+import panzoom from "pan-zoom/index.js";
 
 @Component
 export default class PanZoom extends Vue {

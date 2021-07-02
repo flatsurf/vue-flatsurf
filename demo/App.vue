@@ -7,10 +7,8 @@ A demo application that lets the user load a YAML serialized surface.
   <v-app>
     <v-main>
       <v-container fluid fill-height>
-        <pan-zoom v-slot="{ viewport }" class="surface" :coordinate-system="idealCoordinateSystem" :focus="focus">
-          <surface-viewer :viewport="viewport" :surface="surface" @layout="onLayoutChanged" />
-        </pan-zoom>
         <overlay :cancellation="overlay" :progress="progress" />
+          <surface-viewer :raw="raw" @error="onError" @ok="() => onError()" />
       </v-container>
       <v-dialog v-model="editor" fullscreen hide-overlay transition="dialog-bottom-transition">
         <template v-slot:activator="{ on, attrs }">
@@ -33,14 +31,10 @@ A demo application that lets the user load a YAML serialized surface.
   </v-app>
 </template>
 <script lang="ts">
-import { Component, Provide, Vue, Watch } from "vue-property-decorator";
+import { Component, Provide, Vue } from "vue-property-decorator";
 import PanZoom from "@/components/PanZoom.vue";
 import SurfaceViewer from "@/components/SurfaceViewer.vue";
-import CoordinateSystem from "@/geometry/CoordinateSystem";
-import FlatTriangulation from "@/geometry/triangulation/FlatTriangulation";
-import FlatTriangulationLayout from "@/geometry/layout/FlatTriangulationLayout";
-import square from "!!raw-loader!./hexagon.txt";
-import YAML from "yaml";
+import dump from "!!raw-loader!./8-5-3.txt";
 import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 import Overlay from "./Overlay.vue";
@@ -53,31 +47,11 @@ import Overlay from "./Overlay.vue";
   }
 })
 export default class App extends Vue {
-  private readonly idealCoordinateSystem = new CoordinateSystem(true);
-
-  raw = square;
+  raw = dump;
   editor = false;
-  surface = FlatTriangulation.parse(YAML.parse(this.raw), this.idealCoordinateSystem)
-  error = null as string | null;
   overlay = null as CancellationToken | null;
+  error = null as string | null;
   progress = null as Progress | null;
-
-  focus = this.idealCoordinateSystem.box([-1, -1], [1, 1]);
-
-  protected onLayoutChanged(layout: FlatTriangulationLayout) {
-    if (!this.focus.equalTo(layout.bbox))
-      this.focus = layout.bbox;
-  }
-
-  @Watch("raw")
-  onRawChanged() {
-    try {
-      this.surface = FlatTriangulation.parse(YAML.parse(this.raw), this.idealCoordinateSystem);
-      this.error = null;
-    } catch(e) {
-      this.error = e.message;
-    }
-  }
 
   @Provide()
   async run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
@@ -90,6 +64,9 @@ export default class App extends Vue {
     }
   }
 
+  onError(message: string | null = null) {
+    this.error= message;
+  }
 }
 </script>
 <style scoped>

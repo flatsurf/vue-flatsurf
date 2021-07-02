@@ -48,7 +48,11 @@ export default class FlatTriangulation extends Vue {
     this.relayout();
   }
 
-  @Inject({ from: 'run', default: async (callback: (cancellation: CancellationToken, progress: Progress) => void) => { callback(new CancellationToken(), new Progress());}}) 
+  static _run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>): void {
+    callback(new CancellationToken(), new Progress());
+  }
+
+  @Inject({ from: 'run', default: () => FlatTriangulation._run})
   run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => void;
 
   async relayout() {

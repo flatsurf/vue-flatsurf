@@ -25,6 +25,7 @@ import { IHalfEdgeConfiguration, DefaultHalfEdgeConfiguration } from "./HalfEdge
 })
 export default class HalfEdgeComponent extends Vue {
   @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
+  // TODO: We should compute the segment here from the layout object instead.
   @Prop({required: true, type: Object}) segment!: Segment;
 
   onClick(ev: MouseEvent) {
