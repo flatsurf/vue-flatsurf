@@ -70,3 +70,10 @@ components:
       index: 0
     - halfEdge: 1
       index: 1
+  inside:
+  - 1
+  - -1
+  - 2
+  - -2
+  - 3
+  - -3

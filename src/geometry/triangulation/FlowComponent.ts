@@ -22,20 +22,24 @@
 
 import CoordinateSystem from '../CoordinateSystem';
 import FlowConnection, { FlowConnectionSchema } from "./FlowConnection";
+import HalfEdge, { HalfEdgeSchema } from './HalfEdge';
 
 export default class FlowComponent {
   public static parse(yaml: {
     cylinder: boolean,
     perimeter: FlowConnectionSchema[],
+    inside: HalfEdgeSchema[],
   }, coordinateSystem: CoordinateSystem) : FlowComponent {
-    return new FlowComponent(yaml.cylinder, yaml.perimeter.map(connection => FlowConnection.parse(connection, coordinateSystem)));
+    return new FlowComponent(yaml.cylinder, yaml.perimeter.map(connection => FlowConnection.parse(connection, coordinateSystem)), yaml.inside);
   }
 
-  private constructor(cylinder: boolean, perimeter: FlowConnection[]) {
+  private constructor(cylinder: boolean, perimeter: FlowConnection[], inside: HalfEdge[]) {
     this.cylinder = cylinder;
     this.perimeter = perimeter;
+    this.inside = inside;
   }
 
   public readonly cylinder: boolean;
   public readonly perimeter: FlowConnection[];
+  public readonly inside: HalfEdge[];
 }

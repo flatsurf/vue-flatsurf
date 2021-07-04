@@ -124,3 +124,18 @@ components:
       index: 0
     - halfEdge: -7
       index: 1
+  inside:
+  - 1
+  - -1
+  - 2
+  - -2
+  - 3
+  - -3
+  - 4
+  - -4
+  - 6
+  - -6
+  - 7
+  - -7
+  - 9
+  - -9

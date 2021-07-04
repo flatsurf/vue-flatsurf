@@ -36,8 +36,7 @@ export default class FlowComponent extends Vue {
   touches!: {[key: number]: Touch[]};
 
   get perimeter() {
-    // return this.component.perimeter.filter((connection) => connection.boundary).map((connection) => connection.connection);
-    return this.component.perimeter.map((connection) => connection.connection);
+    return this.component.perimeter.filter((connection) => connection.boundary).map((connection) => connection.connection);
   }
 
   @Watch("layout", { immediate: true })
@@ -107,46 +106,7 @@ export default class FlowComponent extends Vue {
     const btouches = this.touches[b.halfEdge];
 
     if (isHalfEdge) {
-      const face = [a.halfEdge, this.surface.faces.image(a.halfEdge), this.surface.faces.preimage(a.halfEdge)];
-
-      B = layout(a.halfEdge, 1);
-
-      // Search for the third point of the patch on the following half edge in the face.
-      let touches = this.touches[face[1]]
-      if (touches.length === 0) {
-        // Since nothing intersects the following half edge in this face, this
-        // patch is the entire face.
-        scenario = "entire face";
-        C = layout(face[1], 1);
-      } else if (this.at(touches[0]) === 0) {
-        // Something starts at the vertex joining this half edge with the
-        // following half edge...
-        touches = this.touches[-face[2]];
-        if (touches.every((touch) => this.at(touch) === 0 || this.at(touch) === 1)) {
-          // ...it is just the following half edge itself.
-          scenario = "entire face 2";
-          // TODO: Is this always taken care of by something else?
-          C = layout(face[1], 1);
-          return null;
-        } else {
-          // It's another connection. So the patch ends at the beginning of the
-          // next half edge, none of that half edge is in the patch, i.e., the
-          // third point of the patch must be on the other half edge of this
-          // face.
-          scenario = "on previous half edge";
-          for (const touch of touches) {
-            if (this.at(touch) !== 0) {
-              // TODO: Is this always taken care of by something else?
-              C = layout(face[2], 1 - this.at(touch));
-              return null;
-              break;
-            }
-          }
-        }
-      } else {
-        scenario = "on following half edge";
-        C = layout(face[1], this.at(touches[0]));
-      }
+      return null;
     } else {
       if (b.index === btouches.length - 1) {
         if (this.at(b) === 1) {
@@ -165,6 +125,8 @@ export default class FlowComponent extends Vue {
           // Everything next to B is part of this patch.
           scenario = "remaining face";
           C = layout(b.halfEdge, 1);
+          if (this.at(b) === 0)
+            return null;
         }
       } else {
         if (this.at(b) === this.at(btouches[b.index + 1])) {
@@ -198,6 +160,64 @@ export default class FlowComponent extends Vue {
     return [A, B, C];
   }
 
+  private patchHalfEdge(halfEdge: HalfEdge): Point[] | null {
+    // Given `at` in [0, 1] returns the actual point on `halfEdge` that is that far on `halfEdge`.
+    const layout = (halfEdge: HalfEdge, at: number) => this.layout.layout(halfEdge).segment.at(at);
+
+    const face = [halfEdge, this.surface.faces.image(halfEdge), this.surface.faces.preimage(halfEdge)];
+
+    const A = layout(halfEdge, 0);
+    const B = layout(halfEdge, 1);
+    let C = B;
+    let scenario = "undefined";
+
+    // Search for the third point of the patch on the following half edge in the face.
+    let touches = this.touches[face[1]]
+    if (touches.length === 0) {
+      // Since nothing intersects the following half edge in this face, this
+      // patch is the entire face.
+      scenario = "entire face";
+      C = layout(face[1], 1);
+      if (face[0] !== Math.min(...face))
+        return null;
+    } else if (this.at(touches[0]) === 0) {
+      // Something starts at the vertex joining this half edge with the
+      // following half edge...
+      touches = this.touches[-face[2]];
+      if (touches.every((touch) => this.at(touch) === 0 || this.at(touch) === 1)) {
+        // ...it is just the following half edge itself.
+        scenario = "entire face 2";
+        // TODO: Is this always taken care of by something else?
+        C = layout(face[1], 1);
+        if (face[0] !== Math.min(...face))
+          return null;
+      } else {
+        // It's another connection. So the patch ends at the beginning of the
+        // next half edge, none of that half edge is in the patch, i.e., the
+        // third point of the patch must be on the other half edge of this
+        // face.
+        scenario = "on previous half edge";
+        for (const touch of touches) {
+          if (this.at(touch) !== 0) {
+            // TODO: Is this always taken care of by something else?
+            C = layout(face[2], 1 - this.at(touch));
+            return null;
+            break;
+          }
+        }
+      }
+    } else {
+      scenario = "on following half edge";
+      C = layout(face[1], this.at(touches[0]));
+    }
+
+    console.assert(!A.equalTo(B), `Patch of kind '${scenario}' coming from the half edge ${halfEdge} has the same point twice A == B, i.e., ${A.toString()} == ${B.toString()}.`);
+    console.assert(!A.equalTo(C), `Patch of kind '${scenario}' coming from the half edge ${halfEdge} has the same point twice A == C, i.e., ${A.toString()} == ${C.toString()}.`);
+    console.assert(!B.equalTo(C), `Patch of kind '${scenario}' coming from the half edge ${halfEdge} has the same point twice B == C, i.e., ${B.toString()} == ${C.toString()}.`);
+
+    return [A, B, C];
+  }
+
   get patches() {
     let /* TODO const */ patches = [];
 
@@ -209,27 +229,25 @@ export default class FlowComponent extends Vue {
       }
     }
 
-    
+    for (const inside of this.component.inside) {
+      const patch = this.patchHalfEdge(inside);
+      if (patch != null)
+        patches.push(patch);
+    }
 
     return patches;
   }
 }
 </script>
-<style scoped>
+<style lang="scss" scoped>
 polygon {
   fill: var(--color);
   opacity: .6;
-/*
-  stroke: red;
-  stroke-width: 10px;
-*/
 }
 
-/*
 .boundary {
-  stroke: blue;
+  stroke: white;
   opacity: 1;
-  stroke-width: 10px;
+  stroke-width: 1px;
 }
-*/
 </style>
