@@ -1,0 +1,72 @@
+vertices:
+- - 1
+  - -3
+  - 2
+  - -1
+  - 3
+  - -2
+vectors:
+  1:
+    x: 0.0
+    y: -1.7320508075688772
+  2:
+    x: 1.5
+    y: 0.8660254037844386
+  3:
+    x: -1.5
+    y: 0.8660254037844386
+components:
+- cylinder: true
+  perimeter:
+  - source: 3
+    target: -3
+    vertical: false
+    boundary: false
+    vector:
+      x: -1.5
+      y: 0.8660254037844386
+    crossings: []
+    touches:
+    - halfEdge: 3
+      index: 0
+    - halfEdge: -3
+      index: 1
+  - source: 1
+    target: -1
+    vertical: true
+    boundary: false
+    vector:
+      x: 0.0
+      y: -1.7320508075688772
+    crossings: []
+    touches:
+    - halfEdge: 1
+      index: 0
+    - halfEdge: -1
+      index: 1
+  - source: -3
+    target: 3
+    vertical: false
+    boundary: false
+    vector:
+      x: 1.5
+      y: -0.8660254037844386
+    crossings: []
+    touches:
+    - halfEdge: -3
+      index: 0
+    - halfEdge: 3
+      index: 1
+  - source: -1
+    target: 1
+    vertical: true
+    boundary: false
+    vector:
+      x: 0.0
+      y: 1.7320508075688772
+    crossings: []
+    touches:
+    - halfEdge: -1
+      index: 0
+    - halfEdge: 1
+      index: 1

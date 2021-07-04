@@ -62,8 +62,10 @@ export default class FlowComponent extends Vue {
 }
 </script>
 <style scoped>
+/*
 line {
   stroke: var(--color);
   stroke-width: 1px;
 }
+*/
 </style>
