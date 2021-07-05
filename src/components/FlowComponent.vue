@@ -36,7 +36,12 @@ export default class FlowComponent extends Vue {
   touches!: {[key: number]: Touch[]};
 
   get perimeter() {
-    return this.component.perimeter.filter((connection) => connection.boundary).map((connection) => connection.connection);
+    let perimeter = this.component.perimeter;
+    if (this.component.cylinder)
+      // For cylinders do not show the connections at the top & bottom of the cylinder.
+      perimeter = perimeter.filter((connection) => connection.vertical);
+
+    return perimeter.map((connection) => connection.connection);
   }
 
   @Watch("layout", { immediate: true })
