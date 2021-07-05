@@ -1,7 +1,7 @@
 <template>
   <g>
     <arrow class="indicator" v-if="indicator" :segment="indicator" />
-    <segment-label v-if="halfEdgeConfiguration(halfEdge).state.labeled" :at="segment">{{ halfEdge }}</segment-label>
+    <segment-label v-if="halfEdgeConfiguration(halfEdge).state.labeled || true" :at="segment">{{ halfEdge }}</segment-label>
     <extended-click-area @click="onClick" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @mousemove="onMouseMove">
       <segment-component :segment="segment" :class="{ selected, glued }" />
     </extended-click-area>
