@@ -90,8 +90,9 @@ export default class CoordinateSystem {
           point.value.transform(point.parent.embedding!));
       }
 
-      if (this.embeddedInto === null)
-        throw Error("point cannot be embedded into this coordinate system; no relation between the coordinate systems has been established.")
+      if (this.embeddedInto === null) {
+        throw Error(`point (${point.value.x}, ${point.value.y}) cannot be embedded from coordinate system ${JSON.stringify(point.parent)} into this coordinate system ${JSON.stringify(this)}; no relation between the coordinate systems could be established.`)
+      }
 
       point = this.embeddedInto.embed(point);
 

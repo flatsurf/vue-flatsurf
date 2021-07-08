@@ -13,10 +13,9 @@ import panzoom from "pan-zoom/index.js";
 
 @Component
 export default class PanZoom extends Vue {
-  @Prop({required: true}) coordinateSystem!: CoordinateSystem;
-  @Prop({required: true}) focus!: Box;
+  @Prop({required: true, type: CoordinateSystem}) coordinateSystem!: CoordinateSystem;
+  @Prop({required: true, type: Box}) focus!: Box;
 
-  private viewport = new Viewport(this.coordinateSystem);
   private observer = new ResizeObserver(this.resize);
   private unpanzoom = () => {};
   protected pan = false;
@@ -49,6 +48,10 @@ export default class PanZoom extends Vue {
 
   onMouseUp() {
     this.pan = false;
+  }
+
+  get viewport() {
+    return new Viewport(this.coordinateSystem);
   }
 
   private panzoom(e: any) {
