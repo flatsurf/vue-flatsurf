@@ -138,6 +138,250 @@ vectors:
 components:
 - cylinder: true
   perimeter:
+  - source: 25
+    target: -25
+    vertical: false
+    boundary: false
+    vector:
+      x: 0.8793852415718167
+      y: 0.0
+    crossings: []
+    touches:
+    - halfEdge: 25
+      index: 0
+    - halfEdge: -25
+      index: 1
+  - source: -15
+    target: 13
+    vertical: true
+    boundary: true
+    vector:
+      x: -1.7057370639048863
+      y: 0.3007674663608706
+    crossings:
+    - halfEdge: 26
+      at: 0.8006595491452156
+    - halfEdge: -23
+      at: 0.8263518223330697
+    - halfEdge: -12
+      at: 0.8006595491452156
+    touches:
+    - halfEdge: -15
+      index: 0
+    - halfEdge: 26
+      index: 0
+    - halfEdge: -26
+      index: 0
+    - halfEdge: -23
+      index: 0
+    - halfEdge: 23
+      index: 0
+    - halfEdge: -12
+      index: 0
+    - halfEdge: 12
+      index: 0
+    - halfEdge: 13
+      index: 0
+  - source: -25
+    target: 25
+    vertical: false
+    boundary: false
+    vector:
+      x: -0.8793852415718167
+      y: 0.0
+    crossings: []
+    touches:
+    - halfEdge: -25
+      index: 0
+    - halfEdge: 25
+      index: 1
+  - source: -27
+    target: -13
+    vertical: true
+    boundary: true
+    vector:
+      x: 1.7057370639048863
+      y: -0.3007674663608706
+    crossings:
+    - halfEdge: -24
+      at: 0.766044443118978
+    touches:
+    - halfEdge: -27
+      index: 0
+    - halfEdge: -24
+      index: 0
+    - halfEdge: 24
+      index: 0
+    - halfEdge: -13
+      index: 0
+  inside:
+  - 13
+  - -13
+  - 25
+  - -25
+- cylinder: true
+  perimeter:
+  - source: 1
+    target: -1
+    vertical: false
+    boundary: false
+    vector:
+      x: 1.0
+      y: 0.0
+    crossings: []
+    touches:
+    - halfEdge: 1
+      index: 0
+    - halfEdge: -1
+      index: 1
+  - source: 16
+    target: -16
+    vertical: false
+    boundary: false
+    vector:
+      x: 0.6527036446661393
+      y: 0.0
+    crossings: []
+    touches:
+    - halfEdge: 16
+      index: 0
+    - halfEdge: -16
+      index: 1
+  - source: 17
+    target: 22
+    vertical: true
+    boundary: true
+    vector:
+      x: -3.2057370639048863
+      y: 0.565257937423568
+    crossings:
+    - halfEdge: -7
+      at: 0.8793852415718167
+    - halfEdge: -2
+      at: 0.7733184030943225
+    - halfEdge: 3
+      at: 0.5739779522395382
+    - halfEdge: 9
+      at: 0.713011023880231
+    - halfEdge: 21
+      at: 0.5739779522395382
+    - halfEdge: -11
+      at: 0.7733184030943225
+    - halfEdge: 10
+      at: 0.8793852415718167
+    touches:
+    - halfEdge: 17
+      index: 0
+    - halfEdge: -7
+      index: 0
+    - halfEdge: 7
+      index: 0
+    - halfEdge: -2
+      index: 0
+    - halfEdge: 2
+      index: 0
+    - halfEdge: 3
+      index: 0
+    - halfEdge: -3
+      index: 0
+    - halfEdge: 9
+      index: 0
+    - halfEdge: -9
+      index: 0
+    - halfEdge: 21
+      index: 0
+    - halfEdge: -21
+      index: 0
+    - halfEdge: -11
+      index: 0
+    - halfEdge: 11
+      index: 0
+    - halfEdge: 10
+      index: 0
+    - halfEdge: -10
+      index: 0
+    - halfEdge: 22
+      index: 0
+  - source: -16
+    target: 16
+    vertical: false
+    boundary: false
+    vector:
+      x: -0.6527036446661393
+      y: 0.0
+    crossings: []
+    touches:
+    - halfEdge: -16
+      index: 0
+    - halfEdge: 16
+      index: 1
+  - source: -1
+    target: 1
+    vertical: false
+    boundary: false
+    vector:
+      x: -1.0
+      y: 0.0
+    crossings: []
+    touches:
+    - halfEdge: -1
+      index: 0
+    - halfEdge: 1
+      index: 1
+  - source: 4
+    target: 14
+    vertical: true
+    boundary: true
+    vector:
+      x: 3.2057370639048863
+      y: -0.565257937423568
+    crossings:
+    - halfEdge: 5
+      at: 0.7168814171420514
+    - halfEdge: 12
+      at: 0.7733184030943225
+    - halfEdge: 23
+      at: 0.6736481776669303
+    - halfEdge: -26
+      at: 0.7733184030943225
+    - halfEdge: -15
+      at: 0.7168814171420514
+    touches:
+    - halfEdge: 4
+      index: 0
+    - halfEdge: 5
+      index: 0
+    - halfEdge: -5
+      index: 0
+    - halfEdge: 12
+      index: 0
+    - halfEdge: -12
+      index: 0
+    - halfEdge: 23
+      index: 0
+    - halfEdge: -23
+      index: 0
+    - halfEdge: -26
+      index: 0
+    - halfEdge: 26
+      index: 0
+    - halfEdge: -15
+      index: 0
+    - halfEdge: 15
+      index: 0
+    - halfEdge: 14
+      index: 0
+  inside:
+  - 1
+  - -1
+  - 14
+  - -14
+  - 16
+  - -16
+  - 22
+  - -22
+- cylinder: true
+  perimeter:
   - source: 22
     target: -4
     vertical: false
@@ -324,84 +568,11 @@ components:
       index: 0
     - halfEdge: 8
       index: 1
-- cylinder: true
-  perimeter:
-  - source: 25
-    target: -25
-    vertical: false
-    boundary: false
-    vector:
-      x: 0.8793852415718167
-      y: 0.0
-    crossings: []
-    touches:
-    - halfEdge: 25
-      index: 0
-    - halfEdge: -25
-      index: 1
-  - source: -15
-    target: 13
-    vertical: true
-    boundary: true
-    vector:
-      x: -1.7057370639048863
-      y: 0.3007674663608706
-    crossings:
-    - halfEdge: 26
-      at: 0.8006595491452156
-    - halfEdge: -23
-      at: 0.8263518223330697
-    - halfEdge: -12
-      at: 0.8006595491452156
-    touches:
-    - halfEdge: -15
-      index: 0
-    - halfEdge: 26
-      index: 0
-    - halfEdge: -26
-      index: 0
-    - halfEdge: -23
-      index: 0
-    - halfEdge: 23
-      index: 0
-    - halfEdge: -12
-      index: 0
-    - halfEdge: 12
-      index: 0
-    - halfEdge: 13
-      index: 0
-  - source: -25
-    target: 25
-    vertical: false
-    boundary: false
-    vector:
-      x: -0.8793852415718167
-      y: 0.0
-    crossings: []
-    touches:
-    - halfEdge: -25
-      index: 0
-    - halfEdge: 25
-      index: 1
-  - source: -27
-    target: -13
-    vertical: true
-    boundary: true
-    vector:
-      x: 1.7057370639048863
-      y: -0.3007674663608706
-    crossings:
-    - halfEdge: -24
-      at: 0.766044443118978
-    touches:
-    - halfEdge: -27
-      index: 0
-    - halfEdge: -24
-      index: 0
-    - halfEdge: 24
-      index: 0
-    - halfEdge: -13
-      index: 0
+  inside:
+  - 8
+  - -8
+  - 20
+  - -20
 - cylinder: true
   perimeter:
   - source: -6
@@ -578,155 +749,8 @@ components:
       index: 1
     - halfEdge: -15
       index: 0
-- cylinder: true
-  perimeter:
-  - source: 1
-    target: -1
-    vertical: false
-    boundary: false
-    vector:
-      x: 1.0
-      y: 0.0
-    crossings: []
-    touches:
-    - halfEdge: 1
-      index: 0
-    - halfEdge: -1
-      index: 1
-  - source: 16
-    target: -16
-    vertical: false
-    boundary: false
-    vector:
-      x: 0.6527036446661393
-      y: 0.0
-    crossings: []
-    touches:
-    - halfEdge: 16
-      index: 0
-    - halfEdge: -16
-      index: 1
-  - source: 17
-    target: 22
-    vertical: true
-    boundary: true
-    vector:
-      x: -3.2057370639048863
-      y: 0.565257937423568
-    crossings:
-    - halfEdge: -7
-      at: 0.8793852415718167
-    - halfEdge: -2
-      at: 0.7733184030943225
-    - halfEdge: 3
-      at: 0.5739779522395382
-    - halfEdge: 9
-      at: 0.713011023880231
-    - halfEdge: 21
-      at: 0.5739779522395382
-    - halfEdge: -11
-      at: 0.7733184030943225
-    - halfEdge: 10
-      at: 0.8793852415718167
-    touches:
-    - halfEdge: 17
-      index: 0
-    - halfEdge: -7
-      index: 0
-    - halfEdge: 7
-      index: 0
-    - halfEdge: -2
-      index: 0
-    - halfEdge: 2
-      index: 0
-    - halfEdge: 3
-      index: 0
-    - halfEdge: -3
-      index: 0
-    - halfEdge: 9
-      index: 0
-    - halfEdge: -9
-      index: 0
-    - halfEdge: 21
-      index: 0
-    - halfEdge: -21
-      index: 0
-    - halfEdge: -11
-      index: 0
-    - halfEdge: 11
-      index: 0
-    - halfEdge: 10
-      index: 0
-    - halfEdge: -10
-      index: 0
-    - halfEdge: 22
-      index: 0
-  - source: -16
-    target: 16
-    vertical: false
-    boundary: false
-    vector:
-      x: -0.6527036446661393
-      y: 0.0
-    crossings: []
-    touches:
-    - halfEdge: -16
-      index: 0
-    - halfEdge: 16
-      index: 1
-  - source: -1
-    target: 1
-    vertical: false
-    boundary: false
-    vector:
-      x: -1.0
-      y: 0.0
-    crossings: []
-    touches:
-    - halfEdge: -1
-      index: 0
-    - halfEdge: 1
-      index: 1
-  - source: 4
-    target: 14
-    vertical: true
-    boundary: true
-    vector:
-      x: 3.2057370639048863
-      y: -0.565257937423568
-    crossings:
-    - halfEdge: 5
-      at: 0.7168814171420514
-    - halfEdge: 12
-      at: 0.7733184030943225
-    - halfEdge: 23
-      at: 0.6736481776669303
-    - halfEdge: -26
-      at: 0.7733184030943225
-    - halfEdge: -15
-      at: 0.7168814171420514
-    touches:
-    - halfEdge: 4
-      index: 0
-    - halfEdge: 5
-      index: 0
-    - halfEdge: -5
-      index: 0
-    - halfEdge: 12
-      index: 0
-    - halfEdge: -12
-      index: 0
-    - halfEdge: 23
-      index: 0
-    - halfEdge: -23
-      index: 0
-    - halfEdge: -26
-      index: 0
-    - halfEdge: 26
-      index: 0
-    - halfEdge: -15
-      index: 0
-    - halfEdge: 15
-      index: 0
-    - halfEdge: 14
-      index: 0
+  inside:
+  - 4
+  - -4
+  - 6
+  - -6

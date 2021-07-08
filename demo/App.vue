@@ -34,7 +34,7 @@ A demo application that lets the user load a YAML serialized surface.
 import { Component, Provide, Vue } from "vue-property-decorator";
 import PanZoom from "@/components/PanZoom.vue";
 import SurfaceViewer from "@/components/SurfaceViewer.vue";
-import dump from "!!raw-loader!./1-1-3-flow.txt";
+import dump from "!!raw-loader!./2-3-4-pullback-flow.txt";
 import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 import Overlay from "./Overlay.vue";

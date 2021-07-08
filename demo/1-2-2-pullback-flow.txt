@@ -180,6 +180,13 @@ components:
       index: 0
     - halfEdge: 2
       index: 1
+  inside:
+  - 2
+  - -2
+  - 5
+  - -5
+  - 8
+  - -8
 - cylinder: true
   perimeter:
   - source: -14
@@ -310,3 +317,20 @@ components:
       index: 0
     - halfEdge: 13
       index: 0
+  inside:
+  - 4
+  - -4
+  - 9
+  - -9
+  - 10
+  - -10
+  - 11
+  - -11
+  - 12
+  - -12
+  - 13
+  - -13
+  - 14
+  - -14
+  - 15
+  - -15
