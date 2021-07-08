@@ -48,10 +48,8 @@ describe("CoordinateSystem", () => {
 
 describe("Viewport", () => {
   const ideal = new CoordinateSystem(true);
-  const svg = new CoordinateSystem(false);
-  ideal.embedInto(svg);
 
-  const viewport = new Viewport(svg, 1024, 768);
+  const viewport = new Viewport(ideal, 1024, 768);
   const box = ideal.box([0, 0], [1, 1]);
 
   const EPS = .01;
