@@ -27,6 +27,7 @@ import chaiEquals from "../../chai-equal-to";
 import FlatTriangulation from "@/geometry/triangulation/FlatTriangulation";
 import FlatTriangulationLayout from "@/geometry/layout/FlatTriangulationLayout";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
+import HalfEdge from "@/geometry/triangulation/HalfEdge";
 
 chai.use(chaiEquals);
 
@@ -41,8 +42,12 @@ describe("Layout Triangulation", () => {
     }
   }, coordinateSystem);
 
-  describe("Layout for a Torus", async () => {
-    const layout = await FlatTriangulationLayout.layout(torus, []);
+  describe("Default Layout for a Torus", () => {
+    let layout!: FlatTriangulationLayout;
+
+    it("computes a layout", async () => {
+      layout = await FlatTriangulationLayout.layout(torus);
+    });
 
     it("lays out all half edges", () => {
       for (const he of torus.halfEdges) {
@@ -56,6 +61,34 @@ describe("Layout Triangulation", () => {
       // Namely the diagonal edge is identified since it minimizes the
       // bounding  box of the layout.
       layout.layout(3).inner.should.be.true;
+    });
+  });
+
+  describe("Forced Layout for a Torus", () => {
+    let layout!: FlatTriangulationLayout;
+
+    it("computes a layout", async () => {
+      layout = await FlatTriangulationLayout.layout(torus, (he: HalfEdge) => he === 1);
+    });
+
+    it("has exactly one pair of half edges identified in the planar layout", () => {
+      layout.layout(1).inner.should.be.true;
+      layout.layout(2).inner.should.be.false;
+      layout.layout(3).inner.should.be.false;
+    });
+  });
+
+  describe("Forced Layout for a Torus Without any Gluings", () => {
+    let layout!: FlatTriangulationLayout;
+
+    it("computes a layout", async () => {
+      layout = await FlatTriangulationLayout.layout(torus, () => false);
+    });
+
+    it("has no pair of half edges identified in the planar layout", () => {
+      layout.layout(1).inner.should.be.false;
+      layout.layout(2).inner.should.be.false;
+      layout.layout(3).inner.should.be.false;
     });
   });
 });

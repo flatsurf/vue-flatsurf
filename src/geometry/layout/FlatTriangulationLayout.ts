@@ -30,12 +30,12 @@ import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 
 export default class FlatTriangulationLayout {
-  private constructor(surface: FlatTriangulation, force: HalfEdge[]) {
+  private constructor(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null) {
     this.surface = surface;
-    this.force = force;
+    this.force = force || (() => null);
   }
 
-  public static async layout(surface: FlatTriangulation, force: HalfEdge[], cancellation = new CancellationToken(), progress = new Progress()) {
+  public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, cancellation = new CancellationToken(), progress = new Progress()) {
     const layout = new FlatTriangulationLayout(surface, force);
     await layout.recompute(cancellation, progress);
     return layout;
@@ -74,6 +74,15 @@ export default class FlatTriangulationLayout {
     cells = CellLayout.pack(cells, progress);
 
     this.halfEdges = Object.assign({}, ...cells.map((cell) => cell.layout));
+
+    // Complain about unsatisfied forcings.
+    for (const he of this.surface.halfEdges) {
+      if (this.force(he) === true && !this.layout(he).inner)
+        console.log(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
+      if (this.force(he) === false && this.layout(he).inner)
+        console.error(`Half edge ${he} should not be visually glued in the layout but it is.`);
+    }
+
   }
 
   public layout(halfEdge: HalfEdge): HalfEdgeLayout {
@@ -85,6 +94,6 @@ export default class FlatTriangulationLayout {
   }
 
   private readonly surface: FlatTriangulation;
-  private force: HalfEdge[];
+  private force: (he: HalfEdge) => boolean | null;
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
 }

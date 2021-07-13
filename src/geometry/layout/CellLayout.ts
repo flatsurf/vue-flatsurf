@@ -215,7 +215,7 @@ export default class CellLayout {
   }
 
   // Merge two of the cells by identifying two opposite half edges.
-  static async merge(cells: CellLayout[], force: HalfEdge[], cache: Record<HalfEdge, number | null> = {}, cancellation = new CancellationToken(), _progress = new Progress()): Promise<CellLayout[]> {
+  static async merge(cells: CellLayout[], force: (he: HalfEdge) => boolean | null, cache: Record<HalfEdge, number | null> = {}, cancellation = new CancellationToken(), _progress = new Progress()): Promise<CellLayout[]> {
     if (cells.length === 1)
       return cells;
 
@@ -266,7 +266,7 @@ export default class CellLayout {
   // Return the score (lower is better) to the visual glueing of glue of
   // parent and -glue of other; or return null if the two cannot be glued
   // without overlaps in the resulting picture.
-  private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[], force: HalfEdge[]): number | null {
+  private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[], force?: (he: HalfEdge) => boolean | null): number | null {
     assert(parent.halfEdges.includes(glue) && other.halfEdges.includes(-glue));
     assert(!parent.layout[glue].inner && !other.layout[-glue].inner);
 
@@ -278,10 +278,10 @@ export default class CellLayout {
 
     // Prefer edges that have been explicitly selected.
     if (force) {
-      if (force.includes(glue))
-        return -force.length + force.indexOf(glue);
-      if (force.includes(-glue))
-        return -force.length + force.indexOf(-glue);
+      if (force(glue) === true)
+        return -force.length;
+      if (force(glue) === false)
+        return null;
     }
 
     // Prefer edges that keep Delaunay cells intact.
