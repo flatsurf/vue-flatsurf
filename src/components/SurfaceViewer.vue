@@ -38,6 +38,7 @@ export default class SurfaceViewer extends Vue {
   protected onLayoutChanged(layout: FlatTriangulationLayout) {
     if (!this.focus.equalTo(layout.bbox))
       this.focus = layout.bbox;
+    this.$emit('layout', layout)
   }
 
   @Watch("raw", { immediate: true })
