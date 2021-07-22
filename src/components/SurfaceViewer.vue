@@ -5,7 +5,7 @@ Parses a YAML and Displays it as a Flat Triangulation.
 -->
 <template>
   <pan-zoom v-slot="{ viewport }" class="surface" :coordinate-system="idealCoordinateSystem" :focus="focus">
-    <surface :viewport="viewport" :surface="surface" :components="components" @layout="onLayoutChanged" />
+    <surface :viewport="viewport" :surface="surface" :components="components" @layout="onLayoutChanged" :inner="inner" />
   </pan-zoom>
 </template>
 <script lang="ts">
@@ -16,6 +16,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 import FlatTriangulation from "@/geometry/triangulation/FlatTriangulation";
 import FlowComponent from "@/geometry/triangulation/FlowComponent";
 import FlatTriangulationLayout from "@/geometry/layout/FlatTriangulationLayout";
+import HalfEdge from "../geometry/triangulation/HalfEdge";
 
 import PanZoom from "./PanZoom.vue";
 import Surface from "./Surface.vue";
@@ -28,6 +29,7 @@ import Surface from "./Surface.vue";
 })
 export default class SurfaceViewer extends Vue {
   @Prop({ required: true }) raw!: string;
+  @Prop({ required: false, default: () => [], type: Array }) inner!: HalfEdge[];
 
   private readonly idealCoordinateSystem = new CoordinateSystem(true);
   protected surface: FlatTriangulation | null = null;
@@ -39,6 +41,7 @@ export default class SurfaceViewer extends Vue {
     if (!this.focus.equalTo(layout.bbox))
       this.focus = layout.bbox;
     this.$emit('layout', layout)
+    this.$emit('update:inner', this.surface!.halfEdges.filter((he) => layout.layout(he).inner));
   }
 
   @Watch("raw", { immediate: true })

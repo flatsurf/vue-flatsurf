@@ -60,7 +60,7 @@ export default class FlatTriangulation extends Vue {
     this.run(async (cancellation, progress) => {
       this.cancellation = cancellation;
       try {
-        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => this.forced.includes(he) ? true : null, this.cancellation, progress);
+        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => (this.forced.includes(he) || this.forced.includes(-he)) ? true : null, this.cancellation, progress);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
