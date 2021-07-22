@@ -4,6 +4,19 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.2.0
+====================
+
+**Added:**
+
+* Expose layout and inner half edges through events in SurfaceViewer.
+
+**Fixed:**
+
+* Fixed forcing logic of glued half edges, i.e., clicking in half edges in ipyvue-flatsurf works again.
+
+
+
 v0.1.0
 ====================
 
