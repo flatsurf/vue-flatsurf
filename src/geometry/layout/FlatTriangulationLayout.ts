@@ -61,7 +61,6 @@ export default class FlatTriangulationLayout {
     const origin = new Point(this.surface.vector(this.surface.halfEdges[0]).parent, 0, 0);
     let cells = this.surface.faces.cycles.map((face) => new CellLayout(this.surface, face, origin));
 
-
     // (2) Glue Cells
     progress.task("Gluing Cells", cells.length - 1);
     const cache = {};

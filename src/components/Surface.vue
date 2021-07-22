@@ -14,7 +14,7 @@ TODO: It is weird that we compute the layout in the flat-triangulation-component
   </svg>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Provide } from "vue-property-decorator";
+import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 
 import Viewport from "../geometry/Viewport";
 import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
@@ -39,7 +39,8 @@ import { IHalfEdgeConfiguration } from "./HalfEdgeConfiguration";
 export default class Surface extends Vue {
   @Prop({ required: true }) viewport!: Viewport;
   @Prop({ required: true }) surface!: FlatTriangulation;
-  @Prop({ required: false, default: []}) components!: FlowComponent[];
+  @Prop({ required: false, default: () => [], type: Array }) components!: FlowComponent[];
+  @Prop({ required: false, default: () => [], type: Array }) inner!: HalfEdge[];
   
   layout = null as FlatTriangulationLayout | null;
   forced = [] as HalfEdge[];
@@ -59,6 +60,11 @@ export default class Surface extends Vue {
     if (xy instanceof Segment)
       return this.viewport.viewportCoordinateSystem.embed(xy);
     throw new Error("Cannot embed this type into the SVG coordinate system yet.");
+  }
+
+  @Watch("inner", {immediate: true})
+  onInnerChanged() {
+    this.forced = this.inner;
   }
 
   forceHalfEdge(halfEdge: HalfEdge) {
