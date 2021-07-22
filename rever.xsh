@@ -30,7 +30,7 @@ $CHANGELOG_FILENAME = 'ChangeLog'
 $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
 $CHANGELOG_NEWS = 'news'
 $CHANGELOG_CATEGORIES = ('Added', 'Changed', 'Removed', 'Fixed')
-$PUSH_TAG_REMOTE = 'git@github.com::flatsurf/vue-flatsurf.git'
+$PUSH_TAG_REMOTE = 'git@github.com:flatsurf/vue-flatsurf.git'
 
 $GITHUB_ORG = 'flatsurf'
 $GITHUB_REPO = 'vue-flatsurf'
