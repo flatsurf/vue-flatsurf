@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -369,7 +369,14 @@ export default class CellLayout {
 
       cell.translate(halfEdge, segment_);
 
-      const delta = segment.tangentInStart.rotate90CCW();
+      // We determine a distance that two edges have to be separated from each
+      // other to make it clear that they are not glued.
+      // The idea is that the entire `packed` presumably fills a notebook cell,
+      // probably 800 x 600 pixels. A gap of 5 pixels can easily be recognized
+      // as a gap.
+      const screen = packed.map((cell) => cell.polygon.value.box).reduce((box, cell) => box.merge(cell), new Flatten.Box());
+      const step = Math.max((screen.xmax - screen.xmin) / 800, (screen.ymax - screen.ymin) / 600) * 5;
+      const delta = segment.tangentInStart.rotate90CCW().multiply(step);
       
       do {
         cell.translate(delta);
