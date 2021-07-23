@@ -40,6 +40,9 @@ export default class FlowComponent extends Vue {
     if (this.component.cylinder)
       // For cylinders do not show the connections at the top & bottom of the cylinder.
       perimeter = perimeter.filter((connection) => connection.vertical);
+    else
+      // For minimal/undetermined components, do not show the inner structure of the component.
+      perimeter = perimeter.filter((connection) => connection.boundary);
 
     return perimeter.map((connection) => connection.connection);
   }
