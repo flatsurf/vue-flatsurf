@@ -271,7 +271,8 @@ export default class CellLayout {
     assert(!parent.layout[glue].inner && !other.layout[-glue].inner);
 
     other.translate(-glue, parent.layout[glue].segment.reverse());
-    if (parent.glues(other).length === 0) {
+    const glues = parent.glues(other);
+    if (glues.length === 0) {
       return null;
     }
 
@@ -307,24 +308,38 @@ export default class CellLayout {
       const ungluedArea = cells.map((cell) => cell.boundingRectArea).reduce((a, b) => a+b);
 
       const gluedArea = cells.filter((cell) => cell !== parent && cell !== other).map((cell) => cell.boundingRectArea).reduce((a, b) => a + b, 0)
-        + CellLayout.glue(glue, parent, other).boundingRectArea;
+        + CellLayout.glue(glues, parent, other).boundingRectArea;
 
       return gluedArea / ungluedArea;
     }
   }
 
   // Glue parent and other along glue and return the resulting cell.
-  // TODO: Also glue everything else that happens to glue.
-  private static glue(glue: HalfEdge, parent: CellLayout, other: CellLayout): CellLayout {
-    other.translate(-glue, parent.layout[glue].segment.reverse());
+  private static glue(glues: HalfEdge[], parent: CellLayout, other: CellLayout): CellLayout;
+  private static glue(glue: HalfEdge, parent: CellLayout, other: CellLayout): CellLayout;
+  private static glue(glues: HalfEdge | HalfEdge[], parent: CellLayout, other: CellLayout): CellLayout {
+    if (!Array.isArray(glues)) {
+      other.translate(-glues, parent.layout[glues].segment.reverse());
+      return CellLayout.glue(parent.glues(other), parent, other);
+    } else {
+      assert(glues.length !== 0)
+      other.translate(-glues[0], parent.layout[glues[0]].segment.reverse());
 
-    // https://github.com/alexbol99/flatten-js/pull/75
-    assert(parent.layout[glue].segment.equalTo(other.layout[-glue].segment.reverse(), (Flatten.Utils as any).getTolerance()));
+      // https://github.com/alexbol99/flatten-js/pull/75
+      for (const glue of glues)
+        assert(parent.layout[glue].segment.equalTo(other.layout[-glue].segment.reverse(), (Flatten.Utils as any).getTolerance()));
 
-    assert(Object.keys(parent.layout).every((he) => !other.layout.hasOwnProperty(he)));
-    assert(Object.keys(other.layout).every((he) => !parent.layout.hasOwnProperty(he)));
+      assert(Object.keys(parent.layout).every((he) => !other.layout.hasOwnProperty(he)));
+      assert(Object.keys(other.layout).every((he) => !parent.layout.hasOwnProperty(he)));
 
-    return new CellLayout(parent.surface, {...parent.layout, ...other.layout, [glue]: { segment: parent.layout[glue].segment, inner: true }, [-glue]: { segment: other.layout[-glue].segment, inner: true }});
+      const glued = {...parent.layout, ...other.layout};
+      for (const glue of glues) {
+        glued[glue] = { segment: parent.layout[glue].segment, inner: true }
+        glued[-glue] = { segment: other.layout[-glue].segment, inner: true }
+      }
+
+      return new CellLayout(parent.surface, glued);
+    }
   }
 
   private static packable(cells: CellLayout[], packed: CellLayout[]) {
