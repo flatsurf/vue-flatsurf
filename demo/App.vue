@@ -55,12 +55,17 @@ export default class App extends Vue {
 
   @Provide()
   async run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
-    this.overlay = new CancellationToken();
+    // Any previous run is supposedly cancelled already so we can safely throw
+    // away its cancellation and progress tokens.
+    const cancellation = new CancellationToken();
+    this.overlay = cancellation;
     this.progress = new Progress();
     try {
       await callback(this.overlay, this.progress);
     } finally {
-      this.overlay = null;
+      if (this.overlay === cancellation)
+        // We came here because this process completed. Remove the overlay.
+        this.overlay = null;
     }
   }
 
