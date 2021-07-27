@@ -92,7 +92,7 @@ export default class FlatTriangulationLayout {
     return Box.bbox(Object.values(this.halfEdges).map((layout) => layout.segment));
   }
 
-  private readonly surface: FlatTriangulation;
+  public readonly surface: FlatTriangulation;
   private force: (he: HalfEdge) => boolean | null;
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
 }

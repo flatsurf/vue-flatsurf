@@ -10,11 +10,11 @@ TODO: It is weird that we compute the layout in the flat-triangulation-component
     <g v-if="layout != null">
       <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
     </g>
-    <flat-triangulation-component :surface="surface" @layout="onLayoutChanged" :forced="forced" />
+    <flat-triangulation-component v-if="layout != null" :surface="layout" />
   </svg>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
+import { Component, Prop, Vue, Provide, Inject, Watch } from "vue-property-decorator";
 
 import Viewport from "../geometry/Viewport";
 import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
@@ -30,6 +30,9 @@ import Segment from "@/geometry/Segment";
 import FlatTriangulationLayout from '@/geometry/layout/FlatTriangulationLayout';
 import { IHalfEdgeConfiguration } from "./HalfEdgeConfiguration";
 
+import CancellationToken, { OperationAborted } from "@/CancellationToken";
+import Progress from "@/Progress";
+
 @Component({
   components: {
     FlatTriangulationComponent,
@@ -42,14 +45,42 @@ export default class Surface extends Vue {
   @Prop({ required: false, default: () => [], type: Array }) components!: FlowComponent[];
   @Prop({ required: false, default: () => [], type: Array }) inner!: HalfEdge[];
   
-  layout = null as FlatTriangulationLayout | null;
-  forced = [] as HalfEdge[];
-  selected = [] as HalfEdge[];
-  hovered = [] as HalfEdge[];
-  indicator = {} as Record<HalfEdge, number | null>;
+  private forced = [] as HalfEdge[];
+  private selected = [] as HalfEdge[];
+  private hovered = [] as HalfEdge[];
+  private indicator = {} as Record<HalfEdge, number | null>;
+  private cancellation = new CancellationToken();
+  private layout = null as FlatTriangulationLayout | null;
 
   // TODO: It is a strange pattern to hide the updates behind the layout updates.
   palette = new Palette();
+
+  static _run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>): void {
+    callback(new CancellationToken(), new Progress());
+  }
+
+  @Inject({ from: 'run', default: () => Surface._run})
+  run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => void;
+
+  created() {
+    this.relayout();
+  }
+
+  async relayout() {
+    this.cancellation.abort();
+    this.run(async (cancellation, progress) => {
+      this.cancellation = cancellation;
+      try {
+        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => (this.forced.includes(he) || this.forced.includes(-he)) ? true : null, this.cancellation, progress);
+      } catch (e) {
+        if (e instanceof OperationAborted) return;
+        throw e;
+      }
+      this.palette = new Palette(this.components.length);
+      this.$emit('layout', this.layout);
+    });
+
+  }
 
   @Provide()
   svg(xy: Vector | Point | Segment) : Vector | Point | Segment {
@@ -62,6 +93,11 @@ export default class Surface extends Vue {
     throw new Error("Cannot embed this type into the SVG coordinate system yet.");
   }
 
+  @Watch("forced")
+  onForcedChanged() {
+    this.relayout();
+  }
+
   @Watch("inner", {immediate: true})
   onInnerChanged() {
     this.forced = this.inner;
@@ -69,12 +105,6 @@ export default class Surface extends Vue {
 
   forceHalfEdge(halfEdge: HalfEdge) {
     this.forced.push(halfEdge);
-  }
-
-  onLayoutChanged(layout: FlatTriangulationLayout) {
-    this.layout = layout;
-    this.palette = new Palette(this.components.length);
-    this.$emit('layout', layout);
   }
 
   async glue(halfEdge: HalfEdge) {
