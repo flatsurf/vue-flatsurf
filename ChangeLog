@@ -4,6 +4,22 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.5.0
+====================
+
+**Added:**
+
+* `Surface.vue` and `SurfaceViewer.vue` now emit a `svg` event with a
+  standalone SVG when the layout changes. This can be used to export to an SVG
+  file.
+
+**Fixed:**
+
+* Refactored layouting so it is injected into the component displaying a triangulation in a more standard way.
+* Fixed "loading..." overlay in the demo application.
+
+
+
 v0.4.0
 ====================
 
