@@ -23,7 +23,7 @@ $ACTIVITIES = [
 ]
 
 $VERSION_BUMP_PATTERNS = [
-    ('package.json', r'"version":', r'  "version": "$VERSION",'),
+    ('package.json', r'"version":', r'"version": "$VERSION",'),
 ]
 
 $CHANGELOG_FILENAME = 'ChangeLog'
