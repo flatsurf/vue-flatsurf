@@ -1,6 +1,6 @@
 {
   "name": "vue-flatsurf",
-          "version": "0.4.0",
+  "version": "0.4.0",
   "description": "",
   "scripts": {
     "serve": "vue-cli-service serve demo/main.ts",
@@ -24,7 +24,8 @@
     "assert": "^2.0.0",
     "iwanthue": "^1.4.2",
     "lodash-es": "^4.17.15",
-    "pan-zoom": "^3.5.2"
+    "pan-zoom": "^3.5.2",
+    "svgo": "^2.3.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",

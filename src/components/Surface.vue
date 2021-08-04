@@ -6,12 +6,14 @@ TODO: It is weird that we compute the layout in the flat-triangulation-component
 
 -->
 <template>
-  <svg :width="viewport.width" :height="viewport.height">
-    <g v-if="layout != null">
-      <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
-    </g>
-    <flat-triangulation-component v-if="layout != null" :surface="layout" />
-  </svg>
+  <div>
+    <svg :width="viewport.width" :height="viewport.height" ref="svg">
+      <g v-if="layout != null">
+        <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
+      </g>
+      <flat-triangulation-component v-if="layout != null" :surface="layout" />
+    </svg>
+  </div>
 </template>
 <script lang="ts">
 import { Component, Prop, Vue, Provide, Inject, Watch } from "vue-property-decorator";
@@ -32,6 +34,8 @@ import { IHalfEdgeConfiguration } from "./HalfEdgeConfiguration";
 
 import CancellationToken, { OperationAborted } from "@/CancellationToken";
 import Progress from "@/Progress";
+
+import SVGExporter from "@/export/SVGExporter";
 
 @Component({
   components: {
@@ -78,6 +82,19 @@ export default class Surface extends Vue {
       }
       this.palette = new Palette(this.components.length);
       this.$emit('layout', this.layout);
+      this.$nextTick(() => {
+        // TODO: Maybe we should not always export the SVG but only do so on demand.
+        const exporter = new SVGExporter(this.$refs.svg as HTMLElement);
+        exporter.dropClasses();
+        exporter.dropPrefixedStyles();
+        exporter.dropInvisible();
+        exporter.dropRedundantStyles();
+        exporter.dropCustomAttributes();
+        exporter.dropBrowserStyles();
+        exporter.dropInteractiveStyles();
+        exporter.inlineStyles();
+        this.$emit('svg', exporter.toString());
+      });
     });
 
   }

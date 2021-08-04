@@ -5,7 +5,7 @@ Parses a YAML and Displays it as a Flat Triangulation.
 -->
 <template>
   <pan-zoom v-slot="{ viewport }" class="surface" :coordinate-system="idealCoordinateSystem" :focus="focus">
-    <surface :viewport="viewport" :surface="surface" :components="components" @layout="onLayoutChanged" :inner="inner" />
+    <surface :viewport="viewport" :surface="surface" :components="components" @layout="onLayoutChanged" @svg="onSVGChanged" :inner="inner" />
   </pan-zoom>
 </template>
 <script lang="ts">
@@ -42,6 +42,10 @@ export default class SurfaceViewer extends Vue {
       this.focus = layout.bbox;
     this.$emit('layout', layout)
     this.$emit('update:inner', this.surface!.halfEdges.filter((he) => layout.layout(he).inner));
+  }
+
+  protected onSVGChanged(svg: string) {
+    this.$emit('svg', svg);
   }
 
   @Watch("raw", { immediate: true })
