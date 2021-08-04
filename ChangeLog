@@ -4,6 +4,15 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.5.1
+====================
+
+**Fixed:**
+
+* make exported SVGs work with inkscape; before the SVG used some features that inkscape does not support yet, such as `rgba()`.
+
+
+
 v0.5.0
 ====================
 
