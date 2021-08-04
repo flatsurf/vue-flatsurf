@@ -27,7 +27,7 @@ A demo application that lets the user load a YAML serialized surface.
           </v-form>
         </v-card>
       </v-dialog>
-      <v-dialog v-if="!error" v-model="svg" fullscreen hide-overlay transition="dialog-bottom-transition">
+      <v-dialog v-if="!error && !overlay" v-model="svg" fullscreen hide-overlay transition="dialog-bottom-transition">
         <template v-slot:activator="{ on, attrs }">
           <v-btn v-bind="attrs" v-on="on" color="blue" dark dense small fixed bottom left fab>
             <v-icon>mdi-camera</v-icon>
