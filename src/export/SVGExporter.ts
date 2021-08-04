@@ -1,16 +1,16 @@
 /* ******************************************************************************
  * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +23,7 @@
 import assert from "assert";
 
 import { optimize } from "svgo/dist/svgo.browser.js";
+import rgba from "color-normalize";
 
 /*
  * Turns an <svg> in an HTML document into a standalone svg.
@@ -30,14 +31,14 @@ import { optimize } from "svgo/dist/svgo.browser.js";
 export default class SVGExporter {
   constructor(svg: Element) {
     this.svg = svg.cloneNode(true) as Element;
-    this.styles = [...svg.getElementsByTagName("*")].map(this.computedStyle);
+    this.styles = [svg, ...svg.getElementsByTagName("*")].map(this.computedStyle);
 
     if (this.svg.tagName !== 'svg') {
-      this.styles.unshift(this.computedStyle(svg));
-
       svg = document.createElement('svg');
       svg.appendChild(this.svg);
       this.svg = svg;
+
+      this.styles.unshift({});
     }
 
     this.svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -45,7 +46,7 @@ export default class SVGExporter {
   }
 
   private get children() {
-    return this.svg.getElementsByTagName("*");
+    return [this.svg, ...this.svg.getElementsByTagName("*")];
   }
 
   private computedStyle(element: Element) {
@@ -101,21 +102,21 @@ export default class SVGExporter {
 
     const trash = {} as {[index: number]: Element};
 
-    const add = (element: Element) => {
+    const addToTrash = (element: Element) => {
       const index = this.index(element);
 
       if (index in trash)
         return;
       trash[index] = element;
 
-      [...element.children].forEach(add);
+      [...element.children].forEach(addToTrash);
     };
 
-    for (let index = 0; index < children.length; index++) {
+    for (let index = 1; index < children.length; index++) {
       const child = children[index];
       const style = this.styles[index];
       if (style["visibility"] === "hidden" || style["display"] === "none")
-        add(child);
+        addToTrash(child);
     }
 
     this.styles = this.styles.filter((_style, i) => !(i in trash));
@@ -126,7 +127,7 @@ export default class SVGExporter {
       }
     }
 
-    assert(children.length === this.styles.length);
+    assert(this.children.length === this.styles.length);
 
     // Now we can drop all "visibility: visible" and "display: " which has no
     // effect in SVG anymore.
@@ -148,8 +149,7 @@ export default class SVGExporter {
       const child = children[index];
       const parent = child.parentNode as Element;
 
-      assert(parent != null);
-      if (parent === this.svg) continue;
+      if (parent == null) continue;
 
       const style = this.styles[this.index(parent)];
       this.styles[index] = Object.fromEntries(
@@ -170,78 +170,194 @@ export default class SVGExporter {
     }
   }
 
+  private static readonly standard = [ "cx", "cy", "height", "width", "x", "y", "r", "rx", "ry", "d", "fill", "transform", "alignment-baseline", "baseline-shift", "clip-path", "clip-rule", "color", "color-interpolation", "color-interpolation-filters", "color-rendering", "cursor", "direction", "display", "dominant-baseline", "fill-opacity", "fill-rule", "filter", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-orientation-horizontal", "glyph-orientation-vertical", "image-rendering", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "overflow", "paint-order", "pointer-events", "shape-rendering", "stop-color", "stop-opacity", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-overflow", "text-rendering", "unicode-bidi", "vector-effect", "visibility", "white-space", "word-spacing", "writing-mode", "display", "overflow", "visibility", "cursor", "text-overflow", "clip-path", "clip-rule", "mask", "color", "opacity", "color-interpolation-filters", "filter", "flood-color", "flood-opacity", "lighting-color", "isolation", "transform", "transform-box", "transform-origin", "letter-spacing", "text-align", "text-align-last", "text-indent", "word-spacing", "white-space", "vertical-align", "dominant-baseline", "alignment-baseline", "baseline-shift", "direction", "text-orientation", "writing-mode", "font", "text-decoration", "text-decoration-line", "text-decoration-style", "text-decoration-color"];
+
   /*
-   * Drop styles that are inherited from the browser but have no meaning in SVG.
+   * Drop styles that are not explititly supported by SVG 2, see
+   * https://www.w3.org/TR/SVG/styling.html#RequiredProperties
    */
-  public dropBrowserStyles() {
+  public dropNonStandardStyles() {
     this.styles = this.styles.map((styles) => {
       return Object.fromEntries(
         Object.entries(styles).filter(([key, _value]) => {
-          // flex styles
-          if (key.startsWith('align-'))
-            return false;
-          if (key.startsWith('flex-'))
-            return false;
-          // grid styles
-          if (key.startsWith('grid-'))
-            return false;
-          if (key.startsWith('column-'))
-            return false;
-          if (key.startsWith('row-'))
-            return false;
-          // HTML styles
-          if (key.startsWith('padding'))
-            return false;
-          if (key.startsWith('margin'))
-            return false;
-          if (key.startsWith('background'))
-            return false;
-          if (key.startsWith('border'))
-            return false;
-          if (key.startsWith('scroll'))
-            return false;
-          if (key.startsWith('overscroll'))
-            return false;
-          if (key.startsWith('overflow'))
-            return false;
-          if (key.startsWith('counter'))
-            return false;
-          if (key.startsWith('object-'))
-            return false;
-          if (key === 'float')
-            return false;
-          if (key === 'clear')
-            return false;
-          return true;
+          if (SVGExporter.standard.includes(key))
+            return true;
+          if (key.startsWith("font-"))
+            return true;
         })
-      );
+      )
     });
   }
 
   /*
-   * Drop styles that are only used for interaction and animations.
+   * Rewrite style as presentation attributes.
+   * Drop all styles that can be presentation attributes from elements where they are not allowed.
+   * This helps some SVG readers and also svgo to optimize the output.
    */
+  public usePresentationAttributes() {
+    const children = this.children;
+    assert(children.length === this.styles.length);
+
+    for (let index = children.length; index--;) {
+      const child = children[index];
+
+      const makePresentation = (key: string, value: string) => {
+        if (!child.hasAttribute(key))
+          child.setAttribute(key, value);
+      };
+
+      this.styles[index] = Object.fromEntries(
+        Object.entries(this.styles[index]).filter(([key, value]) => {
+          if (["cx", "cy"].includes(key)) {
+            if (["circle", "ellipse"].includes(child.tagName))
+              return makePresentation(key, value);
+            return false;
+          } else if (["height", "width", "x", "y"].includes(key)) {
+            if (["foreignObject", "image", "rect", "svg", "symbol", "use"].includes(child.tagName))
+              return makePresentation(key, value);
+            return false;
+          } else if (["r"].includes(key)) {
+            if (["circle"].includes(child.tagName))
+              return makePresentation(key, value);
+            return false;
+          } else if (["rx", "ry"].includes(key)) {
+            if (["ellipse", "rect"].includes(child.tagName))
+              return makePresentation(key, value);
+            return false;
+          } else if (["d"].includes(key)) {
+            if (["path"].includes(child.tagName))
+              makePresentation(key, value);
+            return false;
+          } else if (["fill"].includes(key)) {
+            if (!["animate", "set", "animateMotion"].includes(child.tagName))
+              makePresentation(key, value);
+            return false;
+          } else if (["transform"].includes(key) && value != "none") {
+            if (!["pattern", "linearGradien", "radialGradient"].includes(child.tagName))
+              makePresentation(key, value);
+            else if (["pattern"].includes(child.tagName))
+              makePresentation("patternTransform", value);
+            else if (["linearGradient", "radialGradient"].includes(child.tagName))
+              makePresentation("gradientTransform", value);
+            return false;
+          } else if (["alignment-baseline", "baseline-shift", "clip-path", "clip-rule", "color", "color-interpolation", "color-interpolation-filters", "color-rendering", "cursor", "direction", "display", "dominant-baseline", "fill-opacity", "fill-rule", "filter", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-orientation-horizontal", "glyph-orientation-vertical", "image-rendering", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "overflow", "paint-order", "pointer-events", "shape-rendering", "stop-color", "stop-opacity", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-overflow", "text-rendering", "unicode-bidi", "vector-effect", "visibility", "white-space", "word-spacing", "writing-mode"].includes(key)) {
+            makePresentation(key, value);
+            return false;
+          }
+          return true;
+        })
+      );
+    }
+  }
+  public simplifyColors() {
+    const children = this.children;
+    assert(children.length === this.styles.length);
+
+    const simplify = (child: Element, style: {[key: string]: string}, key: string, okey: string | null = null) => {
+      if (child.getAttribute(key))
+        delete style[key];
+      if (okey != null && child.getAttribute(okey))
+        delete style[okey];
+
+      const value = style[key];
+      if (value == null || value == "none")
+        return;
+
+      const color = rgba(value);
+      const opacity = color[3];
+      if (okey != null) {
+        style[okey] = String(Number(child.getAttribute(okey) || style[okey] || 1) * opacity);
+        child.removeAttribute(okey);
+      }
+
+      style[key] = `rgb(${color[0]*255}, ${color[1]*255}, ${color[2]*255})`;
+    };
+
+    for (let index = children.length; index--;) {
+      const child = children[index];
+      const style = this.styles[index];
+
+      simplify(child, style, "fill", "fill-opacity");
+      simplify(child, style, "stroke", "stroke-opacity");
+      simplify(child, style, "color");
+      simplify(child, style, "text-decoration");
+      simplify(child, style, "text-decoration-color");
+
+      this.styles[index] = style;
+    }
+  }
+
+  /*
+   * Drop trivial styles.
+   */
+  public dropTrivialStyles() {
+    this.styles = this.styles.map((styles) => {
+      return Object.fromEntries(
+        Object.entries(styles).filter(([key, value]) => {
+          if (key == "transform" && value == "none")
+            return false;
+          if (key == "filter" && value == "none")
+            return false;
+
+          return true;
+        })
+      )
+    });
+  }
+
+  /*
+   * Drop styles that confuse inkscape (as of 1.1)
+   */
+  public dropNonInkscapeStyles() {
+    this.styles = this.styles.map((styles) => {
+      return Object.fromEntries(
+        Object.entries(styles).filter(([key, value]) => {
+          if (key == "font-synthesis")
+            return false;
+          if (key == "vertical-align")
+            return false;
+          if (key == "transform-origin")
+            return false;
+          if (key == "transform-box")
+            return false;
+          if (key == "text-overflow")
+            return false;
+          if (key == "text-align-last")
+            return false;
+          if (key == "mask")
+            return false;
+          if (key == "font-optical-sizing")
+            return false;
+          if (key == "font-language-override")
+            return false;
+          if (key == "font-kerning")
+            return false;
+          if (key == "clip-path")
+            return false;
+          if (key == "transform" && value == "none")
+            return false;
+
+          if (SVGExporter.standard.includes(key))
+            return true;
+          if (key.startsWith("font-"))
+            return true;
+        })
+      )
+    });
+  }
+
   public dropInteractiveStyles() {
     this.styles = this.styles.map((styles) => {
       return Object.fromEntries(
         Object.entries(styles).filter(([key, _value]) => {
-          if (key == 'user-select')
+          if (key == "cursor")
             return false;
-          if (key.startsWith('animation'))
+          if (key == "pointer-events")
             return false;
-          if (key.startsWith('transition'))
-            return false;
-          if (key.startsWith('touch'))
-            return false;
-          if (key.startsWith('offset'))
-            return false;
-          if (key === 'pointer-events')
-            return false;
-          if (key === 'cursor')
-            return false;
+
           return true;
         })
-      );
+      )
     });
   }
 

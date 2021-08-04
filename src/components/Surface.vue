@@ -85,13 +85,17 @@ export default class Surface extends Vue {
       this.$nextTick(() => {
         // TODO: Maybe we should not always export the SVG but only do so on demand.
         const exporter = new SVGExporter(this.$refs.svg as HTMLElement);
+        exporter.simplifyColors();
+        exporter.dropNonStandardStyles();
+        exporter.dropNonInkscapeStyles();
+        exporter.dropTrivialStyles();
+        exporter.dropRedundantStyles();
         exporter.dropClasses();
         exporter.dropPrefixedStyles();
         exporter.dropInvisible();
-        exporter.dropRedundantStyles();
-        exporter.dropCustomAttributes();
-        exporter.dropBrowserStyles();
         exporter.dropInteractiveStyles();
+        exporter.dropCustomAttributes();
+        exporter.usePresentationAttributes();
         exporter.inlineStyles();
         this.$emit('svg', exporter.toString());
       });
