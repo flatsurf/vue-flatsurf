@@ -90,17 +90,36 @@ describe("SVG Export", () => {
     document.write(`<svg><text style="flex-grow:1">text</text></svg>`);
     const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
     exporter.dropInvisible();
-    exporter.dropBrowserStyles();
+    exporter.dropNonStandardStyles();
     exporter.inlineStyles();
     exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
   });
 
   it("drops interactive styling", () => {
-    document.write(`<svg><text style="user-select:none">text</text></svg>`);
+    document.write(`<svg><text style="cursor:resize">text</text></svg>`);
     const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
     exporter.dropInvisible();
     exporter.dropInteractiveStyles();
     exporter.inlineStyles();
     exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
+  });
+
+  it("rewrites unsupported color specifications", () => {
+    document.write(`<svg><text style="stroke:rgba(128, 128, 128, .5)">text</text></svg>`);
+    const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
+    exporter.dropInvisible();
+    exporter.simplifyColors();
+    exporter.inlineStyles();
+    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text style="stroke:gray;stroke-opacity:.5">text</text></svg>');
+  });
+
+  it("rewrites colors in presentation attributes", () => {
+    document.write(`<svg><text style="stroke:rgba(128, 128, 128, .5)">text</text></svg>`);
+    const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
+    exporter.dropInvisible();
+    exporter.simplifyColors();
+    exporter.usePresentationAttributes();
+    exporter.inlineStyles();
+    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text stroke="gray" stroke-opacity=".5">text</text></svg>');
   });
 });
