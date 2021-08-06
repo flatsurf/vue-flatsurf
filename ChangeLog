@@ -4,6 +4,17 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.5.2
+====================
+
+**Fixed:**
+
+* Half edges are now clickable on the half edge labels.
+* Remove opacity from flow components and pick better colors to get a light effect.
+* Remove artifacts in flow components.
+
+
+
 v0.5.1
 ====================
 
