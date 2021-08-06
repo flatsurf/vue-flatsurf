@@ -1,10 +1,10 @@
 <template>
-  <g>
+  <g class="FlowComponent">
     <g :style="{ '--color': color }">
       <ngon v-for="(vertices, i) of patches" :key="i" :vertices="vertices" />
     </g>
     <g class="boundary">
-      <saddle-connection-component v-for="(connection, i) of perimeter" :key="i" :connection="connection" :layout="layout" />
+      <saddle-connection-component v-for="(connection, i) of perimeter" :key="i" :connection="connection" :layout="layout" :color="color" />
     </g>
   </g>
 </template>
@@ -248,12 +248,12 @@ export default class FlowComponent extends Vue {
 }
 </script>
 <style lang="scss" scoped>
-polygon {
+.FlowComponent polygon {
   fill: var(--color);
-  opacity: .6;
+  opacity: 1;
 }
 
-.boundary {
+.FlowComponent .boundary {
   stroke: white;
   opacity: 1;
   stroke-width: 1px;

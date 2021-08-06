@@ -8,10 +8,11 @@ TODO: It is weird that we compute the layout in the flat-triangulation-component
 <template>
   <div>
     <svg :width="viewport.width" :height="viewport.height" ref="svg">
-      <g v-if="layout != null">
-        <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
-      </g>
-      <flat-triangulation-component v-if="layout != null" :surface="layout" />
+      <flat-triangulation-component v-if="layout != null" :surface="layout">
+        <g v-if="layout != null">
+          <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
+        </g>
+      </flat-triangulation-component>
     </svg>
   </div>
 </template>
