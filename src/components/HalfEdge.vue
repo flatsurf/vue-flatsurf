@@ -91,7 +91,7 @@ export default class HalfEdgeComponent extends Vue {
   }
 
   &:hover.inner line {
-    stroke: #fff;
+    stroke: black;
   }
 
   .glued {

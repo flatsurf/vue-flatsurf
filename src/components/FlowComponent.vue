@@ -9,6 +9,8 @@
   </g>
 </template>
 <script lang="ts">
+import assert from "assert";
+import Flatten from "@flatten-js/core";
 import  { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import FlowComponentData from "../geometry/triangulation/FlowComponent";
 import { Touch } from "../geometry/triangulation/FlowConnection";
@@ -226,21 +228,77 @@ export default class FlowComponent extends Vue {
     return [A, B, C];
   }
 
-  get patches() {
-    let /* TODO const */ patches = [];
+  get triangles(): Point[][] {
+    const triangles = [];
 
     for (const connection of this.component.perimeter) {
       for (let i = 0; i < connection.touches.length; i+=2) {
         const patch = this.patch(connection.touches[i], connection.touches[i + 1])
         if (patch !== null)
-          patches.push(patch);
+          triangles.push(patch);
       }
     }
 
     for (const inside of this.component.inside) {
       const patch = this.patchHalfEdge(inside);
       if (patch != null)
-        patches.push(patch);
+        triangles.push(patch);
+    }
+
+    return triangles;
+  }
+
+  get patches(): Point[][] {
+    const patches = [];
+    const triangles = [...this.triangles];
+
+    const epsilon = (Flatten.Utils as any).getTolerance();
+
+    // Glue triangle to ngon if possible.
+    const glue = (ngon: Point[], triangle: Point[]) => {
+      assert(triangle.length === 3);
+      for (const step of [1, 2]) {
+        for (const t of [0, 1, 2]) {
+          for (let n = 0; n < ngon.length; n++) {
+            if (triangle[t].equalTo(ngon[n], epsilon) && triangle[(t + step) % 3].equalTo(ngon[(n + 1) % ngon.length], epsilon)) {
+              // Add the third point of the triangle that gets glued to the ngon.
+              ngon.splice(n + 1, 0, triangle[(t + 2*step) % 3]);
+
+              // Simplify the ngon if it contains the same point twice.
+              for (let nn = 0; nn < ngon.length; nn++) {
+                if (ngon[nn].equalTo(ngon[(nn + 2) % ngon.length], epsilon)) {
+                  if (nn + 1 == ngon.length) {
+                    ngon.splice(0, 2);
+                  } else if (nn + 2 == ngon.length) {
+                    ngon.splice(0, 1);
+                    ngon.pop();
+                  } else
+                    ngon.splice(nn, 2);
+                  break;
+                }
+              }
+
+              return true;
+            }
+          }
+        }
+      }
+
+      return false;
+    };
+
+    while(triangles.length) {
+      // Create an ngon by gluing triangles that share two points.
+      let patch = triangles.pop()!;
+      for (let t = triangles.length; t--;) {
+        if (glue(patch, triangles[t])) {
+          triangles[t] = triangles[triangles.length - 1];
+          triangles.pop();
+          t = triangles.length;
+        }
+      }
+
+      patches.push(patch);
     }
 
     return patches;
@@ -256,6 +314,6 @@ export default class FlowComponent extends Vue {
 .FlowComponent .boundary {
   stroke: white;
   opacity: 1;
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 </style>
