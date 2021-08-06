@@ -1,8 +1,11 @@
 <template>
-  <g>
-    <arrow class="indicator" v-if="indicator" :segment="indicator" />
-    <segment-label v-if="halfEdgeConfiguration(halfEdge).state.labeled || true" :at="segment">{{ halfEdge }}</segment-label>
-    <extended-click-area @click="onClick" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @mousemove="onMouseMove">
+  <g class="HalfEdge" :class="{ inner }" @click="onClick" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @mousemove="onMouseMove">
+    <extended-click-area>
+      <g v-if="halfEdgeConfiguration(halfEdge).state.labeled || !inner" class="label">
+        <segment-label :at="segment">{{ halfEdge }}</segment-label>
+      </g>
+      <arrow v-if="indicator(halfEdge)" class="indicator" :segment="indicator(halfEdge)" />
+      <arrow v-if="inner && indicator(-halfEdge)" class="indicator" :segment="indicator(-halfEdge)" />
       <segment-component :segment="segment" :class="{ selected, glued }" />
     </extended-click-area>
   </g>
@@ -10,6 +13,7 @@
 <script lang="ts">
 import { Component, Prop, Inject, Vue } from "vue-property-decorator";
 
+import FlatTriangulationLayout from "../geometry/layout/FlatTriangulationLayout";
 import Segment from "@/geometry/Segment";
 import Vector from "@/geometry/Vector";
 import SegmentComponent from "./svg/Segment.vue";
@@ -24,9 +28,9 @@ import { IHalfEdgeConfiguration, DefaultHalfEdgeConfiguration } from "./HalfEdge
   components: { Arrow, ExtendedClickArea, SegmentComponent, SegmentLabel },
 })
 export default class HalfEdgeComponent extends Vue {
+  @Prop({required: true, type: Object}) surface!: FlatTriangulationLayout;
   @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
-  // TODO: We should compute the segment here from the layout object instead.
-  @Prop({required: true, type: Object}) segment!: Segment;
+  @Prop({required: true, type: Boolean}) inner!: boolean;
 
   onClick(ev: MouseEvent) {
     this.halfEdgeConfiguration(this.halfEdge).interactions.click(ev, this.segment);
@@ -52,11 +56,16 @@ export default class HalfEdgeComponent extends Vue {
     return this.halfEdgeConfiguration(this.halfEdge).state.glued;
   }
 
-	get indicator() {
-    let indicator = this.halfEdgeConfiguration(this.halfEdge).state.indicator;
+  get segment() {
+    return this.surface.layout(this.halfEdge).segment;
+  }
+
+  indicator(halfEdge: HalfEdge) {
+    const segment = this.surface.layout(halfEdge).segment;
+    let indicator = this.halfEdgeConfiguration(halfEdge).state.indicator;
     if (indicator) {
-		  const end = this.segment.at(indicator);
-		  const start = end.translate(this.svg(this.segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
+		  const end = segment.at(indicator);
+		  const start = end.translate(this.svg(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
       return new Segment(start, end);
     }
 	}
@@ -68,24 +77,36 @@ export default class HalfEdgeComponent extends Vue {
   svg!: (xy: Vector) => Vector;
 }
 </script>
-<style lang="scss" scoped>
-line {
-  stroke: #d1d1d1;
-  stroke-width: 1px;
-}
+<style lang="scss">
+.HalfEdge {
+  line {
+    stroke: #d1d1d1;
+    stroke-width: 2px;
+  }
 
-.glued {
-  stroke: #eee;
-}
+  &.inner line {
+    display: var(--flat-triangulation-hover, none);
+    stroke: #ddd;
+    stroke-dasharray: 8 6;
+  }
 
-.selected {
-  stroke: red;
-  stroke-width: 2px;
-  stroke-dasharray: 10;
-  animation: dash 1000ms linear infinite;
-}
+  &:hover.inner line {
+    stroke: black;
+  }
 
-@keyframes dash {
-  to { stroke-dashoffset: 20; }
+  .glued {
+    stroke: #eee;
+  }
+
+  .selected {
+    stroke: red;
+    stroke-width: 2px;
+    stroke-dasharray: 10;
+    animation: dash 1000ms linear infinite;
+  }
+
+  @keyframes dash {
+    to { stroke-dashoffset: 20; }
+  }
 }
 </style>

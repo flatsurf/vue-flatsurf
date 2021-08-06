@@ -1,5 +1,5 @@
 <template>
-  <g :style="{ '--color': color }">
+  <g class="SaddleConnection">
       <segment-component v-for="(segment, i) of segments" :key="i" :segment="segment" />
   </g>
 </template>
@@ -21,7 +21,6 @@ import Vector from "../geometry/Vector";
 export default class FlowComponent extends Vue {
   @Prop({ required: true }) connection!: SaddleConnectionData;
   @Prop({ required: true }) layout!: FlatTriangulationLayout;
-  @Prop({ required: false, type: String, default:"orange" }) color!: string;
 
   get segments(): Segment[] {
     const segments = [];
@@ -61,11 +60,3 @@ export default class FlowComponent extends Vue {
   }
 }
 </script>
-<style scoped>
-/*
-line {
-  stroke: var(--color);
-  stroke-width: 1px;
-}
-*/
-</style>

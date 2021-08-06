@@ -20,12 +20,12 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import iwanthue from "iwanthue";
+import iwanthue, { ColorSpacePreset } from "iwanthue";
 
 export default class Palette {
-  constructor(colors: number = 2) {
+  constructor(colors: number = 2, space: ColorSpacePreset = "fancy-light") {
     // TODO: Typings in iwanthue are wrong.
-    this.palette = iwanthue(colors >= 2 ? colors : 2, { seed: 1337 as any });
+    this.palette = iwanthue(colors >= 2 ? colors : 2, { seed: 1337 as any, colorSpace: space });
   }
 
   color(i: number) {

@@ -12,6 +12,7 @@
   stroke-width: 30px !important;
   stroke-linejoin: round !important;
   stroke-linecap: butt !important;
+  stroke-dasharray: 0 !important;
   pointer-events: all !important;
   cursor: pointer;
 }
