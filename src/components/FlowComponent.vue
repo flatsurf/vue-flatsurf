@@ -313,7 +313,7 @@ export default class FlowComponent extends Vue {
 
 .FlowComponent .boundary {
   stroke: white;
-  opacity: 1;
+  opacity: var(--flat-triangulation-hover, 0);
   stroke-width: 2px;
 }
 </style>
