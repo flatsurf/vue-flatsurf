@@ -24,6 +24,7 @@ import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
 import FlatTriangulationComponent from "./FlatTriangulation.vue";
 import HalfEdge from "../geometry/triangulation/HalfEdge";
 import FlowComponent from "../geometry/triangulation/FlowComponent";
+import Automorphism from "../geometry/triangulation/Automorphism";
 import FlowComponentComponent from "./FlowComponent.vue";
 import Palette from "@/Palette";
 
@@ -38,6 +39,8 @@ import Progress from "@/Progress";
 
 import SVGExporter from "@/export/SVGExporter";
 
+import clamp from "lodash-es/clamp";
+
 @Component({
   components: {
     FlatTriangulationComponent,
@@ -49,6 +52,7 @@ export default class Surface extends Vue {
   @Prop({ required: true }) surface!: FlatTriangulation;
   @Prop({ required: false, default: () => [], type: Array }) components!: FlowComponent[];
   @Prop({ required: false, default: () => [], type: Array }) inner!: HalfEdge[];
+  @Prop({ required: false, default: () => [], type: Array }) automorphisms!: Automorphism[];
   
   private forced = [] as HalfEdge[];
   private selected = [] as HalfEdge[];
@@ -76,7 +80,7 @@ export default class Surface extends Vue {
     this.run(async (cancellation, progress) => {
       this.cancellation = cancellation;
       try {
-        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => (this.forced.includes(he) || this.forced.includes(-he)) ? true : null, this.cancellation, progress);
+        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => (this.forced.includes(he) || this.forced.includes(-he)) ? true : null, this.automorphisms, this.cancellation, progress);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
@@ -144,16 +148,21 @@ export default class Surface extends Vue {
     this.selected = this.selected.filter((he) => he !== halfEdge && he !== -halfEdge);
   }
 
-  hover(halfEdge: HalfEdge, at: number) {
-    this.hovered.push(halfEdge);
-    this.indicator[halfEdge] = at;
-    this.indicator[-halfEdge] = 1 - at;
+  hover(hover: HalfEdge, at: number) {
+    at = clamp(at, 0, 1);
+    for (const halfEdge of Automorphism.orbit(hover, this.automorphisms)) {
+      this.hovered.push(halfEdge);
+      this.indicator[halfEdge] = at;
+      this.indicator[-halfEdge] = 1 - at;
+    }
   }
 
-  unhover(halfEdge: HalfEdge) {
-    this.hovered = this.hovered.filter((he) => he !== halfEdge && he !== -halfEdge);
-    this.indicator[halfEdge] = null;
-    this.indicator[-halfEdge] = null;
+  unhover(hover: HalfEdge) {
+    for (const halfEdge of Automorphism.orbit(hover, this.automorphisms)) {
+      this.hovered = this.hovered.filter((he) => he !== halfEdge && he !== -halfEdge);
+      this.indicator[halfEdge] = null;
+      this.indicator[-halfEdge] = null;
+    }
   }
 
   // TODO: This should live in a more generic place.

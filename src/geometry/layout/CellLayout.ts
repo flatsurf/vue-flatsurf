@@ -21,11 +21,13 @@
  * *****************************************************************************/
 
 import assert from "assert";
+
 import minBy from "lodash-es/minBy";
 import Flatten from "@flatten-js/core";
 
 import Vector from "../Vector";
 import HalfEdge from "../triangulation/HalfEdge";
+import Automorphism from "../triangulation/Automorphism";
 import HalfEdgeLayout from './HalfEdgeLayout';
 import Point from '../Point';
 import Segment from '../Segment';
@@ -215,7 +217,7 @@ export default class CellLayout {
   }
 
   // Merge two of the cells by identifying two opposite half edges.
-  static async merge(cells: CellLayout[], force: (he: HalfEdge) => boolean | null, cache: Record<HalfEdge, number | null> = {}, cancellation = new CancellationToken(), _progress = new Progress()): Promise<CellLayout[]> {
+  static async merge(cells: CellLayout[], force: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[], cache: Record<HalfEdge, number | null> = {}, cancellation = new CancellationToken(), _progress = new Progress()): Promise<CellLayout[]> {
     if (cells.length === 1)
       return cells;
 
@@ -236,7 +238,7 @@ export default class CellLayout {
         if (cell === other) continue;
 
         if (cache[glue] === undefined) {
-          cache[glue] = CellLayout.score(glue, cell, other, cells, force);
+          cache[glue] = CellLayout.score(glue, cell, other, cells, force, automorphisms);
         }
 
         const score = cache[glue];
@@ -253,22 +255,32 @@ export default class CellLayout {
 
     const best = minBy(scores, 'score')!;
 
-    const cell = CellLayout.glue(best.glue, best.cell, best.other);
+    for (const glue of Automorphism.orbit(best.glue, automorphisms)) {
+      const cell = cells.find((cell) => cell.halfEdges.includes(glue))!;
+      const other = cells.find((other) => other.halfEdges.includes(-glue))!;
 
-    for (let halfEdge of cell.halfEdges) {
-      delete cache[halfEdge];
-      delete cache[-halfEdge];
+      assert(cell !== other);
+
+      const glued = CellLayout.glue(glue, cell, other);
+
+      for (let halfEdge of glued.halfEdges) {
+        delete cache[halfEdge];
+        delete cache[-halfEdge];
+      }
+
+      cells = [glued, ...cells.filter((c) => c !== cell && c !== other)];
     }
 
-    return [cell, ...cells.filter((c) => c !== best.cell && c !== best.other)];
+    return cells;
   }
 
   // Return the score (lower is better) to the visual glueing of glue of
   // parent and -glue of other; or return null if the two cannot be glued
   // without overlaps in the resulting picture.
-  private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[], force?: (he: HalfEdge) => boolean | null): number | null {
+  private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[], force?: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[] = []): number | null {
     assert(parent.halfEdges.includes(glue) && other.halfEdges.includes(-glue));
-    assert(!parent.layout[glue].inner && !other.layout[-glue].inner);
+    assert(!parent.layout[glue].inner)
+    assert(!other.layout[-glue].inner);
 
     other.translate(-glue, parent.layout[glue].segment.reverse());
     const glues = parent.glues(other);
@@ -276,6 +288,11 @@ export default class CellLayout {
       return null;
     }
 
+    // Forbid gluing cells that contain identified edges.
+    for (const preimage of parent.halfEdges)
+      for (const image of Automorphism.orbit(preimage, automorphisms))
+        if (other.halfEdges.includes(image))
+          return null;
 
     // Prefer edges that have been explicitly selected.
     if (force) {

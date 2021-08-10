@@ -22,6 +22,7 @@
 
 import Point from '../Point';
 import FlatTriangulation from "../triangulation/FlatTriangulation";
+import Automorphism from "../triangulation/Automorphism";
 import HalfEdge from '../triangulation/HalfEdge';
 import CellLayout from './CellLayout';
 import HalfEdgeLayout from './HalfEdgeLayout';
@@ -30,13 +31,14 @@ import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 
 export default class FlatTriangulationLayout {
-  private constructor(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null) {
+  private constructor(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms?: Automorphism[]) {
     this.surface = surface;
     this.force = force || (() => null);
+    this.automorphisms = automorphisms || [];
   }
 
-  public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, cancellation = new CancellationToken(), progress = new Progress()) {
-    const layout = new FlatTriangulationLayout(surface, force);
+  public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[] = [], cancellation = new CancellationToken(), progress = new Progress()) {
+    const layout = new FlatTriangulationLayout(surface, force, automorphisms);
     await layout.recompute(cancellation, progress);
     return layout;
   }
@@ -66,7 +68,7 @@ export default class FlatTriangulationLayout {
     const cache = {};
     for (const _ of Array(cells.length - 1)) {
       progress.progress();
-      cells = await CellLayout.merge(cells, this.force, cache, cancellation, progress);
+      cells = await CellLayout.merge(cells, this.force, this.automorphisms, cache, cancellation, progress);
     }
 
     // (3) Pack Cells
@@ -94,5 +96,6 @@ export default class FlatTriangulationLayout {
 
   public readonly surface: FlatTriangulation;
   private force: (he: HalfEdge) => boolean | null;
+  private automorphisms: Automorphism[];
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
 }
