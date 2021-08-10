@@ -10,7 +10,7 @@ TODO: It is weird that we compute the layout in the flat-triangulation-component
     <svg :width="viewport.width" :height="viewport.height" ref="svg">
       <flat-triangulation-component v-if="layout != null" :surface="layout">
         <g v-if="layout != null">
-          <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
+          <flow-component-component v-for="(component, i) of visibleComponents" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
         </g>
       </flat-triangulation-component>
     </svg>
@@ -24,6 +24,7 @@ import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
 import FlatTriangulationComponent from "./FlatTriangulation.vue";
 import HalfEdge from "../geometry/triangulation/HalfEdge";
 import FlowComponent from "../geometry/triangulation/FlowComponent";
+import Automorphism from "../geometry/triangulation/Automorphism";
 import FlowComponentComponent from "./FlowComponent.vue";
 import Palette from "@/Palette";
 
@@ -38,6 +39,8 @@ import Progress from "@/Progress";
 
 import SVGExporter from "@/export/SVGExporter";
 
+import clamp from "lodash-es/clamp";
+
 @Component({
   components: {
     FlatTriangulationComponent,
@@ -49,16 +52,15 @@ export default class Surface extends Vue {
   @Prop({ required: true }) surface!: FlatTriangulation;
   @Prop({ required: false, default: () => [], type: Array }) components!: FlowComponent[];
   @Prop({ required: false, default: () => [], type: Array }) inner!: HalfEdge[];
+  @Prop({ required: false, default: () => [], type: Array }) automorphisms!: Automorphism[];
   
   private forced = [] as HalfEdge[];
   private selected = [] as HalfEdge[];
   private hovered = [] as HalfEdge[];
+  private visibleComponents = [] as FlowComponent[];
   private indicator = {} as Record<HalfEdge, number | null>;
   private cancellation = new CancellationToken();
   private layout = null as FlatTriangulationLayout | null;
-
-  // TODO: It is a strange pattern to hide the updates behind the layout updates.
-  palette = new Palette();
 
   static _run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>): void {
     callback(new CancellationToken(), new Progress());
@@ -76,12 +78,16 @@ export default class Surface extends Vue {
     this.run(async (cancellation, progress) => {
       this.cancellation = cancellation;
       try {
-        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => (this.forced.includes(he) || this.forced.includes(-he)) ? true : null, this.cancellation, progress);
+        this.layout = await FlatTriangulationLayout.layout(this.surface, (he: HalfEdge) => (this.forced.includes(he) || this.forced.includes(-he)) ? true : null, this.automorphisms, this.cancellation, progress);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
       }
-      this.palette = new Palette(this.components.length);
+      this.visibleComponents = this.components.filter((component) =>
+        !component.perimeter.some((connection) =>
+          ! this.layout!.primary.includes(connection.connection.source) && !this.layout!.primary.includes(connection.connection.target)
+        )
+      );
       this.$emit('layout', this.layout);
       this.$nextTick(() => {
         // TODO: Maybe we should not always export the SVG but only do so on demand.
@@ -101,7 +107,10 @@ export default class Surface extends Vue {
         this.$emit('svg', exporter.toString());
       });
     });
+  }
 
+  get palette() {
+    return new Palette(this.visibleComponents.length);
   }
 
   @Provide()
@@ -144,16 +153,21 @@ export default class Surface extends Vue {
     this.selected = this.selected.filter((he) => he !== halfEdge && he !== -halfEdge);
   }
 
-  hover(halfEdge: HalfEdge, at: number) {
-    this.hovered.push(halfEdge);
-    this.indicator[halfEdge] = at;
-    this.indicator[-halfEdge] = 1 - at;
+  hover(hover: HalfEdge, at: number) {
+    at = clamp(at, 0, 1);
+    for (const halfEdge of Automorphism.orbit(hover, this.automorphisms)) {
+      this.hovered.push(halfEdge);
+      this.indicator[halfEdge] = at;
+      this.indicator[-halfEdge] = 1 - at;
+    }
   }
 
-  unhover(halfEdge: HalfEdge) {
-    this.hovered = this.hovered.filter((he) => he !== halfEdge && he !== -halfEdge);
-    this.indicator[halfEdge] = null;
-    this.indicator[-halfEdge] = null;
+  unhover(hover: HalfEdge) {
+    for (const halfEdge of Automorphism.orbit(hover, this.automorphisms)) {
+      this.hovered = this.hovered.filter((he) => he !== halfEdge && he !== -halfEdge);
+      this.indicator[halfEdge] = null;
+      this.indicator[-halfEdge] = null;
+    }
   }
 
   // TODO: This should live in a more generic place.

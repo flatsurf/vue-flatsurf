@@ -25,11 +25,15 @@ export default class FlatTriangulation extends Vue {
   @Prop({required: true, type: Object}) surface!: FlatTriangulationLayout;
 
   get faces() {
-    return this.surface.surface.faces.cycles.map((face) => face.map((he) => this.surface!.layout(he).segment.end)) as any;
+    let faces = this.surface.surface.faces.cycles;
+    faces = faces.filter((face) => face.every((he) => this.surface.primary.includes(he)));
+    return faces.map((face) => face.map((he) => this.surface.layout(he).segment.end));
   }
 
   get halfEdges() {
     return this.surface.surface.halfEdges.filter((halfEdge) => {
+      if (!this.surface.primary.includes(halfEdge))
+        return false;
       if (!this.surface.layout(halfEdge).inner)
         return true;
       return halfEdge > 0;

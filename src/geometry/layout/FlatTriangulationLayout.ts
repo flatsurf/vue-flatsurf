@@ -22,6 +22,7 @@
 
 import Point from '../Point';
 import FlatTriangulation from "../triangulation/FlatTriangulation";
+import Automorphism from "../triangulation/Automorphism";
 import HalfEdge from '../triangulation/HalfEdge';
 import CellLayout from './CellLayout';
 import HalfEdgeLayout from './HalfEdgeLayout';
@@ -30,13 +31,15 @@ import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 
 export default class FlatTriangulationLayout {
-  private constructor(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null) {
+  private constructor(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms?: Automorphism[]) {
     this.surface = surface;
     this.force = force || (() => null);
+    this.automorphisms = automorphisms || [];
+    this.primary = [];
   }
 
-  public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, cancellation = new CancellationToken(), progress = new Progress()) {
-    const layout = new FlatTriangulationLayout(surface, force);
+  public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[] = [], cancellation = new CancellationToken(), progress = new Progress()) {
+    const layout = new FlatTriangulationLayout(surface, force, automorphisms);
     await layout.recompute(cancellation, progress);
     return layout;
   }
@@ -66,33 +69,37 @@ export default class FlatTriangulationLayout {
     const cache = {};
     for (const _ of Array(cells.length - 1)) {
       progress.progress();
-      cells = await CellLayout.merge(cells, this.force, cache, cancellation, progress);
+      cells = await CellLayout.merge(cells, this.force, this.automorphisms, cache, cancellation, progress);
     }
 
     // (3) Pack Cells
-    cells = CellLayout.pack(cells, progress);
+    cells = CellLayout.pack(cells.filter((cell) => cell.primary), progress);
 
     this.halfEdges = Object.assign({}, ...cells.map((cell) => cell.layout));
+    this.primary = cells.filter((cell) => cell.primary).map((cell) => cell.halfEdges).flat();
 
-    // Complain about unsatisfied forcings.
     for (const he of this.surface.halfEdges) {
       if (this.force(he) === true && !this.layout(he).inner)
         console.log(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
       if (this.force(he) === false && this.layout(he).inner)
         console.error(`Half edge ${he} should not be visually glued in the layout but it is.`);
     }
-
   }
 
-  public layout(halfEdge: HalfEdge): HalfEdgeLayout {
-    return this.halfEdges[halfEdge];
+  public layout(halfEdge: HalfEdge): HalfEdgeLayout & { primary: boolean } {
+    return {
+      ...this.halfEdges[halfEdge],
+      primary: true,
+    };
   }
 
   public get bbox(): Box {
-    return Box.bbox(Object.values(this.halfEdges).map((layout) => layout.segment));
+    return Box.bbox(this.primary.map((halfEdge) => this.halfEdges[halfEdge].segment));
   }
 
   public readonly surface: FlatTriangulation;
   private force: (he: HalfEdge) => boolean | null;
+  private automorphisms: Automorphism[];
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
+  public primary!: HalfEdge[];
 }
