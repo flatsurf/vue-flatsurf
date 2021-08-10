@@ -4,6 +4,30 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.6.0
+====================
+
+**Added:**
+
+* Identify Delaunay cells through provided automorphisms, i.e., force
+  identified half edges to be all visually glued or all visually unglued. Also
+  only show one copy of every Delaunay cell.
+* Show vertex indicators when half edges meet at (almost) collinear directions.
+
+**Changed:**
+
+* Only display flow component boundary when the surface is hovered. Before,
+  cylinders looked slightly too small in static pictures.
+* Relabeling half edges so that the outer half edges get short identifiers. The
+  original half edge number is now only shown when hovering over the edge.
+
+**Fixed:**
+
+* Fixed spacing of unglued components. Increased the spacing by 5px so that the
+  outer border of a triangulation is accounted for.
+
+
+
 v0.5.2
 ====================
 
