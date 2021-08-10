@@ -262,6 +262,7 @@ export default class CellLayout {
       assert(cell !== other);
 
       const glued = CellLayout.glue(glue, cell, other);
+      glued.primary = best.glue === glue;
 
       for (let halfEdge of glued.halfEdges) {
         delete cache[halfEdge];
@@ -281,6 +282,9 @@ export default class CellLayout {
     assert(parent.halfEdges.includes(glue) && other.halfEdges.includes(-glue));
     assert(!parent.layout[glue].inner)
     assert(!other.layout[-glue].inner);
+
+    if (!parent.primary)
+      return null;
 
     other.translate(-glue, parent.layout[glue].segment.reverse());
     const glues = parent.glues(other);
@@ -423,4 +427,7 @@ export default class CellLayout {
   protected readonly surface: FlatTriangulation;
   protected readonly boundingRectArea: number;
   public readonly layout: Record<HalfEdge, HalfEdgeLayout>;
+  // Whether this cell should be consider the primary copy of cells that are
+  // isomorphic under the automorphisms.
+  public primary: boolean = true;
 }

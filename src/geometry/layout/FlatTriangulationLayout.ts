@@ -35,6 +35,7 @@ export default class FlatTriangulationLayout {
     this.surface = surface;
     this.force = force || (() => null);
     this.automorphisms = automorphisms || [];
+    this.primary = [];
   }
 
   public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[] = [], cancellation = new CancellationToken(), progress = new Progress()) {
@@ -72,30 +73,33 @@ export default class FlatTriangulationLayout {
     }
 
     // (3) Pack Cells
-    cells = CellLayout.pack(cells, progress);
+    cells = CellLayout.pack(cells.filter((cell) => cell.primary), progress);
 
     this.halfEdges = Object.assign({}, ...cells.map((cell) => cell.layout));
+    this.primary = cells.filter((cell) => cell.primary).map((cell) => cell.halfEdges).flat();
 
-    // Complain about unsatisfied forcings.
     for (const he of this.surface.halfEdges) {
       if (this.force(he) === true && !this.layout(he).inner)
         console.log(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
       if (this.force(he) === false && this.layout(he).inner)
         console.error(`Half edge ${he} should not be visually glued in the layout but it is.`);
     }
-
   }
 
-  public layout(halfEdge: HalfEdge): HalfEdgeLayout {
-    return this.halfEdges[halfEdge];
+  public layout(halfEdge: HalfEdge): HalfEdgeLayout & { primary: boolean } {
+    return {
+      ...this.halfEdges[halfEdge],
+      primary: true,
+    };
   }
 
   public get bbox(): Box {
-    return Box.bbox(Object.values(this.halfEdges).map((layout) => layout.segment));
+    return Box.bbox(this.primary.map((halfEdge) => this.halfEdges[halfEdge].segment));
   }
 
   public readonly surface: FlatTriangulation;
   private force: (he: HalfEdge) => boolean | null;
   private automorphisms: Automorphism[];
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
+  public primary!: HalfEdge[];
 }

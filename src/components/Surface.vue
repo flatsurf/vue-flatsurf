@@ -10,7 +10,7 @@ TODO: It is weird that we compute the layout in the flat-triangulation-component
     <svg :width="viewport.width" :height="viewport.height" ref="svg">
       <flat-triangulation-component v-if="layout != null" :surface="layout">
         <g v-if="layout != null">
-          <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
+          <flow-component-component v-for="(component, i) of visibleComponents" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="surface" />
         </g>
       </flat-triangulation-component>
     </svg>
@@ -57,12 +57,10 @@ export default class Surface extends Vue {
   private forced = [] as HalfEdge[];
   private selected = [] as HalfEdge[];
   private hovered = [] as HalfEdge[];
+  private visibleComponents = [] as FlowComponent[];
   private indicator = {} as Record<HalfEdge, number | null>;
   private cancellation = new CancellationToken();
   private layout = null as FlatTriangulationLayout | null;
-
-  // TODO: It is a strange pattern to hide the updates behind the layout updates.
-  palette = new Palette();
 
   static _run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>): void {
     callback(new CancellationToken(), new Progress());
@@ -85,7 +83,11 @@ export default class Surface extends Vue {
         if (e instanceof OperationAborted) return;
         throw e;
       }
-      this.palette = new Palette(this.components.length);
+      this.visibleComponents = this.components.filter((component) =>
+        !component.perimeter.some((connection) =>
+          ! this.layout!.primary.includes(connection.connection.source) && !this.layout!.primary.includes(connection.connection.target)
+        )
+      );
       this.$emit('layout', this.layout);
       this.$nextTick(() => {
         // TODO: Maybe we should not always export the SVG but only do so on demand.
@@ -105,7 +107,10 @@ export default class Surface extends Vue {
         this.$emit('svg', exporter.toString());
       });
     });
+  }
 
+  get palette() {
+    return new Palette(this.visibleComponents.length);
   }
 
   @Provide()
