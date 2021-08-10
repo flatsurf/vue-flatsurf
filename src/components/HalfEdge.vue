@@ -1,8 +1,8 @@
 <template>
   <g class="HalfEdge" :class="{ inner }" @click="onClick" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @mousemove="onMouseMove">
     <extended-click-area>
-      <g v-if="halfEdgeConfiguration(halfEdge).state.labeled || !inner" class="label">
-        <segment-label :at="segment">{{ halfEdge }}</segment-label>
+      <g v-if="halfEdgeConfiguration(halfEdge).state.label" class="label">
+        <segment-label :at="segment">{{ halfEdgeConfiguration(halfEdge).state.label }}</segment-label>
       </g>
       <arrow v-if="indicator(halfEdge)" class="indicator" :segment="indicator(halfEdge)" />
       <arrow v-if="inner && indicator(-halfEdge)" class="indicator" :segment="indicator(-halfEdge)" />

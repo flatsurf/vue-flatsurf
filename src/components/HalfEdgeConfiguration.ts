@@ -10,7 +10,7 @@ export interface IHalfEdgeConfiguration {
   state: {
     selected: boolean,
     glued: boolean,
-    labeled: boolean,
+    label: string | null,
     indicator: number | null,
   },
 };
@@ -25,7 +25,7 @@ export const DefaultHalfEdgeConfiguration: IHalfEdgeConfiguration = {
   state: {
     selected: false,
     glued: false,
-    labeled: false,
+    label: null,
     indicator: null,
   }
 };

@@ -89,7 +89,7 @@ export default class FlatTriangulationLayout {
   public layout(halfEdge: HalfEdge): HalfEdgeLayout & { primary: boolean } {
     return {
       ...this.halfEdges[halfEdge],
-      primary: true,
+      primary: this.primary.includes(halfEdge),
     };
   }
 
