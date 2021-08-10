@@ -59,6 +59,8 @@ export default class Surface extends Vue {
   private hovered = [] as HalfEdge[];
   private visibleComponents = [] as FlowComponent[];
   private indicator = {} as Record<HalfEdge, number | null>;
+  private defaultLabel = {} as Record<HalfEdge, string | null>;
+  private label = {} as Record<HalfEdge, string | null>;
   private cancellation = new CancellationToken();
   private layout = null as FlatTriangulationLayout | null;
 
@@ -73,6 +75,22 @@ export default class Surface extends Vue {
     this.relayout();
   }
 
+  private nextLabel(label: string) {
+    let chars = label.split('').map((c) => c.charCodeAt(0) - 65);
+    chars[chars.length - 1]++;
+    for (let i = chars.length; i--;) {
+      if (chars[i] == 25) {
+        chars[i] = 0;
+        if (i == 0)
+          chars = [0, ...chars];
+        else
+          chars[i - 1]++;
+      }
+    }
+
+    return chars.map((code) => String.fromCharCode(65 + code)).join('');
+  }
+
   async relayout() {
     this.cancellation.abort();
     this.run(async (cancellation, progress) => {
@@ -83,11 +101,51 @@ export default class Surface extends Vue {
         if (e instanceof OperationAborted) return;
         throw e;
       }
+      
+      // Only display components whose half edges and faces have been rendered.
       this.visibleComponents = this.components.filter((component) =>
         !component.perimeter.some((connection) =>
           ! this.layout!.primary.includes(connection.connection.source) && !this.layout!.primary.includes(connection.connection.target)
         )
       );
+      
+      // Reset indicators
+      this.indicator = Object.fromEntries(this.surface.halfEdges.map((halfEdge) => [halfEdge, null]));
+
+      // Recompute labels
+      let nextLabel = "A";
+      const cylinderInnerHalfEdges = [...this.visibleComponents.filter((component) => component.cylinder).map((component) => component.perimeter.filter((connection) => !connection.vertical && connection.connection.source === -connection.connection.target && connection.connection.crossings.length === 0).map((connection) => connection.connection.source)).flat(), ...this.visibleComponents.map((component) => component.inside).flat()];
+
+      this.defaultLabel = {};
+      for (const halfEdge of this.surface.halfEdges) {
+        if (this.defaultLabel[halfEdge] !== undefined)
+          continue;
+
+        if (!this.layout!.layout(halfEdge).primary)
+          continue
+
+        // Do not show labels for half edges in the interior of cylinders.
+        if (cylinderInnerHalfEdges.includes(halfEdge)) {
+          this.defaultLabel[halfEdge] = null;
+          continue;
+        }
+
+        if (this.layout!.layout(halfEdge).inner) {
+          this.defaultLabel[halfEdge] = null;
+          continue;
+        }
+        
+        for (const orbit of Automorphism.orbit(halfEdge, this.automorphisms)) {
+          this.defaultLabel[orbit] = nextLabel;
+          this.defaultLabel[-orbit] = nextLabel;
+        }
+
+        nextLabel = this.nextLabel(nextLabel);
+      }
+
+      // Reset labels
+      this.label = Object.fromEntries(this.surface.halfEdges.map((halfEdge) => [halfEdge, this.defaultLabel[halfEdge]]));
+
       this.$emit('layout', this.layout);
       this.$nextTick(() => {
         // TODO: Maybe we should not always export the SVG but only do so on demand.
@@ -159,6 +217,8 @@ export default class Surface extends Vue {
       this.hovered.push(halfEdge);
       this.indicator[halfEdge] = at;
       this.indicator[-halfEdge] = 1 - at;
+      this.label[halfEdge] = String(halfEdge);
+      this.label[-halfEdge] = String(-halfEdge);
     }
   }
 
@@ -167,6 +227,8 @@ export default class Surface extends Vue {
       this.hovered = this.hovered.filter((he) => he !== halfEdge && he !== -halfEdge);
       this.indicator[halfEdge] = null;
       this.indicator[-halfEdge] = null;
+      this.label[halfEdge] = this.defaultLabel[halfEdge];
+      this.label[-halfEdge] = this.defaultLabel[-halfEdge];
     }
   }
 
@@ -194,7 +256,7 @@ export default class Surface extends Vue {
       state: {
         selected: this.selected.includes(halfEdge) || this.selected.includes(-halfEdge),
         glued: this.forced.includes(halfEdge) || this.forced.includes(-halfEdge),
-        labeled: this.hovered.includes(halfEdge) || this.hovered.includes(-halfEdge),
+        label: this.label[halfEdge],
         indicator: this.indicator[halfEdge],
       },
     };
