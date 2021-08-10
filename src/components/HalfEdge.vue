@@ -6,6 +6,7 @@
       </g>
       <arrow v-if="indicator(halfEdge)" class="indicator" :segment="indicator(halfEdge)" />
       <arrow v-if="inner && indicator(-halfEdge)" class="indicator" :segment="indicator(-halfEdge)" />
+      <arrow v-if="sourceIndicator" class="source" :segment="source" />
       <segment-component :segment="segment" :class="{ selected, glued }" />
     </extended-click-area>
   </g>
@@ -31,6 +32,7 @@ export default class HalfEdgeComponent extends Vue {
   @Prop({required: true, type: Object}) surface!: FlatTriangulationLayout;
   @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
   @Prop({required: true, type: Boolean}) inner!: boolean;
+  @Prop({required: false, type: Boolean, default: false}) sourceIndicator!: boolean;
 
   onClick(ev: MouseEvent) {
     this.halfEdgeConfiguration(this.halfEdge).interactions.click(ev, this.segment);
@@ -70,6 +72,13 @@ export default class HalfEdgeComponent extends Vue {
     }
 	}
 
+  get source() {
+    const segment = this.segment;
+		const end = segment.at(0);
+		const start = end.translate(this.svg(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
+    return new Segment(start, end);
+  }
+
   @Inject({ default: () => DefaultHalfEdgeConfiguration })
   halfEdgeConfiguration!: (halfEdge: HalfEdge) => IHalfEdgeConfiguration;
 
@@ -96,6 +105,14 @@ export default class HalfEdgeComponent extends Vue {
 
   .glued {
     stroke: #eee;
+  }
+
+  .indicator path {
+    fill: #d95f02;
+  }
+
+  .source path {
+    fill: black;
   }
 
   .selected {

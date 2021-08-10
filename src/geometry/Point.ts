@@ -25,6 +25,7 @@ import Flatten from "@flatten-js/core";
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
 import Vector from './Vector';
 import Polygon from './Polygon';
+import Segment from './Segment';
 
 export default class Point {
   public constructor(parent: CoordinateSystem, x: Coordinate, y: Coordinate);
@@ -51,7 +52,9 @@ export default class Point {
     return `(${this.x}, ${this.y})`;
   }
 
-  public on(shape: Polygon): boolean {
+  public on(shape: Polygon): boolean;
+  public on(shape: Segment): boolean;
+  public on(shape: Polygon | Segment): boolean {
     return shape.parent.embed(this).value.on(shape.value);
   }
 
