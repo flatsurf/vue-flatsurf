@@ -27,6 +27,7 @@ import HalfEdge from '../triangulation/HalfEdge';
 import CellLayout from './CellLayout';
 import HalfEdgeLayout from './HalfEdgeLayout';
 import Box from '../Box';
+import Polygon from "../Polygon";
 import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 
@@ -91,6 +92,10 @@ export default class FlatTriangulationLayout {
       ...this.halfEdges[halfEdge],
       primary: this.primary.includes(halfEdge),
     };
+  }
+
+  public get hull(): Polygon {
+    return Polygon.convexHull(this.primary.map((halfEdge) => [this.halfEdges[halfEdge].segment.start, this.halfEdges[halfEdge].segment.end]).flat());
   }
 
   public get bbox(): Box {

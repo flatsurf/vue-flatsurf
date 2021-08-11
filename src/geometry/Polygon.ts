@@ -20,17 +20,29 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
-
 import Flatten from "@flatten-js/core";
+
+import findIndex from "lodash-es/findIndex";
 
 import CoordinateSystem from "./CoordinateSystem";
 import Point from "./Point";
+import Box from "./Box";
 
 export default class Polygon {
-  public constructor(parent: CoordinateSystem, value: Flatten.Polygon) {
+  public constructor(parent: CoordinateSystem, value: Point[][]);
+  public constructor(parent: CoordinateSystem, value: Flatten.Polygon);
+  public constructor(parent: CoordinateSystem, value: Flatten.Polygon | Point[][]) {
     this.parent = parent;
-    this.value = value;
+    if (value instanceof Flatten.Polygon) {
+      this.value = value;
+    } else if (value instanceof Array) {
+      this.value = new Flatten.Polygon();
+      for (const face of value) {
+        this.value.addFace(face.map((point) => parent.embed(point).value));
+      }
+    } else {
+      throw Error("Cannot create polygon from this data.");
+    }
   }
 
   public get convexHull(): Polygon {
@@ -40,13 +52,13 @@ export default class Polygon {
   // Compute the convex hull of the points (using the slow Jarvis march
   // algorithm.)
   public static convexHull(points: Point[]): Polygon {
-    assert(points.length !== 0);
+    console.assert(points.length !== 0);
 
     const coordinateSystem = points[0].parent;
 
     const vertices = points.map((p) => coordinateSystem.embed(p).value);
 
-    assert(vertices.some((p) => !p.equalTo(vertices[0])));
+    console.assert(vertices.some((p) => !p.equalTo(vertices[0])));
 
     const hull = [vertices.reduce((p, q) => {
       if (p.x < q.x)
@@ -114,8 +126,54 @@ export default class Polygon {
     return minAreaRect!;
   }
 
+  // Return a bounding box of this polygon in its parent's coordinate system.
+  public get box(): Box {
+    return new Box(this.parent, this.value.box);
+  }
+
   public get vertices(): Point[] {
     return this.value.vertices.map((vertex) => new Point(this.parent, vertex));
+  }
+
+  public get faces(): Point[][] {
+    const faces = [...this.value.faces] as Flatten.Face[];
+    return faces.map((face) => face.edges.map((edge) => new Point(this.parent, edge.start)));
+  }
+
+  public equalTo(rhs: Box, epsilon?: number): boolean;
+  public equalTo(rhs: Polygon, epsilon?: number): boolean;
+  public equalTo(rhs: Box | Polygon, epsilon: number = 0): boolean {
+    if (rhs instanceof Polygon) {
+      const lfaces = this.faces;
+      const rfaces = rhs.faces;
+
+      if (lfaces.length !== rfaces.length)
+        return false;
+
+      const equalTo = (lface: Point[], rface: Point[]) => {
+        if (lface.length !== rface.length)
+          return false;
+        for (let rot = 0; rot < lface.length; rot++) {
+          if ([...lface.keys()].every((i) => lface[i].equalTo(rface[(i + rot) % rface.length], epsilon)))
+            return true;
+        }
+        return false;
+      };
+
+      for (const lface of lfaces) {
+        const rindex = findIndex(rfaces, (rface) => equalTo(lface, rface));
+        if (rindex === -1)
+          return false;
+        rfaces.splice(rindex, 1);
+      }
+
+      return true;
+    } else {
+      const points = rhs.toPoints();
+      if (this.parent.positive === rhs.parent.positive)
+        points.reverse();
+      return this.equalTo(new Polygon(this.parent, [points]), epsilon);
+    }
   }
 
   public area(): number {

@@ -23,6 +23,7 @@
 import Flatten from "@flatten-js/core";
 
 import Point from "./Point";
+import Polygon from "./Polygon";
 import Box from "./Box";
 import Vector from "./Vector";
 import Segment from "./Segment";
@@ -68,15 +69,17 @@ export default class CoordinateSystem {
     return new Point(this, x, y);
   }
 
-  public embed(box: Box): Box;
+  public embed(box: Box): Polygon;
   public embed(point: Point): Point;
   public embed(vector: Vector): Vector;
   public embed(segment: Segment): Segment;
   public embed(line: Line): Line;
-  public embed(value: Box | Point | Vector | Segment | Line) : Box | Point | Vector | Segment | Line {
+  public embed(polygon: Polygon): Polygon;
+  public embed(value: Box | Point | Vector | Segment | Line | Polygon) : Point | Vector | Segment | Line | Polygon {
     if (value instanceof Box) {
-      let box = value as Box;
-      return new Box(this, this.embed(box.low).xy, this.embed(box.high).xy);
+      const polygon = new Flatten.Polygon();
+      polygon.addFace(value.toPoints().map((point) => this.embed(point).value));
+      return new Polygon(this, polygon);
     } else if (value instanceof Point) {
       let point = value as Point;
       while(true) {
@@ -105,6 +108,8 @@ export default class CoordinateSystem {
       return new Segment(this, this.embed(value.start).value, this.embed(value.end).value);
     } else if (value instanceof Line) {
       return new Line(this.embed(value.pt), this.embed(value.norm));
+    } else if (value instanceof Polygon) {
+      return new Polygon(this, new Flatten.Polygon(([...value.value.faces] as Flatten.Face[]).map((face) => (face.edges as Flatten.Edge[]).map((edge) => this.embed(new Point(value.parent, edge.start)).value))));
     }
 
     throw Error(`cannot embed this type of object into coordinate system yet`);

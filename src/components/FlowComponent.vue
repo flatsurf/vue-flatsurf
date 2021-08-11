@@ -9,7 +9,6 @@
   </g>
 </template>
 <script lang="ts">
-import assert from "assert";
 import Flatten from "@flatten-js/core";
 import  { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import FlowComponentData from "../geometry/triangulation/FlowComponent";
@@ -256,7 +255,7 @@ export default class FlowComponent extends Vue {
 
     // Glue triangle to ngon if possible.
     const glue = (ngon: Point[], triangle: Point[]) => {
-      assert(triangle.length === 3);
+      console.assert(triangle.length === 3);
       for (const step of [1, 2]) {
         for (const t of [0, 1, 2]) {
           for (let n = 0; n < ngon.length; n++) {

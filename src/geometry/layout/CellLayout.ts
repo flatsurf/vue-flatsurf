@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
-
 import minBy from "lodash-es/minBy";
 import Flatten from "@flatten-js/core";
 
@@ -46,13 +44,13 @@ export default class CellLayout {
     this.surface = surface;
 
     if (cell instanceof Array) {
-      assert(origin);
-      let end = origin;
+      console.assert(origin);
+      let end = origin!;
       this.layout = Object.fromEntries(cell.map((he: HalfEdge) => {
         const start = end;
         end = end.translate(surface.vector(he));
         return [he, {
-          segment: new Segment(origin.parent, start.value, end.value),
+          segment: new Segment(origin!.parent, start.value, end.value),
           inner: false,
         }];
       }));
@@ -77,7 +75,7 @@ export default class CellLayout {
       const delta = new Vector(before.parent, before.start, segment!.start);
       
       // https://github.com/alexbol99/flatten-js/pull/75
-      assert(before.translate(delta).equalTo(segment!, (Flatten.Utils as any).getTolerance()));
+      console.assert(before.translate(delta).equalTo(segment!, (Flatten.Utils as any).getTolerance()));
 
       this.translate(delta);
     }
@@ -156,7 +154,7 @@ export default class CellLayout {
       }
     }
 
-    assert(glued.length !== 0);
+    console.assert(glued.length !== 0);
     return glued;
   }
 
@@ -259,7 +257,7 @@ export default class CellLayout {
       const cell = cells.find((cell) => cell.halfEdges.includes(glue))!;
       const other = cells.find((other) => other.halfEdges.includes(-glue))!;
 
-      assert(cell !== other);
+      console.assert(cell !== other);
 
       const glued = CellLayout.glue(glue, cell, other);
       glued.primary = best.glue === glue;
@@ -279,9 +277,9 @@ export default class CellLayout {
   // parent and -glue of other; or return null if the two cannot be glued
   // without overlaps in the resulting picture.
   private static score(glue: HalfEdge, parent: CellLayout, other: CellLayout, cells: CellLayout[], force?: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[] = []): number | null {
-    assert(parent.halfEdges.includes(glue) && other.halfEdges.includes(-glue));
-    assert(!parent.layout[glue].inner)
-    assert(!other.layout[-glue].inner);
+    console.assert(parent.halfEdges.includes(glue) && other.halfEdges.includes(-glue));
+    console.assert(!parent.layout[glue].inner)
+    console.assert(!other.layout[-glue].inner);
 
     if (!parent.primary)
       return null;
@@ -343,15 +341,15 @@ export default class CellLayout {
       other.translate(-glues, parent.layout[glues].segment.reverse());
       return CellLayout.glue(parent.glues(other), parent, other);
     } else {
-      assert(glues.length !== 0)
+      console.assert(glues.length !== 0)
       other.translate(-glues[0], parent.layout[glues[0]].segment.reverse());
 
       // https://github.com/alexbol99/flatten-js/pull/75
       for (const glue of glues)
-        assert(parent.layout[glue].segment.equalTo(other.layout[-glue].segment.reverse(), (Flatten.Utils as any).getTolerance()));
+        console.assert(parent.layout[glue].segment.equalTo(other.layout[-glue].segment.reverse(), (Flatten.Utils as any).getTolerance()));
 
-      assert(Object.keys(parent.layout).every((he) => !other.layout.hasOwnProperty(he)));
-      assert(Object.keys(other.layout).every((he) => !parent.layout.hasOwnProperty(he)));
+      console.assert(Object.keys(parent.layout).every((he) => !other.layout.hasOwnProperty(he)));
+      console.assert(Object.keys(other.layout).every((he) => !parent.layout.hasOwnProperty(he)));
 
       const glued = {...parent.layout, ...other.layout};
       for (const glue of glues) {
@@ -385,7 +383,7 @@ export default class CellLayout {
       }
     }
 
-    assert(false, `Could not find any cells packable with ${packed} among ${cells}`);
+    throw Error(`Could not find any cells packable with ${packed} among ${cells}`);
   }
 
   static pack(cells: CellLayout[], progress: Progress): CellLayout[] {
@@ -398,7 +396,7 @@ export default class CellLayout {
     while (cells.length) {
       progress.progress();
 
-      const {cell, cell_, halfEdge, halfEdge_} = CellLayout.packable(cells, packed);
+      const {cell, cell_, halfEdge, halfEdge_} = CellLayout.packable(cells, packed)!;
 
       const segment = cell.layout[halfEdge].segment;
       const segment_ = cell_.layout[halfEdge_].segment.reverse();

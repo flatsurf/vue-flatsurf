@@ -24,6 +24,7 @@ import Flatten from "@flatten-js/core";
 
 import CoordinateSystem from "./CoordinateSystem";
 import Box from "./Box";
+import Polygon from "./Polygon";
 import Point from "./Point";
 
 export default class Viewport {
@@ -48,9 +49,12 @@ export default class Viewport {
     this.focus(this.focused);
   }
 
-  public focus(focused: Box) {
-    this.focused = this.idealCoordinateSystem.embed(focused);
-    this.visible = this.idealCoordinateSystem.embed(this.focused.contain(this.width / this.height));
+  public focus(focused: Box | Polygon) {
+    if (focused instanceof Box)
+      this.focused = this.idealCoordinateSystem.embed(focused).box;
+    else
+      this.focused = this.idealCoordinateSystem.embed(focused).box;
+    this.visible = this.focused.contain(this.width / this.height);
     // We now need to embed the "ideal" coordinate system into the actual
     // "viewport" coordinate system so that the "visible" box fills the (0,
     // 0), (width, height) box.
@@ -84,13 +88,13 @@ export default class Viewport {
   }
 
   public embed(point: Point) : Point;
-  public embed(box: Box) : Box;
-  public embed(value: Point | Box) : Point | Box {
+  public embed(box: Box) : Polygon;
+  public embed(value: Point | Box) : Point | Polygon {
     return this.viewportCoordinateSystem.embed(value as any);
   }
 
   public get viewport() : Box {
-    return this.viewportCoordinateSystem.embed(this.visible);
+    return this.viewportCoordinateSystem.embed(this.visible).box;
   }
 
   private width: number;

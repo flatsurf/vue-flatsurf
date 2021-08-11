@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
-
 import HalfEdge from "./HalfEdge";
 
 type HalfEdgeMap = { [preimage: number]: HalfEdge };
@@ -41,7 +39,7 @@ export default class Automorphism {
   private constructor(halfEdges: HalfEdgeMap ) {
     const set = (preimage: HalfEdge, image: HalfEdge) => {
       if (halfEdges.hasOwnProperty(preimage))
-        assert(halfEdges[preimage] === image);
+        console.assert(halfEdges[preimage] === image);
       halfEdges[preimage] = image;
     };
 
