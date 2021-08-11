@@ -4,6 +4,20 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.7.0
+====================
+
+**Added:**
+
+* Support rotated coordinate systems in the input so we can always make cylinders vertical or horizontal.
+
+**Fixed:**
+
+* Make sure that vertical cylinder perimeters are completely labeled.
+* Drop dependency on assert which does not work in some browsers.
+
+
+
 v0.6.0
 ====================
 
