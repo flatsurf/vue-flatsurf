@@ -114,7 +114,8 @@ export default class Surface extends Vue {
 
       // Recompute labels
       let nextLabel = "A";
-      const cylinderInnerHalfEdges = [...this.visibleComponents.filter((component) => component.cylinder).map((component) => component.perimeter.filter((connection) => !connection.vertical && connection.connection.source === -connection.connection.target && connection.connection.crossings.length === 0).map((connection) => connection.connection.source)).flat(), ...this.visibleComponents.map((component) => component.inside).flat()];
+      const componentInnerHalfEdges = [...this.visibleComponents.filter((component) => component.cylinder).map((component) => component.inside)];
+      const cylinderInnerHalfEdges = componentInnerHalfEdges.map((halfEdges) => halfEdges.filter((halfEdge) => halfEdges.includes(-halfEdge))).flat();
 
       this.defaultLabel = {};
       for (const halfEdge of this.surface.halfEdges) {
