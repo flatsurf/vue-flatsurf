@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
-
 import { optimize } from "svgo/dist/svgo.browser.js";
 import rgba from "color-normalize";
 
@@ -62,7 +60,7 @@ export default class SVGExporter {
    */
   private index(e: Element) {
     const children = this.children;
-    assert(children.length == this.styles.length);
+    console.assert(children.length == this.styles.length);
 
     for (let index = 0; index < children.length; index++) {
       if (children[index] === e)
@@ -98,7 +96,7 @@ export default class SVGExporter {
    */
   public dropInvisible() {
     const children = this.children;
-    assert(children.length === this.styles.length);
+    console.assert(children.length === this.styles.length);
 
     const trash = {} as {[index: number]: Element};
 
@@ -127,7 +125,7 @@ export default class SVGExporter {
       }
     }
 
-    assert(this.children.length === this.styles.length);
+    console.assert(this.children.length === this.styles.length);
 
     // Now we can drop all "visibility: visible" and "display: " which has no
     // effect in SVG anymore.
@@ -143,7 +141,7 @@ export default class SVGExporter {
    */
   public dropRedundantStyles() {
     const children = this.children;
-    assert(children.length === this.styles.length);
+    console.assert(children.length === this.styles.length);
 
     for (let index = children.length; index--;) {
       const child = children[index];
@@ -196,7 +194,7 @@ export default class SVGExporter {
    */
   public usePresentationAttributes() {
     const children = this.children;
-    assert(children.length === this.styles.length);
+    console.assert(children.length === this.styles.length);
 
     for (let index = children.length; index--;) {
       const child = children[index];
@@ -251,7 +249,7 @@ export default class SVGExporter {
   }
   public simplifyColors() {
     const children = this.children;
-    assert(children.length === this.styles.length);
+    console.assert(children.length === this.styles.length);
 
     const simplify = (child: Element, style: {[key: string]: string}, key: string, okey: string | null = null) => {
       if (child.getAttribute(key))
@@ -367,7 +365,7 @@ export default class SVGExporter {
    */
   public inlineStyles() {
     const children = this.children;
-    assert(children.length == this.styles.length);
+    console.assert(children.length == this.styles.length);
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];

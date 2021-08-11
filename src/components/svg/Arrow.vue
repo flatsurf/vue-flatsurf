@@ -35,11 +35,11 @@ export default class SVGArrow extends Vue {
   }
 
 	get atEnd() {
-    return `translate(${this.x2} ${this.y2}) rotate(${-this.segment.tangentInStart.angleTo(new Vector(this.segment.parent, 1, 0))*360 / (2*Math.PI)} 0 0)`;
+    return `translate(${this.x2} ${this.y2}) rotate(${-this.svg(this.segment).tangentInStart.angleTo(new Vector(this.svg(this.segment).parent, 1, 0))*360 / (2*Math.PI)} 0 0)`;
 	}
 
   @Inject()
-  svg!: ((xy: Point) => Point) & ((xy: Vector) => Vector);
+  svg!: ((xy: Point) => Point) & ((xy: Vector) => Vector) & ((xy: Segment) => Segment);
 }
 </script>
 <style scoped>

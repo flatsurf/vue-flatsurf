@@ -95,7 +95,7 @@ describe("Viewport", () => {
   it("zooms in and out of another point such that the position of that point is unchanged", () => {
     viewport.focus(box);
 
-    let visible = ideal.embed(viewport.viewport);
+    let visible = ideal.embed(viewport.viewport).box;
     [visible.width, visible.height].should.eql([box.width, box.height]);
 
     const centers = [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0], [0.5, 1.0], [2.5, 3.0]];
@@ -111,7 +111,7 @@ describe("Viewport", () => {
       [centerZoomed.x, centerZoomed.y].should.eql([centerBefore.x, centerBefore.y]);
 
       // Only a quarter of what was visible before is visible now.
-      visible = ideal.embed(viewport.viewport);
+      visible = ideal.embed(viewport.viewport).box;
       [visible.width, visible.height].should.eql([box.width / 2, box.height / 2]);
 
       viewport.zoom(0.5, center);
@@ -121,7 +121,7 @@ describe("Viewport", () => {
       [centerUnzoomed.x, centerUnzoomed.y].should.eql([centerBefore.x, centerBefore.y]);
 
       // The original content is visible again.
-      visible = ideal.embed(viewport.viewport);
+      visible = ideal.embed(viewport.viewport).box;
       visible.width.should.equal(box.width);
       visible.height.should.equal(box.height);
     }

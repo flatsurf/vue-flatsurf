@@ -20,7 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
@@ -37,19 +36,16 @@ export default class Vector {
   public constructor(parent: CoordinateSystem, a: Point, b: Point);
   public constructor(parent: CoordinateSystem, x: Coordinate | Flatten.Vector | Point, y?: Coordinate | Point) {
     this.parent = parent;
-    if (typeof(x) === "number") {
-      assert(typeof(y) === "number");
+    if (typeof(x) === "number" && typeof(y) === "number") {
       this.value = new Flatten.Vector(x, y);
-    } else if (x instanceof Flatten.Vector) {
-      assert(y == null);
+    } else if (x instanceof Flatten.Vector && y == null) {
       this.value = x;
-    } else {
-      assert(x instanceof Point);
-      assert(y instanceof Point);
+    } else if (x instanceof Point && y instanceof Point) {
       const a = parent.embed(x);
       const b = parent.embed(y);
       this.value = new Flatten.Vector(a.value, b.value);
-    }
+    } else
+      throw Error("Cannot initialize Vector from this data.");
   }
 
   public static parse(yaml: VectorSchema, coordinateSystem: CoordinateSystem): Vector {

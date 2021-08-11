@@ -20,7 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import assert from "assert";
 import Flatten from "@flatten-js/core";
 
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
@@ -36,8 +35,8 @@ export default class Box {
     if (xy0 instanceof Flatten.Box) {
       this.value = xy0;
     } else {
-      assert(xy1 instanceof Array);
-      this.value = new Flatten.Box(Math.min(xy0[0], xy1[0]), Math.min(xy0[1], xy1[1]), Math.max(xy0[0], xy1[0]), Math.max(xy0[1], xy1[1]));
+      console.assert(xy1 instanceof Array);
+      this.value = new Flatten.Box(Math.min(xy0[0], xy1![0]), Math.min(xy0[1], xy1![1]), Math.max(xy0[0], xy1![0]), Math.max(xy0[1], xy1![1]));
     }
   }
 
@@ -65,7 +64,7 @@ export default class Box {
   }
 
   public merge(other: Box): Box {
-    return new Box(this.parent, this.value.merge(this.parent.embed(other).value));
+    return new Box(this.parent, this.value.merge(this.parent.embed(other).value.box));
   }
 
   public translate(x: Coordinate, y: Coordinate) {
@@ -96,10 +95,14 @@ export default class Box {
     return this.value.ymax - this.value.ymin;
   }
 
+  public toPoints() {
+    return this.value.toPoints().map((point) => new Point(this.parent, point));
+  }
+
   public equalTo(rhs: Box, epsilon: number = 0): boolean {
     if (this.parent === rhs.parent)
       return this.low.equalTo(rhs.low, epsilon) && this.high.equalTo(rhs.high, epsilon);
-    return this.parent.embed(rhs).equalTo(this);
+    return this.parent.embed(rhs).box.equalTo(this);
   }
 
   public readonly parent: CoordinateSystem;
