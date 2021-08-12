@@ -4,6 +4,17 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.7.3
+====================
+
+**Fixed:**
+
+* Bring back accidentally deleted call to ensure caches when rendering flow components.
+
+* Link to latest released version on zenodo in README.
+
+
+
 v0.7.2
 ====================
 
