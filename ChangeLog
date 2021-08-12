@@ -4,6 +4,17 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.7.2
+====================
+
+**Fixed:**
+
+* Relayout surface when surface data or automorphism data changes. (Fixes a
+  problem in the demo application which did not correctly update when changing
+  the yaml surface data.)
+
+
+
 v0.7.1
 ====================
 
