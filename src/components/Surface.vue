@@ -188,6 +188,16 @@ export default class Surface extends Vue {
     this.relayout();
   }
 
+  @Watch("surface")
+  onSurfaceChanged() {
+    this.relayout();
+  }
+
+  @Watch("automorphisms")
+  onAutomorphismsChanged() {
+    this.relayout();
+  }
+
   @Watch("inner", {immediate: true})
   onInnerChanged() {
     this.forced = this.inner;
