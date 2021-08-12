@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="logo" src="https://github.com/saraedum/vue-flatsurf/raw/readme/logo.svg?sanitize=true" width="300px">
+    <img alt="logo" src="https://github.com/flatsurf/vue-flatsurf/raw/master/logo.svg?sanitize=true" width="300px">
 </p>
 
 <h1><p align="center">vue-flatsurf</p></h1>
