@@ -42,4 +42,5 @@ We release this package frequently and upload a new version to [NPM](https://www
 How to Cite this Project
 ------------------------
 
-TODO
+If you have used this project in the preparation of a publication, please cite
+it as described [on our zenodo site](https://zenodo.org/record/TODO).
