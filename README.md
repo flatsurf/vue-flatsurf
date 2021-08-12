@@ -1,5 +1,16 @@
-vue-flatsurf
-============
+<p align="center">
+    <img alt="logo" src="https://github.com/saraedum/vue-flatsurf/raw/readme/logo.svg?sanitize=true" width="300px">
+</p>
+
+<h1><p align="center">vue-flatsurf</p></h1>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/License-Apache-blue.svg" alt="License: Apache 2.0">
+  <a href="https://github.com/flatsurf/vue-flatsurf/actions/workflows/test.yml"><img src="https://github.com/flatsurf/vue-flatsurf/actions/workflows/test.yml/badge.svg" alt="Test"></a>
+</p>
+
+<p align="center"> JavaScript Visualization for flatsurf</p>
+<hr>
 
 This package provides interactive visualization for many of the objects in the [flatsurf suite](https://github.com/flatsurf) such as triangulated surfaces and their flow decompositions. It is written in [TypeScript](https://typescriptlang.org/) and [vue.js](https://vuejs.org) to run in the browser. For the most part, this project exists as the frontend code for [ipyvue-flatsurf](https://github.com/flatsurf/ipyvue-flatsurf) which implements [Jupyter](https://jupyter.org) widgets for [sage-flatsurf](https://github.com/flatsurf/sage-flatsurf).
 
