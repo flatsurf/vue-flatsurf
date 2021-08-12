@@ -1,9 +1,14 @@
 from rever.activity import activity
 
-try:
-  input("Are you sure you are on the master branch which is identical to origin/master? [ENTER]")
-except KeyboardInterrupt:
-  sys.exit(1)
+# Check that we are on the master branch
+branch=$(git branch --show-current)
+if branch.strip() != "master":
+  raise Exception("You must be on the master branch to release.")
+# and that it is up to date with origin/master
+git fetch https://github.com/flatsurf/vue-flatsurf.git
+git reset FETCH_HEAD
+git diff --exit-code
+git diff --cached --exit-code
 
 @activity
 def publish():
