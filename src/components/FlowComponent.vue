@@ -52,6 +52,7 @@ export default class FlowComponent extends Vue {
   resetCaches() {
     this.ats = undefined as any;
     this.touches = undefined as any;
+    this.ensureCaches();
   }
 
   ensureCaches() {
