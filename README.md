@@ -43,4 +43,4 @@ How to Cite this Project
 ------------------------
 
 If you have used this project in the preparation of a publication, please cite
-it as described [on our zenodo site](https://zenodo.org/record/5192364).
+it as described [on our zenodo page](https://zenodo.org/record/5192364).
