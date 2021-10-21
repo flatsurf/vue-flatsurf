@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,27 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import Point from '../Point';
-import FlatTriangulation from "../triangulation/FlatTriangulation";
-import Automorphism from "../triangulation/Automorphism";
-import HalfEdge from '../triangulation/HalfEdge';
+import Point from '@/geometry/Point';
+import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+import HalfEdge from '@/flatsurf/HalfEdge';
 import CellLayout from './CellLayout';
 import HalfEdgeLayout from './HalfEdgeLayout';
-import Box from '../Box';
-import Polygon from "../Polygon";
+import Box from '@/geometry/Box';
+import Polygon from "@/geometry/Polygon";
 import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
+import LayoutOptions from './LayoutOptions';
 
+// TODO: Rename to Layout
 export default class FlatTriangulationLayout {
-  private constructor(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms?: Automorphism[]) {
+  private constructor(surface: FlatTriangulation, options: LayoutOptions) {
     this.surface = surface;
-    this.force = force || (() => null);
-    this.automorphisms = automorphisms || [];
+    this.options = options;
     this.primary = [];
   }
 
-  public static async layout(surface: FlatTriangulation, force?: (he: HalfEdge) => boolean | null, automorphisms: Automorphism[] = [], cancellation = new CancellationToken(), progress = new Progress()) {
-    const layout = new FlatTriangulationLayout(surface, force, automorphisms);
+  public static async layout(surface: FlatTriangulation, options: LayoutOptions, cancellation = new CancellationToken(), progress = new Progress()) {
+    const layout = new FlatTriangulationLayout(surface, options);
     await layout.recompute(cancellation, progress);
     return layout;
   }
@@ -70,7 +70,7 @@ export default class FlatTriangulationLayout {
     const cache = {};
     for (const _ of Array(cells.length - 1)) {
       progress.progress();
-      cells = await CellLayout.merge(cells, this.force, this.automorphisms, cache, cancellation, progress);
+      cells = await CellLayout.merge(cells, this.options, cache, cancellation, progress);
     }
 
     // (3) Pack Cells
@@ -80,9 +80,9 @@ export default class FlatTriangulationLayout {
     this.primary = cells.filter((cell) => cell.primary).map((cell) => cell.halfEdges).flat();
 
     for (const he of this.surface.halfEdges) {
-      if (this.force(he) === true && !this.layout(he).inner)
+      if (this.options.glue(he) === true && !this.layout(he).inner)
         console.log(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
-      if (this.force(he) === false && this.layout(he).inner)
+      if (this.options.glue(he) === false && this.layout(he).inner)
         console.error(`Half edge ${he} should not be visually glued in the layout but it is.`);
     }
   }
@@ -102,9 +102,11 @@ export default class FlatTriangulationLayout {
     return Box.bbox(this.primary.map((halfEdge) => this.halfEdges[halfEdge].segment));
   }
 
+  // TODO; Rename to triangulation.
   public readonly surface: FlatTriangulation;
-  private force: (he: HalfEdge) => boolean | null;
-  private automorphisms: Automorphism[];
+  private readonly options: LayoutOptions;
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
+  // Which half edges should be considered the primary copies of half edges
+  // identified by the automorphisms.
   public primary!: HalfEdge[];
 }

@@ -20,26 +20,21 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import CoordinateSystem from '../CoordinateSystem';
-import FlowConnection, { FlowConnectionSchema } from "./FlowConnection";
-import HalfEdge, { HalfEdgeSchema } from './HalfEdge';
+import HalfEdge from "./HalfEdge";
+import Permutation from "./Permutation";
 
-export default class FlowComponent {
-  public static parse(yaml: {
-    cylinder: boolean,
-    perimeter: FlowConnectionSchema[],
-    inside: HalfEdgeSchema[],
-  }, coordinateSystem: CoordinateSystem) : FlowComponent {
-    return new FlowComponent(yaml.cylinder, yaml.perimeter.map(connection => FlowConnection.parse(connection, coordinateSystem)), yaml.inside);
+export interface VertexSchema {
+  source: HalfEdge[],
+};
+
+export default class Vertex {
+  constructor(source: HalfEdge[]) {
+    this.source = source;
   }
 
-  private constructor(cylinder: boolean, perimeter: FlowConnection[], inside: HalfEdge[]) {
-    this.cylinder = cylinder;
-    this.perimeter = perimeter;
-    this.inside = inside;
+  public static fromPermutation(vertices: Permutation<HalfEdge>): Vertex[] {
+    return vertices.cycles.map((cycle) => new Vertex(cycle));
   }
 
-  public readonly cylinder: boolean;
-  public readonly perimeter: FlowConnection[];
-  public readonly inside: HalfEdge[];
+  readonly source: HalfEdge[];
 }

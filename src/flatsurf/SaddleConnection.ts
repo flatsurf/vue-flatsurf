@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,37 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-// Currently, HalfEdge is just a plain number since wrapping it into an object
-// makes our live much harder in several places, e.g., it cannot be used as a
-// key in an object anymore.
+import HalfEdge, { HalfEdgeSchema } from "./HalfEdge";
+import Vector, { VectorSchema } from "@/geometry/Vector";
+import CoordinateSystem from "@/geometry/CoordinateSystem";
 
-type HalfEdge = number;
+export interface SaddleConnectionSchema {
+  source: HalfEdgeSchema,
+  target: HalfEdgeSchema,
+  vector: VectorSchema,
+  crossings: {
+    halfEdge: number,
+    at: number,
+  }[]
+};
 
-export type HalfEdgeSchema = number;
+export default class SaddleConnection {
+  public static parse(yaml: SaddleConnectionSchema, coordinateSystem: CoordinateSystem): SaddleConnection {
+    return new SaddleConnection(yaml.source, yaml.target, Vector.parse(yaml.vector, coordinateSystem), yaml.crossings);
+  }
 
-export default HalfEdge;
+  private constructor(source: HalfEdge, target: HalfEdge, vector: Vector, crossings: {halfEdge: HalfEdge, at: number}[]) {
+    this.source = source;
+    this.target = target;
+    this.vector = vector;
+    this.crossings = Object.freeze(crossings);
+  }
+
+  public readonly source: HalfEdge;
+  public readonly target: HalfEdge;
+  public readonly vector: Vector;
+  // The sequence of half edges crossed with approximate
+  // relative point of crossing in [0, 1].
+  public readonly crossings: readonly {halfEdge: HalfEdge, at: number}[];
+}
+

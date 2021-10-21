@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,11 @@ import chai from "chai";
 import "chai/register-should";
 import chaiEquals from "../../chai-equal-to";
 
-import FlatTriangulation from "@/geometry/triangulation/FlatTriangulation";
-import FlatTriangulationLayout from "@/geometry/layout/FlatTriangulationLayout";
+import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
-import HalfEdge from "@/geometry/triangulation/HalfEdge";
+import LayoutOptions from "@/layout/LayoutOptions";
+import Edge from "@/flatsurf/Edge";
 
 chai.use(chaiEquals);
 
@@ -46,7 +47,7 @@ describe("Layout Triangulation", () => {
     let layout!: FlatTriangulationLayout;
 
     it("computes a layout", async () => {
-      layout = await FlatTriangulationLayout.layout(torus);
+      layout = await FlatTriangulationLayout.layout(torus, new LayoutOptions());
     });
 
     it("lays out all half edges", () => {
@@ -68,7 +69,12 @@ describe("Layout Triangulation", () => {
     let layout!: FlatTriangulationLayout;
 
     it("computes a layout", async () => {
-      layout = await FlatTriangulationLayout.layout(torus, (he: HalfEdge) => he === 1);
+      layout = await FlatTriangulationLayout.layout(torus, new LayoutOptions(
+        (edge: Edge) => {
+          if (edge.positive === 1)
+            return true;
+          return null;
+      }))
     });
 
     it("has exactly one pair of half edges identified in the planar layout", () => {
@@ -82,7 +88,9 @@ describe("Layout Triangulation", () => {
     let layout!: FlatTriangulationLayout;
 
     it("computes a layout", async () => {
-      layout = await FlatTriangulationLayout.layout(torus, () => false);
+      layout = await FlatTriangulationLayout.layout(torus, new LayoutOptions(
+        () => false
+      ));
     });
 
     it("has no pair of half edges identified in the planar layout", () => {

@@ -21,7 +21,7 @@
  * *****************************************************************************/
 
 import SaddleConnection, { SaddleConnectionSchema } from "./SaddleConnection";
-import CoordinateSystem from '../CoordinateSystem';
+import CoordinateSystem from '@/geometry/CoordinateSystem';
 import HalfEdge from "./HalfEdge";
 
 export interface Touch {

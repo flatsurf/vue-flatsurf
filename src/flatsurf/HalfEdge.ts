@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,33 +20,16 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai from "chai";
-import "chai/register-should";
-import chaiEquals from "../../chai-equal-to";
+// Currently, HalfEdge is just a plain number since wrapping it into an object
+// makes our live much harder in several places, e.g., it cannot be used as a
+// key in an object anymore.
 
-import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import Vector from "@/geometry/Vector";
-import CoordinateSystem from '@/geometry/CoordinateSystem';
+type HalfEdge = number;
 
-chai.use(chaiEquals);
+export type HalfEdgeSchema = number;
 
-describe("Flat Triangulation", () => {
-  it("can be created from a dump", () => {
-    const coordinateSystem = new CoordinateSystem(true);
-    const surface = FlatTriangulation.parse({
-      vertices: [[3, 2, -1, -3, -2, 1]],
-      vectors: {
-        1: { x: 1, y: 0 },
-        2: { x: 0, y: 1 },
-        3: { x: 1, y: 1 }
-      }
-    }, coordinateSystem);
+export default HalfEdge;
 
-    surface.vertices.cycles.should.eql([[3, 2, -1, -3, -2, 1]]);
-    surface.faces.cycles.should.eql([[ -2, 3, -1 ], [ 1, 2, -3 ]]);
-    surface.halfEdges.should.eql([3, -1, 2, -3, -2, 1]);
-
-    surface.vector(1).should.equalTo(new Vector(coordinateSystem, 1, 0));
-    surface.vector(-1).should.equalTo(new Vector(coordinateSystem, -1, 0));
-  });
-});
+export function isHalfEdge(x: any): x is HalfEdge {
+  return typeof(x) === "number";
+}

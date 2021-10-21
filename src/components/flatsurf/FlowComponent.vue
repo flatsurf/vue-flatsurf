@@ -1,24 +1,25 @@
 <template>
   <g class="FlowComponent">
     <g :style="{ '--color': color }">
-      <ngon v-for="(vertices, i) of patches" :key="i" :vertices="vertices" />
+      <ngon v-for="(vertices, i) of patches" :key="i" :vertices="vertices" :svg="svg" />
     </g>
     <g class="boundary">
-      <saddle-connection-component v-for="(connection, i) of perimeter" :key="i" :connection="connection" :layout="layout" :color="color" />
+      <saddle-connection-component v-for="(connection, i) of perimeter" :key="i" :connection="connection" :layout="layout" :color="color" :svg="svg" />
     </g>
   </g>
 </template>
 <script lang="ts">
 import Flatten from "@flatten-js/core";
 import  { Vue, Component, Prop, Watch } from "vue-property-decorator";
-import FlowComponentData from "../geometry/triangulation/FlowComponent";
-import { Touch } from "../geometry/triangulation/FlowConnection";
+import FlowComponentData from "@/flatsurf/FlowComponent";
+import { Touch } from "@/flatsurf/FlowConnection";
 import SaddleConnectionComponent from "./SaddleConnection.vue";
-import FlatTriangulationLayout from "../geometry/layout/FlatTriangulationLayout";
-import Ngon from "./svg/Ngon.vue";
-import HalfEdge from "../geometry/triangulation/HalfEdge";
-import Point from "../geometry/Point";
-import FlatTriangulation from "../geometry/triangulation/FlatTriangulation";
+import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Ngon from "@/components/svg/Ngon.vue";
+import HalfEdge from "@/flatsurf/HalfEdge";
+import Point from "@/geometry/Point";
+import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+import CoordinateSystem from "@/geometry/CoordinateSystem";
 
 @Component({
   components: {
@@ -31,6 +32,7 @@ export default class FlowComponent extends Vue {
   @Prop({ required: true }) layout!: FlatTriangulationLayout;
   @Prop({ required: true }) surface!: FlatTriangulation;
   @Prop({ required: false, type: String, default:"orange" }) color!: string;
+  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 
   ats!: {[key: number]: number[]};
   // Maps a half edge to the touches on that half edge in order.
@@ -211,7 +213,6 @@ export default class FlowComponent extends Vue {
             // TODO: Is this always taken care of by something else?
             C = layout(face[2], 1 - this.at(touch));
             return null;
-            break;
           }
         }
       }

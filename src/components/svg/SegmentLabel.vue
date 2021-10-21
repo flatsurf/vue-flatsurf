@@ -4,27 +4,24 @@
 	</g>
 </template>
 <script lang="ts">
-import { Vue, Component, Inject, Prop } from "vue-property-decorator";
+import { Vue, Component, Prop } from "vue-property-decorator";
 import Segment from "@/geometry/Segment";
-import Vector from "@/geometry/Vector";
-import Point from "@/geometry/Point";
+import CoordinateSystem from "@/geometry/CoordinateSystem";
 
 @Component
 export default class HalfEdgeLabel extends Vue {
 	@Prop({required: true, type: Object}) at!: Segment;
+  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 
 	get position() {
 		const midpoint = this.at.middle;
-		let normal = this.svg(this.at.tangentInStart.rotate90CCW()).normalize();
-		return this.svg(midpoint).translate(normal.multiply(12));
+		let normal = this.svg.embed(this.at.tangentInStart.rotate90CCW()).normalize();
+		return this.svg.embed(midpoint).translate(normal.multiply(12));
 	}
 
 	get transformation() {
 		return `translate(${this.position.x} ${this.position.y}) translate(6 4)`;
 	}
-
-  @Inject()
-  svg!: ((xy: Point) => Point) & ((xy: Vector) => Vector);
 }
 </script>
 <style lang="scss" scoped>

@@ -53,21 +53,6 @@ export default class Automorphism {
     this.halfEdgeMap = halfEdges;
   }
 
-  public static orbit(halfEdge: HalfEdge, automorphisms: Automorphism[]) {
-    const orbit = [halfEdge];
-
-    for (let i = 0; i < orbit.length; i++) {
-      const preimage = orbit[i];
-      for (const automorphism of automorphisms) {
-        const image = automorphism.halfEdgeMap[preimage];
-        if (image != null && !orbit.includes(image))
-          orbit.push(image);
-      }
-    }
-
-    return orbit;
-  }
-
   // The mapping of half edges under the automorphism.
   // This mapping might not contain all half edges if the automorphism is only
   // defined on the level of the Delaunay cells of the triangulation.

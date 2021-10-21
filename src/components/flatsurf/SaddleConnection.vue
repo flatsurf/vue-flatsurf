@@ -1,17 +1,18 @@
 <template>
   <g class="SaddleConnection">
-      <segment-component v-for="(segment, i) of segments" :key="i" :segment="segment" />
+      <segment-component v-for="(segment, i) of segments" :key="i" :segment="segment" :svg="svg" />
   </g>
 </template>
 <script lang="ts">
-import FlatTriangulationLayout from '@/geometry/layout/FlatTriangulationLayout';
+import FlatTriangulationLayout from '@/layout/FlatTriangulationLayout';
 import  { Vue, Component, Prop } from "vue-property-decorator";
-import SaddleConnectionData from "../geometry/triangulation/SaddleConnection";
-import SegmentComponent from "./svg/Segment.vue";
-import Segment from "../geometry/Segment";
-import Point from "../geometry/Point";
-import Line from "../geometry/Line";
-import Vector from "../geometry/Vector";
+import SaddleConnectionData from "@/flatsurf/SaddleConnection";
+import SegmentComponent from "@/components/svg/Segment.vue";
+import Segment from "@/geometry/Segment";
+import Point from "@/geometry/Point";
+import Line from "@/geometry/Line";
+import Vector from "@/geometry/Vector";
+import CoordinateSystem from "@/geometry/CoordinateSystem";
 
 @Component({
   components: {
@@ -21,6 +22,7 @@ import Vector from "../geometry/Vector";
 export default class FlowComponent extends Vue {
   @Prop({ required: true }) connection!: SaddleConnectionData;
   @Prop({ required: true }) layout!: FlatTriangulationLayout;
+  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 
   get segments(): Segment[] {
     const segments = [];

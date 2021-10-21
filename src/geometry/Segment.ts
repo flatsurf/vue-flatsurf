@@ -82,8 +82,19 @@ export default class Segment {
 
   // Return whether this segment and the (filled) shape have at least one point
   // in common.
-  public intersects(shape: Polygon): boolean {
-    return Flatten.Relations.intersect(shape.parent.embed(this).value, shape.value);
+  public intersects(shape: Polygon | Segment): boolean {
+    if (shape instanceof Polygon)
+      return Flatten.Relations.intersect(shape.parent.embed(this).value, shape.value);
+    else
+      return this.intersects(new Polygon(shape.parent, [[shape.start, shape.end]]));
+  }
+
+  // Return the relative coordinate of the point projected onto the segment,
+  // i.e., return a value in [0, 1] if the point projects onto the segment.
+  public relativize(point: Point): number {
+    const e = this.value.tangentInStart();
+    const toPoint = new Vector(this.parent, this.start, point).value;
+    return e.dot(toPoint) / this.value.length;
   }
 
   public touch(shape: Polygon): boolean {

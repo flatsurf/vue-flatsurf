@@ -24,7 +24,7 @@ import chai from "chai";
 import "chai/register-should";
 import chaiEquals from "../../chai-equal-to";
 
-import Permutation from "@/geometry/triangulation/Permutation";
+import Permutation from "@/flatsurf/Permutation";
 
 chai.use(chaiEquals);
 

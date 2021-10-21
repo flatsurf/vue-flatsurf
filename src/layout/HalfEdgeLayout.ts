@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,37 +20,13 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import HalfEdge, { HalfEdgeSchema } from "./HalfEdge";
-import Vector, { VectorSchema } from "../Vector";
-import CoordinateSystem from '../CoordinateSystem';
+import Segment from '@/geometry/Segment';
 
-export interface SaddleConnectionSchema {
-  source: HalfEdgeSchema,
-  target: HalfEdgeSchema,
-  vector: VectorSchema,
-  crossings: {
-    halfEdge: number,
-    at: number,
-  }[]
+interface HalfEdgeLayout {
+  segment: Segment;
+  // Whether this half edge is in the interior of a cell, i.e., its negative
+  // is in the same place in the layout.
+  inner: boolean;
 };
 
-export default class SaddleConnection {
-  public static parse(yaml: SaddleConnectionSchema, coordinateSystem: CoordinateSystem): SaddleConnection {
-    return new SaddleConnection(yaml.source, yaml.target, Vector.parse(yaml.vector, coordinateSystem), yaml.crossings);
-  }
-
-  private constructor(source: HalfEdge, target: HalfEdge, vector: Vector, crossings: {halfEdge: HalfEdge, at: number}[]) {
-    this.source = source;
-    this.target = target;
-    this.vector = vector;
-    this.crossings = Object.freeze(crossings);
-  }
-
-  public readonly source: HalfEdge;
-  public readonly target: HalfEdge;
-  public readonly vector: Vector;
-  // The sequence of half edges crossed with approximate
-  // relative point of crossing in [0, 1].
-  public readonly crossings: readonly {halfEdge: HalfEdge, at: number}[];
-}
-
+export default HalfEdgeLayout;
