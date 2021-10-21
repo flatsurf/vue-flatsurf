@@ -72,6 +72,7 @@
     "vue-template-compiler": "^2.6.14",
     "vuetify": "^2.5.10",
     "vuetify-loader": "^1.6.0",
+    "vuex": "^3.6.2",
     "webpack": "^5.43.0",
     "yaml": "^1.10.0"
   },
