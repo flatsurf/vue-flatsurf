@@ -1,12 +1,12 @@
 <template>
   <v-bottom-navigation color="primary" :value="$route.path" @change="(path) => $router.push(path)" fixed app>
-    <v-btn value="/editor">
+    <v-btn value="/edit">
       <span>Surface</span>
       <v-badge :value="error != null" color="error" icon="mdi-error" overlap>
       <v-icon>mdi-layers</v-icon>
       </v-badge>
     </v-btn>
-    <v-btn value="/viewer">
+    <v-btn value="/view">
       <span>Visualization</span>
       <v-icon>mdi-eye</v-icon>
     </v-btn>

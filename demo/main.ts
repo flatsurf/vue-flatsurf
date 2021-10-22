@@ -8,7 +8,7 @@ import Vuex from 'vuex';
 import '@mdi/font/css/materialdesignicons.css'
 
 import Viewer from './Viewer.vue';
-import ViewerActions from './ViewerActions.vue';
+import ViewerMenu from './ViewerMenu.vue';
 import Editor from './Editor.vue';
 import EditorMenu from './EditorMenu.vue';
 
@@ -32,15 +32,20 @@ new Vue({
     // TODO: Move to separate file.
     router: new VueRouter({
       routes: [
-        { path: '/', redirect: '/viewer' },
-        { path: '/viewer', components: {
-          default: Viewer,
-          menu: ViewerActions,
-        }},
-        { path: '/editor', components: {
+        { path: '/', redirect: '/view' },
+        { path: '/view', components: {
+            default: Viewer,
+            menu: ViewerMenu,
+          },
+          props: {
+            menu: route => ({...route.query}),
+          },
+        },
+        { path: '/edit', components: {
           default: Editor,
           menu: EditorMenu,
-        }}
+        }},
+        { path: '*', redirect: '/view' },
         // TODO: svg
       ],
     }),
