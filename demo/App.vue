@@ -29,8 +29,7 @@ A demo application that lets the user load a YAML serialized surface.
         <v-icon>mdi-svg</v-icon>
       </v-btn>
     </v-bottom-navigation>
-    <!-- TODO: Instead inject overlay into the menu so the menu can decide what to show. -->
-    <router-view v-if="overlay == null" name="menu" />
+    <router-view name="menu" />
   </v-app>
 </template>
 <script lang="ts">
@@ -56,11 +55,6 @@ import PathInteraction from "@/components/interactions/PathInteraction.vue";
   }
 })
 export default class App extends Vue {
-  editor = false;
-  svg = false;
-  // TODO: Request svg explicitly.
-  // svgExport = null;
-
   overlay = null as CancellationToken | null;
   progress = null as Progress | null;
 
