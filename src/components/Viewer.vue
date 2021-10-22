@@ -4,15 +4,17 @@ Displays a surface from flatsurf and related objects such as flow components.
 
 -->
 <template>
-  <pan-zoom v-slot="{ viewport }" :coordinate-system="parsed.coordinateSystem" :focus="focus">
+  <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" :focus="focus">
     <!-- TODO: Use @Ref in component -->
     <svg :width="viewport.width" :height="viewport.height" ref="svg">
       <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="viewport.viewportCoordinateSystem" :options="visualizationOptions">
-        <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="parsed.surface" :svg="viewport.viewportCoordinateSystem" />
+        <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="viewport.viewportCoordinateSystem" />
       </flat-triangulation-component>
+      <!--
       <slot name="interaction" v-bind:relayout="relayout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:parsed="parsed" v-bind:options="visualizationOptions" >
         <glue-interaction :relayout="relayout" :svg="viewport.viewportCoordinateSystem" :parsed="parsed" :options="visualizationOptions" />
       </slot>
+      -->
     </svg>
   </pan-zoom>
 </template>
@@ -30,7 +32,9 @@ import Palette from "@/Palette";
 import PanZoom from "./PanZoom.vue";
 import FlatTriangulationComponent from "@/components/flatsurf/FlatTriangulation.vue";
 import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
-import ISurface from "@/flatsurf/ISurface";
+import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+import Automorphism from "@/flatsurf/Automorphism";
+import CoordinateSystem from "@/geometry/CoordinateSystem";
 import LayoutOptions from "@/layout/LayoutOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
@@ -44,7 +48,9 @@ import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
   }
 })
 export default class SurfaceViewer extends Vue {
-  @Prop({ required: true, type: Object }) parsed!: ISurface;
+  @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
+  @Prop({ required: true, type: Object }) idealCoordinateSystem!: CoordinateSystem;
+  @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
 
   protected layout = null as FlatTriangulationLayout | null;
 
@@ -194,7 +200,7 @@ export default class SurfaceViewer extends Vue {
 
   data() {
     return {
-      focus: this.parsed.coordinateSystem.embed(this.parsed.coordinateSystem.box([0, 0], [1, 1])),
+      focus: this.idealCoordinateSystem.box([0, 0], [1, 1]),
     };
   }
 
@@ -221,7 +227,7 @@ export default class SurfaceViewer extends Vue {
     if (layoutOptions === undefined) {
       if (this.layout != null)
         return this.layout;
-      layoutOptions = new LayoutOptions(() => null, this.parsed.automorphisms);
+      layoutOptions = new LayoutOptions(() => null, this.automorphisms);
     }
 
     this.pendingRelayout.abort();
@@ -229,7 +235,7 @@ export default class SurfaceViewer extends Vue {
       this.pendingRelayout = cancellation;
       try {
         // TODO: Relayout in a way that keeps the previous picture intact, e.g., by leaving the selected half edge in the same place.
-        this.layout = await FlatTriangulationLayout.layout(this.parsed.triangulation, layoutOptions!, cancellation, progress);
+        this.layout = await FlatTriangulationLayout.layout(this.triangulation, layoutOptions!, cancellation, progress);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
@@ -319,7 +325,7 @@ export default class SurfaceViewer extends Vue {
   }
   */
 
-  @Watch("parsed", { immediate: true })
+  @Watch("triangulation", { immediate: true })
   onSurfaceChanged() {
     this.layout = null;
     this.relayout();

@@ -1,3 +1,4 @@
+<!-- TODO: Delete -->
 <script lang="ts">
 import YAML from "yaml";
 import Flatten from "@flatten-js/core";
