@@ -38,6 +38,7 @@ new Vue({
             menu: ViewerMenu,
           },
           props: {
+            default: route => ({...route.query}),
             menu: route => ({...route.query}),
           },
         },

@@ -10,11 +10,7 @@ Displays a surface from flatsurf and related objects such as flow components.
       <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="viewport.viewportCoordinateSystem" :options="visualizationOptions">
         <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="viewport.viewportCoordinateSystem" />
       </flat-triangulation-component>
-      <!--
-      <slot name="interaction" v-bind:relayout="relayout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:parsed="parsed" v-bind:options="visualizationOptions" >
-        <glue-interaction :relayout="relayout" :svg="viewport.viewportCoordinateSystem" :parsed="parsed" :options="visualizationOptions" />
-      </slot>
-      -->
+      <slot name="interaction" v-bind:relayout="relayout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:triangulation="triangulation" v-bind:options="visualizationOptions" />
     </svg>
   </pan-zoom>
 </template>

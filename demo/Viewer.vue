@@ -5,14 +5,14 @@ Visualizes a Surface.
 -->
 <template>
   <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :ideal-coordinate-system="parsed.coordinateSystem">
-    <template v-slot:interaction="{ relayout, svg, parsed, options }">
-      <!-- TODO: Swap with buttons -->
-      <path-interaction :relayout="relayout" :svg="svg" :parsed="parsed" :options="options" />
+    <template v-slot:interaction="{ relayout, svg, triangulation, options }">
+      <path-interaction v-if="action == 'path'" :relayout="relayout" :svg="svg" :triangulation="triangulation" :options="options" />
+      <glue-interaction v-else :relayout="relayout" :svg="svg" :options="options" />
     </template>
   </viewer-component>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 import ViewerComponent from "@/components/Viewer.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
@@ -26,6 +26,8 @@ import PathInteraction from "@/components/interactions/PathInteraction.vue";
   }
 })
 export default class Viewer extends Vue {
+  @Prop({ required: false, default: "glue", type: String }) action!: string;
+
   get parsed() {
     const triangulation = this.$store.state.triangulation; 
     if (triangulation != null) {

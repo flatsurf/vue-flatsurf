@@ -19,7 +19,7 @@
         <segment-component v-if="nextSegment != null" :svg="svg" :segment="nextSegment" />
       </g>
       <g class="select-half-edge">
-        <g v-for="halfEdge of parsed.triangulation.halfEdges" :key="halfEdge" @mousemove="(e) => hover(halfEdge, e)" @mouseout="unhover" >
+        <g v-for="halfEdge of triangulation.halfEdges" :key="halfEdge" @mousemove="(e) => hover(halfEdge, e)" @mouseout="unhover" >
           <segment-component :svg="svg" :segment="layout.layout(halfEdge).segment" />
         </g>
       </g>
@@ -46,7 +46,7 @@ import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
 import LayoutOptions from "@/layout/LayoutOptions";
-import ISurface from "@/flatsurf/ISurface";
+import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Point from "@/geometry/Point";
 import Segment from "@/geometry/Segment";
@@ -81,7 +81,7 @@ type PathPoint = VertexPoint | HalfEdgePoint | FacePoint;
 export default class PathInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<FlatTriangulationLayout | null>;
-  @Prop({ required: true, type: Object }) parsed!: ISurface;
+  @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
 
   layout: FlatTriangulationLayout | null = null;
@@ -134,10 +134,10 @@ export default class PathInteraction extends Vue {
     const previous = this.cross(this.points[this.points.length - 1]);
     const segment = this.toSegment(this.cross(previous), next);
 
-    const sector = (vertex: HalfEdge[]) => [vertex[0], this.parsed.triangulation.vertices.image(vertex[vertex.length - 1])];
+    const sector = (vertex: HalfEdge[]) => [vertex[0], this.triangulation.vertices.image(vertex[vertex.length - 1])];
 
     // Determine intersections of this segment with all outer half edges.
-    let intersections = this.parsed.triangulation.halfEdges
+    let intersections = this.triangulation.halfEdges
       .filter((halfEdge) => !this.layout!.layout(halfEdge).inner)
       .filter((halfEdge) => this.layout!.layout(halfEdge).segment.intersects(segment));
 
@@ -178,7 +178,7 @@ export default class PathInteraction extends Vue {
       else if ("vertex" in next && sector(next.vertex)[1] === -previous.halfEdge)
         noop();
       else {
-        if (this.parsed.triangulation.vector(previous.halfEdge).angleTo(segment.tangentInStart) <= Math.PI) {
+        if (this.triangulation.vector(previous.halfEdge).angleTo(segment.tangentInStart) <= Math.PI) {
           return;
         }
       }
@@ -195,7 +195,7 @@ export default class PathInteraction extends Vue {
       else if ("vertex" in next && sector(next.vertex)[1] == -sector(previous.vertex)[0])
         noop();
       else {
-        const boundary = sector(previous.vertex).map((halfEdge) => this.parsed.triangulation.vector(halfEdge));
+        const boundary = sector(previous.vertex).map((halfEdge) => this.triangulation.vector(halfEdge));
         if (boundary[0].angleTo(boundary[1]) > boundary[0].angleTo(segment.tangentInStart)) {
           return;
         }
@@ -228,7 +228,7 @@ export default class PathInteraction extends Vue {
     const vertex = (source: HalfEdge) => {
       const vertex = [source];
       while (true) {
-        const next = this.parsed.triangulation.vertices.image(vertex[vertex.length - 1]);
+        const next = this.triangulation.vertices.image(vertex[vertex.length - 1]);
         if (!this.layout!.layout(next).inner)
           break;
         if (next === source)
@@ -238,7 +238,7 @@ export default class PathInteraction extends Vue {
       return vertex;
     };
 
-    for (const source of this.parsed.triangulation.halfEdges) {
+    for (const source of this.triangulation.halfEdges) {
       if (this.layout!.layout(source).inner)
         continue;
       if (present(source))
@@ -246,7 +246,7 @@ export default class PathInteraction extends Vue {
       vertices.push(vertex(source));
     }
 
-    for (const source of this.parsed.triangulation.halfEdges) {
+    for (const source of this.triangulation.halfEdges) {
       if (present(source))
         continue;
       vertices.push(vertex(source));
@@ -258,12 +258,12 @@ export default class PathInteraction extends Vue {
   // Return the visible half edges.
   get halfEdges(): HalfEdge[] {
     // TODO: Drop duplicates.
-    return this.parsed.triangulation.halfEdges;
+    return this.triangulation.halfEdges;
   }
 
   // Return the visible faces, represented by the half edges on their boundary.
   get faces(): HalfEdge[][] {
-    return this.parsed.triangulation.faces.cycles;
+    return this.triangulation.faces.cycles;
   }
 
   // Return the line segments that make up this path.

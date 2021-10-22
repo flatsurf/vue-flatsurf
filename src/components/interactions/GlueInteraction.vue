@@ -15,7 +15,6 @@ import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
 import LayoutOptions from "@/layout/LayoutOptions";
-import ISurface from "@/flatsurf/ISurface";
 import HalfEdge from "@/flatsurf/HalfEdge";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Point from "@/geometry/Point";
@@ -28,14 +27,12 @@ import Edge from "@/flatsurf/Edge";
 export default class GlueInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<FlatTriangulationLayout | null>;
-  @Prop({ required: true, type: Object }) parsed!: ISurface;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
 
   layout: FlatTriangulationLayout | null = null;
 
   async created() {
     this.layout = await this.relayout();
-    console.log(this.layout);
   }
 
   async glue(halfEdge: HalfEdge, glue: boolean | null) {
@@ -53,7 +50,8 @@ export default class GlueInteraction extends Vue {
       // been glued before, so the picture does not change that much?
       this.layout = await this.relayout(new LayoutOptions(
         (e: Edge) => glued[e.positive] || null,
-        this.parsed.automorphisms));
+        // TODO: Pass automorphisms here somehow.
+        []));
 
       this.glued = glued;
     } finally {
