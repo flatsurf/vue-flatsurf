@@ -25,6 +25,7 @@ export default class ViewerMenu extends Vue {
   actions = {
     'glue': 'mdi-link-variant',
     'path': 'mdi-map-marker-path',
+    'view': 'mdi-eye',
   }
 }
 </script>

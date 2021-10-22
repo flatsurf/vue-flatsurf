@@ -7,7 +7,7 @@ Visualizes a Surface.
   <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :ideal-coordinate-system="parsed.coordinateSystem">
     <template v-slot:interaction="{ relayout, svg, triangulation, options }">
       <path-interaction v-if="action == 'path'" :relayout="relayout" :svg="svg" :triangulation="triangulation" :options="options" />
-      <glue-interaction v-else :relayout="relayout" :svg="svg" :options="options" />
+      <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
     </template>
   </viewer-component>
 </template>
