@@ -43,6 +43,7 @@ export default class Flatsurf extends Vue {
   @Prop({ required: true, type: Object }) viewportCoordinateSystem!: CoordinateSystem;
   // TODO: This should not be required.
   @Prop({ required: true, type: Object }) visualizationOptions!: VisualizationOptions;
+  // TODO: Filter depending on automorphisms.
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
 
   get palette() {

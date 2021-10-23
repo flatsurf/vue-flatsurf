@@ -38,7 +38,6 @@ export default class SurfaceViewer extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: true, type: Object }) idealCoordinateSystem!: CoordinateSystem;
   @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
-  // TODO: Filter depending on automorphisms.
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
 
   protected visualizationOptions = new VisualizationOptions();

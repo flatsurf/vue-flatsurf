@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ export default class CoordinateSystem {
         embedding = new Flatten.Matrix(1, 0, 0, -1);
     }
     if (this.embeddedInto !== null && this.embeddedInto !== into)
-        throw Error("not implemented: cannot have more than one embedding but this coordinate system is already embedded into another one")
+      console.warn("Coordinate system had already been embedded. Dropping previous embedding.");
     this.embeddedInto = into;
     this.embedding = embedding;
   }
