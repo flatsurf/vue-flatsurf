@@ -5,12 +5,9 @@ Displays a surface from flatsurf and related objects such as flow components.
 -->
 <template>
   <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
-    <svg :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull">
-      <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="viewport.viewportCoordinateSystem" :options="visualizationOptions">
-        <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="viewport.viewportCoordinateSystem" />
-      </flat-triangulation-component>
+    <flatsurf v-if="layout != null" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :ideal-coordinate-system="idealCoordinateSystem" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions">
       <slot name="interaction" v-bind:relayout="relayout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:triangulation="triangulation" v-bind:options="visualizationOptions" />
-    </svg>
+    </flatsurf>
   </pan-zoom>
 </template>
 <script lang="ts">
@@ -25,21 +22,19 @@ import CancellationToken, { OperationAborted } from "@/CancellationToken";
 import Palette from "@/Palette";
 
 import PanZoom from "./PanZoom.vue";
-import FlatTriangulationComponent from "@/components/flatsurf/FlatTriangulation.vue";
+import Flatsurf from "./flatsurf/Flatsurf.vue";
 import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import Automorphism from "@/flatsurf/Automorphism";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import LayoutOptions from "@/layout/LayoutOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
-import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 
 @Component({
   components: {
-    FlatTriangulationComponent,
     FlowComponentComponent,
-    GlueInteraction,
     PanZoom,
+    Flatsurf,
   }
 })
 export default class SurfaceViewer extends Vue {
@@ -47,11 +42,11 @@ export default class SurfaceViewer extends Vue {
   @Prop({ required: true, type: Object }) idealCoordinateSystem!: CoordinateSystem;
   @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
 
-  protected layout = null as FlatTriangulationLayout | null;
-
   protected visualizationOptions = new VisualizationOptions();
 
   private components = [] as FlowComponent[];
+
+  protected layout = null as FlatTriangulationLayout | null;
 
   private pendingRelayout = new CancellationToken();
 
