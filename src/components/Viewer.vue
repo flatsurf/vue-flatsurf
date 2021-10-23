@@ -34,7 +34,7 @@ import Flatsurf from "./flatsurf/Flatsurf.vue";
     Flatsurf,
   }
 })
-export default class SurfaceViewer extends Vue {
+export default class Viewer extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: true, type: Object }) idealCoordinateSystem!: CoordinateSystem;
   @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
@@ -46,7 +46,7 @@ export default class SurfaceViewer extends Vue {
 
   private pendingRelayout = new CancellationToken();
 
-  private focus!: Polygon;
+  private focus: Polygon | null = null;
 
   /* TODO
   protected onSVGChanged(svg: string) {
@@ -180,14 +180,8 @@ export default class SurfaceViewer extends Vue {
     await callback(new CancellationToken(), new Progress());
   }
 
-  @Inject({ from: 'run', default: SurfaceViewer._run})
+  @Inject({ from: 'run', default: Viewer._run})
   run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => Promise<void>;
-
-  data() {
-    return {
-      focus: this.idealCoordinateSystem.box([0, 0], [1, 1]),
-    };
-  }
 
   /*
   private defaultLabel = {} as Record<HalfEdge, string | null>;
@@ -291,7 +285,7 @@ export default class SurfaceViewer extends Vue {
       */
 
       // We refocus on the entire surface if the convex hull has changed.
-      if (!this.focus.equalTo(this.layout.hull))
+      if (this.focus == null || !this.focus.equalTo(this.layout.hull))
         this.focus = this.layout.hull;
     });
 

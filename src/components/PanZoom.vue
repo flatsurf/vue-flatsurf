@@ -14,7 +14,7 @@ import panzoom from "pan-zoom/index.js";
 @Component
 export default class PanZoom extends Vue {
   @Prop({required: true, type: CoordinateSystem}) coordinateSystem!: CoordinateSystem;
-  @Prop({required: true, type: Box}) value!: Box;
+  @Prop({required: false, default: null, type: Box}) value!: Box | null;
 
   private observer = new ResizeObserver(this.resize);
   private unpanzoom = () => {};
@@ -28,7 +28,8 @@ export default class PanZoom extends Vue {
 
   @Watch("value", {immediate: true})
   refocus() {
-    this.viewport.focus(this.value); 
+    if (this.value != null)
+      this.viewport.focus(this.value); 
   }
 
   mounted() {
