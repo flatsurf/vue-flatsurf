@@ -37,7 +37,6 @@ import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
 })
 export default class Flatsurf extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
-  @Prop({ required: true, type: Object }) idealCoordinateSystem!: CoordinateSystem;
   @Prop({ required: true, type: Object }) layout!: FlatTriangulationLayout;
   // TODO: This should not be required.
   @Prop({ required: true, type: Object }) viewportCoordinateSystem!: CoordinateSystem;
