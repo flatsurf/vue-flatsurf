@@ -6,11 +6,11 @@ import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
 export default class TriangulationVisibilityInteraction extends Vue {
   @Prop({ required: true, type: Object }) options!: VisualizationOptions;
   @Prop({ required: true, type: Object }) layout!: FlatTriangulationLayout;
-  @Prop({ required: false, default: true, type: Boolean }) boundary!: boolean;
+  @Prop({ required: false, default: true, type: Boolean }) outer!: boolean;
   @Prop({ required: false, default: false, type: Boolean }) inner!: boolean;
 
   @Watch("layout", {immediate: true})
-  @Watch("boundary")
+  @Watch("outer")
   @Watch("inner")
   @Watch("options")
   resetVisiblity() {
@@ -18,7 +18,7 @@ export default class TriangulationVisibilityInteraction extends Vue {
       if (this.layout.layout(halfEdge).inner)
         this.options.show(halfEdge, this.inner);
       else
-        this.options.show(halfEdge, this.boundary);
+        this.options.show(halfEdge, this.outer);
   }
 
   render() {}

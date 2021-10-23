@@ -6,7 +6,7 @@ Visualizes a Surface.
 <template>
   <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :flow-components="flowComponents">
     <template v-slot:interaction="{ layout, relayout, svg, triangulation, options }">
-      <triangulation-visibility-interaction :layout="layout" :options="options" :boundary="show.includes('boundary')" :inner="show.includes('triangulation')" />
+      <triangulation-visibility-interaction :layout="layout" :options="options" :outer="show.includes('outer')" :inner="show.includes('triangulation')" />
       <path-interaction v-if="action == 'path'" :layout="layout" :svg="svg" :triangulation="triangulation" :options="options" />
       <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
     </template>
@@ -30,7 +30,7 @@ import TriangulationVisibilityInteraction from "@/components/interactions/Triang
 })
 export default class Viewer extends Vue {
   @Prop({ required: false, default: "glue", type: String }) action!: string;
-  @Prop({ required: false, default: () => ["boundary"], type: Array }) show!: string[];
+  @Prop({ required: false, default: () => ["outer"], type: Array }) show!: string[];
 
   get parsed() {
     const triangulation = this.$store.state.triangulation; 

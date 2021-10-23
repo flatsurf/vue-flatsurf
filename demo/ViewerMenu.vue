@@ -37,7 +37,7 @@ export default class ViewerMenu extends Vue {
   showParts = false;
 
   @Prop({ required: false, default: "glue", type: String }) action!: string;
-  @Prop({ required: false, default: () => ["boundary"], type: Array }) show!: string[];
+  @Prop({ required: false, default: () => ["outer"], type: Array }) show!: string[];
 
   actions = {
     'glue': 'mdi-link-variant',
@@ -46,7 +46,7 @@ export default class ViewerMenu extends Vue {
   }
 
   parts = {
-    'boundary': 'mdi-border-all-variant',
+    'outer': 'mdi-border-all-variant',
     'triangulation': 'mdi-triforce',
     'flow-components': 'mdi-waves-arrow-up',
   }

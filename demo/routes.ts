@@ -10,7 +10,7 @@ import castArray from "lodash-es/castArray";
 function viewerProps(route: Route) {
   return {
     action: route.query.action || "glue",
-    show: castArray(route.query.show || "boundary"),
+    show: castArray(route.query.show || "outer"),
   };
 }
 
