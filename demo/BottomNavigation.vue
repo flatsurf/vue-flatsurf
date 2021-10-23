@@ -1,5 +1,5 @@
 <template>
-  <v-bottom-navigation color="primary" :value="$route.path" @change="(path) => $router.push(path)" fixed app>
+  <v-bottom-navigation color="primary" :value="$route.path" @change="(path) => $router.push({ path, query: $route.query })" fixed app>
     <v-btn value="/edit">
       <span>Surface</span>
       <v-badge :value="error != null" color="error" icon="mdi-error" overlap>
@@ -20,7 +20,7 @@
 import { Component, Vue } from "vue-property-decorator";
 
 @Component
-export default class BottomNavigatino extends Vue {
+export default class BottomNavigation extends Vue {
   get error() {
     return this.$store.state.error;
   }
