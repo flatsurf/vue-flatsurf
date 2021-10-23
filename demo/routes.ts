@@ -5,6 +5,15 @@ import ViewerMenu from './ViewerMenu.vue';
 import Editor from './Editor.vue';
 import EditorMenu from './EditorMenu.vue';
 
+import castArray from "lodash-es/castArray";
+
+function viewerProps(route: Route) {
+  return {
+    action: route.query.action || "glue",
+    show: castArray(route.query.show || "boundary"),
+  };
+}
+
 const routes = [
   { path: '/', redirect: '/view' },
   { path: '/view', components: {
@@ -12,8 +21,8 @@ const routes = [
       menu: ViewerMenu,
     },
     props: {
-      default: (route: Route) => ({...route.query}),
-      menu: (route: Route) => ({...route.query}),
+      default: viewerProps,
+      menu: viewerProps,
     },
   },
   { path: '/edit', components: {

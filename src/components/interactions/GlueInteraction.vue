@@ -67,14 +67,20 @@ export default class GlueInteraction extends Vue {
   }
 
   hover(halfEdge: HalfEdge, e: MouseEvent) {
-    const at = this.segment(halfEdge).relativize(this.toPoint(e));
-    this.options.indicate(halfEdge, clamp(at, 0, 1));
-    this.options.indicate(-halfEdge, 1 - clamp(at, 0, 1));
+    // TODO: Only enable hover for half edges and not for edges. Then this if can go away.
+    if (!this.layout!.layout(halfEdge).inner) {
+      const at = this.segment(halfEdge).relativize(this.toPoint(e));
+      this.options.indicate(halfEdge, clamp(at, 0, 1));
+      this.options.indicate(-halfEdge, 1 - clamp(at, 0, 1));
+    }
   }
 
   unhover(halfEdge: HalfEdge) {
-    this.options.indicate(halfEdge, null);
-    this.options.indicate(-halfEdge, null);
+    // TODO: Only enable hover for half edges and not for edges. Then this if can go away.
+    if (!this.layout!.layout(halfEdge).inner) {
+      this.options.indicate(halfEdge, null);
+      this.options.indicate(-halfEdge, null);
+    }
   }
 
   toPoint(e: MouseEvent): Point {

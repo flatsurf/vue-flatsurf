@@ -17,7 +17,7 @@
       <template v-slot:activator>
         <v-btn :color="showParts ? 'secondary' : 'primary'" fab small>
           <v-icon v-if="showParts">mdi-close</v-icon>
-          <v-icon v-else>mdi-set-left-right</v-icon>
+          <v-icon v-else>mdi-eye</v-icon>
         </v-btn>
       </template>
       <div v-for="[part, icon] of Object.entries(parts)" :key="part" >
@@ -42,7 +42,7 @@ export default class ViewerMenu extends Vue {
   actions = {
     'glue': 'mdi-link-variant',
     'path': 'mdi-map-marker-path',
-    'view': 'mdi-eye',
+    'view': 'mdi-hand-back-right-outline',
   }
 
   parts = {
