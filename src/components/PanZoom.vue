@@ -19,6 +19,7 @@ export default class PanZoom extends Vue {
   private observer = new ResizeObserver(this.resize);
   private unpanzoom = () => {};
   protected pan = false;
+  private viewport = null as any as Viewport;
 
   private resize() {
     this.viewport.resize(
@@ -26,10 +27,16 @@ export default class PanZoom extends Vue {
       Math.min((this.$refs.viewport as HTMLElement).clientHeight, window.innerHeight));
   }
 
-  @Watch("value", {immediate: true})
+  @Watch("value")
   refocus() {
     if (this.value != null)
       this.viewport.focus(this.value); 
+  }
+
+  @Watch("coordinateSystem", {immediate: true})
+  onCoordinateSystemChange() {
+    this.viewport = new Viewport(this.coordinateSystem);
+    this.refocus();
   }
 
   mounted() {
@@ -49,10 +56,6 @@ export default class PanZoom extends Vue {
 
   onMouseUp() {
     this.pan = false;
-  }
-
-  get viewport() {
-    return new Viewport(this.coordinateSystem);
   }
 
   private panzoom(e: any) {
