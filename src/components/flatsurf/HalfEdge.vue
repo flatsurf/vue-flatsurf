@@ -1,5 +1,5 @@
 <template>
-  <g class="HalfEdge" :class="{ inner }">
+  <g class="HalfEdge" :class="{ inner }" :style="{ ['--display']: options.visible ? 'inline' : 'none' }">
     <g v-if="options.label" class="label">
       <segment-label :at="segment" :svg="svg">{{ options.label }}</segment-label>
     </g>
@@ -59,12 +59,12 @@ export default class HalfEdgeComponent extends Vue {
 <style lang="scss">
 .HalfEdge {
   line {
+    display: var(--display);
     stroke: #d1d1d1;
     stroke-width: 2px;
   }
 
   &.inner line {
-    display: var(--flat-triangulation-hover, none);
     stroke: #ddd;
     stroke-dasharray: 8 6;
   }

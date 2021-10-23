@@ -5,8 +5,9 @@ Visualizes a Surface.
 -->
 <template>
   <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :flow-components="flowComponents">
-    <template v-slot:interaction="{ relayout, svg, triangulation, options }">
-      <path-interaction v-if="action == 'path'" :relayout="relayout" :svg="svg" :triangulation="triangulation" :options="options" />
+    <template v-slot:interaction="{ layout, relayout, svg, triangulation, options }">
+      <triangulation-visibility-interaction :layout="layout" :options="options" :boundary="show.includes('boundary')" :inner="show.includes('triangulation')" />
+      <path-interaction v-if="action == 'path'" :layout="layout" :svg="svg" :triangulation="triangulation" :options="options" />
       <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
     </template>
   </viewer-component>
@@ -17,12 +18,14 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import ViewerComponent from "@/components/Viewer.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
+import TriangulationVisibilityInteraction from "@/components/interactions/TriangulationVisibilityInteraction";
 
 @Component({
   components: {
     ViewerComponent,
     GlueInteraction,
-    PathInteraction
+    PathInteraction,
+    TriangulationVisibilityInteraction,
   }
 })
 export default class Viewer extends Vue {

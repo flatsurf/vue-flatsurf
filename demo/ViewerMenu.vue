@@ -46,9 +46,7 @@ export default class ViewerMenu extends Vue {
   }
 
   parts = {
-    // TODO: Not implemented.
     'boundary': 'mdi-border-all-variant',
-    // TODO: Not implemented.
     'triangulation': 'mdi-triforce',
     'flow-components': 'mdi-waves-arrow-up',
   }

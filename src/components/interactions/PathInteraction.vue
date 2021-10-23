@@ -45,7 +45,6 @@ import PointComponent from "@/components/svg/Point.vue";
 import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
-import LayoutOptions from "@/layout/LayoutOptions";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Point from "@/geometry/Point";
@@ -80,11 +79,9 @@ type PathPoint = VertexPoint | HalfEdgePoint | FacePoint;
 })
 export default class PathInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<FlatTriangulationLayout | null>;
+  @Prop({ required: true, type: Object }) layout!: FlatTriangulationLayout;
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
-
-  layout: FlatTriangulationLayout | null = null;
 
   // The path constructed so far, given by the points on the path.
   points: PathPoint[] = [];
@@ -94,10 +91,6 @@ export default class PathInteraction extends Vue {
   next: PathPoint | null = null;
 
   editable: boolean = true;
-
-  async created() {
-    this.layout = await this.relayout();
-  }
 
   // Make path editable.
   edit(editable: boolean): void {
