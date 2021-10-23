@@ -5,8 +5,6 @@ import FlatTriangulation from '@/flatsurf/FlatTriangulation';
 import FlowComponent from '@/flatsurf/FlowComponent';
 import Automorphism from '@/flatsurf/Automorphism';
 import CoordinateSystem from '@/geometry/CoordinateSystem';
-import Vector from "@/geometry/Vector";
-import Flatten from "@flatten-js/core";
 
 const state = {
   raw: "",
@@ -24,14 +22,14 @@ const store: StoreOptions<typeof state> = {
       try {
         const parsed = YAML.parse(payload.raw);
 
-        const vertical = parsed.vertical || {x: 0, y: 1};
-        const angle = new Vector(state.coordinateSystem, 0, 1).angleTo(new Vector(state.coordinateSystem, vertical.x, vertical.y));
+        // TODO: Rotate SVG coordinate system instead.
+        // const vertical = parsed.vertical || {x: 0, y: 1};
+        // const angle = new Vector(state.coordinateSystem, 0, 1).angleTo(new Vector(state.coordinateSystem, vertical.x, vertical.y));
+        // const rotatedCoordinateSystem = new CoordinateSystem(true);
+        // rotatedCoordinateSystem.embedInto(state.coordinateSystem, new Flatten.Matrix().rotate(angle));
 
-        const rotatedCoordinateSystem = new CoordinateSystem(true);
-        rotatedCoordinateSystem.embedInto(state.coordinateSystem, new Flatten.Matrix().rotate(angle));
-
-        const triangulation = FlatTriangulation.parse(parsed, rotatedCoordinateSystem);
-        const flowComponents = (parsed.components || []).map((component: any) => FlowComponent.parse(component, rotatedCoordinateSystem));
+        const triangulation = FlatTriangulation.parse(parsed, state.coordinateSystem);
+        const flowComponents = (parsed.components || []).map((component: any) => FlowComponent.parse(component, state.coordinateSystem));
         const automorphisms = (parsed.automorphisms || []).map((automorphism: any) => Automorphism.parse(automorphism));
 
         commit('reset', {

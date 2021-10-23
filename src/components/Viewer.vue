@@ -18,7 +18,6 @@ import Polygon from "@/geometry/Polygon";
 import FlowComponent from "@/flatsurf/FlowComponent"
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import Automorphism from "@/flatsurf/Automorphism";
-import CoordinateSystem from "@/geometry/CoordinateSystem";
 import LayoutOptions from "@/layout/LayoutOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 
@@ -36,7 +35,6 @@ import Flatsurf from "./flatsurf/Flatsurf.vue";
 })
 export default class Viewer extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
-  @Prop({ required: true, type: Object }) idealCoordinateSystem!: CoordinateSystem;
   @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
 
@@ -47,6 +45,10 @@ export default class Viewer extends Vue {
   private pendingRelayout = new CancellationToken();
 
   private focus: Polygon | null = null;
+
+  get idealCoordinateSystem() {
+    return this.triangulation.coordinateSystem;
+  }
 
   /* TODO
   protected onSVGChanged(svg: string) {

@@ -57,7 +57,7 @@ export default class FlatTriangulation {
     ).length !== 0)
       throw Error(`Provided vectors {${Object.keys(this.vectors)}} and present half edges {${this.halfEdges}} do not coincide.`);
 
-    const coordinateSystem = this.vectors['1'].parent;
+    const coordinateSystem = this.coordinateSystem;
 
     for (const face of this.faces.cycles) {
       const sum = face.reduce((sum, he) => sum.translate(this.vector(he)), new Point(coordinateSystem, 0, 0));
@@ -65,6 +65,12 @@ export default class FlatTriangulation {
         throw Error(`Face ${face} is not closed. Going around the face gives (${sum.x}, ${sum.y}) but should be zero.`);
       // TODO: Wiggle the half edges to a place to make the faces closed in double coordinates.
     }
+  }
+
+  public get coordinateSystem() : CoordinateSystem {
+    if (Object.keys(this.vectors).length === 0)
+      throw Error("Cannot determine coordinate system for empty surface.");
+    return Object.values(this.vectors)[0].parent;
   }
 
   public vector(halfEdge: HalfEdge): Vector {

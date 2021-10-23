@@ -4,7 +4,7 @@ Visualizes a Surface.
 
 -->
 <template>
-  <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :ideal-coordinate-system="parsed.coordinateSystem" :flow-components="parsed.flowComponents">
+  <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :flow-components="parsed.flowComponents">
     <template v-slot:interaction="{ relayout, svg, triangulation, options }">
       <path-interaction v-if="action == 'path'" :relayout="relayout" :svg="svg" :triangulation="triangulation" :options="options" />
       <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
@@ -36,7 +36,6 @@ export default class Viewer extends Vue {
       return {
         triangulation,
         flowComponents: this.$store.state.flowComponents,
-        coordinateSystem: this.$store.state.coordinateSystem,
       }
     }
     return null;

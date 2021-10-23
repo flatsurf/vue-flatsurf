@@ -55,8 +55,10 @@ export default class CoordinateSystem {
       if (this.positive !== into.positive)
         embedding = new Flatten.Matrix(1, 0, 0, -1);
     }
-    if (this.embeddedInto !== null && this.embeddedInto !== into)
+    if (this.embeddedInto !== null && this.embeddedInto !== into) {
+      console.trace();
       console.warn("Coordinate system had already been embedded. Dropping previous embedding.");
+    }
     this.embeddedInto = into;
     this.embedding = embedding;
   }
