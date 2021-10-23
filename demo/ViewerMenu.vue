@@ -49,6 +49,8 @@ export default class ViewerMenu extends Vue {
     'outer': 'mdi-border-all-variant',
     'triangulation': 'mdi-triforce',
     'flow-components': 'mdi-waves-arrow-up',
+    'numeric-labels': 'mdi-numeric',
+    'outer-labels': 'mdi-alphabetical',
   }
 
   goto(action?: string, part?: string) {

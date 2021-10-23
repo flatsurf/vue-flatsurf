@@ -57,25 +57,6 @@ export default class Viewer extends Vue {
   @Inject({ from: 'run', default: Viewer._run})
   run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => Promise<void>;
 
-  /*
-  private defaultLabel = {} as Record<HalfEdge, string | null>;
-  private nextLabel(label: string) {
-    let chars = label.split('').map((c) => c.charCodeAt(0) - 65);
-    chars[chars.length - 1]++;
-    for (let i = chars.length; i--;) {
-      if (chars[i] == 25) {
-        chars[i] = 0;
-        if (i == 0)
-          chars = [0, ...chars];
-        else
-          chars[i - 1]++;
-      }
-    }
-
-    return chars.map((code) => String.fromCharCode(65 + code)).join('');
-  }
-  */
-
   async relayout(layoutOptions?: LayoutOptions): Promise<Layout | null> {
     if (layoutOptions === undefined) {
       if (this.layout != null)
@@ -103,41 +84,6 @@ export default class Viewer extends Vue {
       );
       */
       
-      // Recompute labels
-      /* TODO
-      let nextLabel = "A";
-      const componentInnerHalfEdges = [...this.components.filter((component) => component.cylinder).map((component) => component.inside)];
-      const cylinderInnerHalfEdges = componentInnerHalfEdges.map((halfEdges) => halfEdges.filter((halfEdge) => halfEdges.includes(-halfEdge))).flat();
-
-      // TODO: Move to SurfaceViewer
-      this.defaultLabel = {};
-      for (const halfEdge of this.parsed.surface.halfEdges) {
-        if (this.defaultLabel[halfEdge] !== undefined)
-          continue;
-
-        if (!this.layout!.layout(halfEdge).primary)
-          continue
-
-        // Do not show labels for half edges in the interior of cylinders.
-        if (cylinderInnerHalfEdges.includes(halfEdge)) {
-          this.defaultLabel[halfEdge] = null;
-          continue;
-        }
-
-        if (this.layout!.layout(halfEdge).inner) {
-          this.defaultLabel[halfEdge] = null;
-          continue;
-        }
-        
-        for (const orbit of Automorphism.orbit(halfEdge, this.parsed.automorphisms)) {
-          this.defaultLabel[orbit] = nextLabel;
-          this.defaultLabel[-orbit] = nextLabel;
-        }
-
-        nextLabel = this.nextLabel(nextLabel);
-      }
-      */
-
       /* TODO
       this.$nextTick(() => {
         // TODO: Maybe we should not always export the SVG but only do so on demand.
