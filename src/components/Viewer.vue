@@ -50,134 +50,6 @@ export default class Viewer extends Vue {
     return this.triangulation.coordinateSystem;
   }
 
-  /* TODO
-  protected onSVGChanged(svg: string) {
-    this.$emit('svg', svg);
-  }
-  */
-
-  /*
-  // TODO: Needed by the indicators.
-
-  hover(hover: HalfEdge, at: number | MouseEvent): void {
-    clamp;
-    hover;
-    at;
-    this.relativizeOntoSegment;
-    // TODO: Is there no better way than doing these hacks?
-    const surface = this.$refs.surface as any;
-
-    const segment = surface.layout.layout(hover).segment;
-
-    if (typeof(at) === "object") 
-      // TODO: This assumes that this component fills the viewport coordinate system. That's probably always in practice true but maybe we should inject the offset.
-      return this.hover(hover, this.relativizeOntoSegment(segment, new Point(surface.viewport.viewportCoordinateSystem, at.clientX - this.$el.getBoundingClientRect().left, at.clientY - this.$el.getBoundingClientRect().top)));
-
-    at = clamp(at, 0, 1);
-    for (const halfEdge of Automorphism.orbit(hover, this.automorphisms)) {
-      this.halfEdgeConfiguration[halfEdge].indicator = at;
-      this.halfEdgeConfiguration[-halfEdge].indicator = 1 - at;
-      this.halfEdgeConfiguration[halfEdge].label = String(halfEdge);
-      this.halfEdgeConfiguration[-halfEdge].label = String(-halfEdge);
-    }
-  }
-
-  unhover(hover: HalfEdge) {
-    hover;
-    for (const halfEdge of Automorphism.orbit(hover, this.automorphisms)) {
-      this.halfEdgeConfiguration[halfEdge].indicator = null;
-      this.halfEdgeConfiguration[-halfEdge].indicator = null;
-      // TODO: Use defaultLabel from Surface.vue
-      this.halfEdgeConfiguration[halfEdge].label = null;
-      this.halfEdgeConfiguration[-halfEdge].label = null;
-    }
-  }
-  */
-
-  /* TODO
-
-  // Reset indicators
-  this.indicator = Object.fromEntries(this.surface.halfEdges.map((halfEdge) => [halfEdge, null]));
-
-  // Reset labels
-  this.label = Object.fromEntries(this.surface.halfEdges.map((halfEdge) => [halfEdge, this.defaultLabel[halfEdge]]));
-
-  onClick(ev: MouseEvent) {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.click(ev, this.segment);
-  }
-
-  onMouseEnter(ev: MouseEvent) {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.enter(ev, this.segment);
-  }
-
-  onMouseLeave(ev: MouseEvent) {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.leave(ev, this.segment);
-  }
-
-  onMouseMove(ev: MouseEvent) {
-    this.halfEdgeConfiguration(this.halfEdge).interactions.hover(ev, this.segment);
-  }
-
-  // TODO: Pass these down as CSS classes to the half edges.
-  get selected() {
-    return this.halfEdgeConfiguration(this.halfEdge).state.selected;
-  }
-
-  get glued() {
-    return this.halfEdgeConfiguration(this.halfEdge).state.glued;
-  }
-
-  @Provide()
-  halfEdgeConfiguration(halfEdge: HalfEdge): IHalfEdgeConfiguration {
-    return {
-      interactions: {
-        click: () => {
-          this.unhover(halfEdge)
-          this.glue(halfEdge)
-        },
-        // TODO: This assumes that this component fills the viewport coordinate system. That's probably always in practice true but maybe we should inject the offset.
-        enter: (ev: MouseEvent, segment: Segment) => this.hover(halfEdge, this.relativizeOntoSegment(segment, new Point(this.viewport.viewportCoordinateSystem, ev.clientX - this.$el.getBoundingClientRect().left, ev.clientY - this.$el.getBoundingClientRect().top))),
-        leave: () => this.unhover(halfEdge),
-        hover: (ev: MouseEvent, segment: Segment) => this.hover(halfEdge, this.relativizeOntoSegment(segment, new Point(this.viewport.viewportCoordinateSystem, ev.clientX - this.$el.getBoundingClientRect().left, ev.clientY - this.$el.getBoundingClientRect().top))),
-      },
-      state: {
-        selected: this.selected.includes(halfEdge) || this.selected.includes(-halfEdge),
-        glued: this.forced.includes(halfEdge) || this.forced.includes(-halfEdge),
-        label: this.label[halfEdge],
-        indicator: this.indicator[halfEdge],
-      },
-    };
-  }
-
-  async glue(halfEdge: HalfEdge) {
-    if (this.forced.includes(halfEdge) || this.forced.includes(-halfEdge))
-      this.forced = this.forced.filter((he) => he !== halfEdge && he !== -halfEdge);
-    else
-      this.forced.unshift(halfEdge);
-
-    this.selected.push(halfEdge); 
-
-    await new Promise(resolve => this.$once("layout", resolve));
-
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    this.selected = this.selected.filter((he) => he !== halfEdge && he !== -halfEdge);
-  }
-
-  private selected = [] as HalfEdge[];
-
-  forceHalfEdge(halfEdge: HalfEdge) {
-    this.forced.push(halfEdge);
-  }
-
-  // TODO: This should live in a more generic place.
-  private relativizeOntoSegment(segment: Segment, point: Point): number {
-    const e = segment.value.tangentInStart();
-    const toPoint = new Vector(segment.parent, segment.start, point).value;
-    return e.dot(toPoint) / segment.value.length;
-  }
-  */
-
   static async _run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
     await callback(new CancellationToken(), new Progress());
   }
@@ -305,7 +177,7 @@ export default class Viewer extends Vue {
   onSurfaceChanged() {
     this.layout = null;
     this.relayout();
-    // TODO: reset visualizationOptions.
+    this.visualizationOptions = new VisualizationOptions();
   }
 }
 </script>
