@@ -5,10 +5,10 @@ Visualizes a Surface.
 -->
 <template>
   <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :flow-components="flowComponents">
-    <template v-slot:interaction="{ layout, relayout, svg, triangulation, options }">
+    <template v-slot:interaction="{ layout, relayout, svg, triangulation, options, refocus, focus }">
       <triangulation-visibility-interaction :layout="layout" :options="options" :outer="show.includes('outer')" :inner="show.includes('triangulation')" />
       <path-interaction v-if="action == 'path'" :layout="layout" :svg="svg" :triangulation="triangulation" :options="options" />
-      <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
+      <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" />
     </template>
   </viewer-component>
 </template>

@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import findIndex from "lodash-es/findIndex";
 import CoordinateSystem from "./CoordinateSystem";
 import Point from "./Point";
 import Box from "./Box";
+import Vector from "./Vector";
 
 export default class Polygon {
   public constructor(parent: CoordinateSystem, value: Point[][]);
@@ -43,6 +44,10 @@ export default class Polygon {
     } else {
       throw Error("Cannot create polygon from this data.");
     }
+  }
+
+  public translate(xy: Vector): Polygon {
+    return new Polygon(this.parent, this.value.translate(this.parent.embed(xy).value));
   }
 
   public get convexHull(): Polygon {

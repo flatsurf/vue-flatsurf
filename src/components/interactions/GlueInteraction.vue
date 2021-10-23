@@ -10,6 +10,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 import clamp from "lodash-es/clamp";
+import nop from "lodash-es/noop";
 
 import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
@@ -19,6 +20,8 @@ import HalfEdge from "@/flatsurf/HalfEdge";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Point from "@/geometry/Point";
 import Segment from "@/geometry/Segment";
+import Polygon from "@/geometry/Polygon";
+import Vector from "@/geometry/Vector";
 import Edge from "@/flatsurf/Edge";
 
 @Component({
@@ -28,6 +31,8 @@ export default class GlueInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<Layout | null>;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
+  @Prop({required: false, default: () => null, type: Object}) focus!: Polygon | null;
+  @Prop({required: false, default: () => nop, type: Function}) refocus!: (focus: Polygon) => void;
 
   layout: Layout | null = null;
 
@@ -46,12 +51,24 @@ export default class GlueInteraction extends Vue {
     this.options.select(-halfEdge, true);
 
     try {
+      const previousLayout = this.layout;
+      const previousFocus = this.focus;
+
       // TODO: When gluing, give a higher score to the half edges that have
       // been glued before, so the picture does not change that much?
       this.layout = await this.relayout(new LayoutOptions(
         (e: Edge) => glued[e.positive] || null,
         // TODO: Pass automorphisms here somehow.
         []));
+
+      if (previousLayout != null && previousFocus != null) {
+        // Move the viewport such that the selected half edge does not seem to move.
+        this.refocus(previousFocus.translate(
+          new Vector(
+            previousFocus.parent,
+            previousLayout.layout(halfEdge).segment.start,
+            this.layout!.layout(halfEdge).segment.start)));
+      }
 
       this.glued = glued;
     } finally {
@@ -60,7 +77,7 @@ export default class GlueInteraction extends Vue {
       setTimeout(() => {
         this.options.select(halfEdge, false);
         this.options.select(-halfEdge, false);
-      }, 1000);
+      }, 300);
     }
   }
 
