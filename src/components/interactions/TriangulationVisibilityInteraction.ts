@@ -14,7 +14,7 @@ export default class TriangulationVisibilityInteraction extends Vue {
   @Watch("inner")
   @Watch("options")
   resetVisiblity() {
-    for (const halfEdge of this.layout.surface.halfEdges)
+    for (const halfEdge of this.layout.triangulation.halfEdges)
       if (this.layout.layout(halfEdge).inner)
         this.options.show(halfEdge, this.inner);
       else

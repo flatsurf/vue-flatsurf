@@ -40,13 +40,13 @@ export default class FlatTriangulation extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 
   get faces() {
-    let faces = this.layout.surface.faces.cycles;
+    let faces = this.layout.triangulation.faces.cycles;
     faces = faces.filter((face) => face.every((he) => this.layout.primary.includes(he)));
     return faces.map((face) => face.map((he) => this.layout.layout(he).segment.end));
   }
 
   get halfEdges() {
-    return this.layout.surface.halfEdges.filter((halfEdge) => {
+    return this.layout.triangulation.halfEdges.filter((halfEdge) => {
       if (!this.layout.primary.includes(halfEdge))
         return false;
       if (!this.layout.layout(halfEdge).inner)

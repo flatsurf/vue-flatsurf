@@ -32,14 +32,14 @@ import Progress from "@/Progress";
 import LayoutOptions from './LayoutOptions';
 
 export default class Layout {
-  private constructor(surface: FlatTriangulation, options: LayoutOptions) {
-    this.surface = surface;
+  private constructor(triangulation: FlatTriangulation, options: LayoutOptions) {
+    this.triangulation = triangulation;
     this.options = options;
     this.primary = [];
   }
 
-  public static async layout(surface: FlatTriangulation, options: LayoutOptions, cancellation = new CancellationToken(), progress = new Progress()) {
-    const layout = new Layout(surface, options);
+  public static async layout(triangulation: FlatTriangulation, options: LayoutOptions, cancellation = new CancellationToken(), progress = new Progress()) {
+    const layout = new Layout(triangulation, options);
     await layout.recompute(cancellation, progress);
     return layout;
   }
@@ -56,13 +56,13 @@ export default class Layout {
     //     happen anymore.
 
     // (1) Elementary Cells
-    if (this.surface.halfEdges.length === 0) {
+    if (this.triangulation.halfEdges.length === 0) {
       this.halfEdges = {};
       return;
     }
 
-    const origin = new Point(this.surface.vector(this.surface.halfEdges[0]).parent, 0, 0);
-    let cells = this.surface.faces.cycles.map((face) => new CellLayout(this.surface, face, origin));
+    const origin = new Point(this.triangulation.vector(this.triangulation.halfEdges[0]).parent, 0, 0);
+    let cells = this.triangulation.faces.cycles.map((face) => new CellLayout(this.triangulation, face, origin));
 
     // (2) Glue Cells
     progress.task("Gluing Cells", cells.length - 1);
@@ -78,7 +78,7 @@ export default class Layout {
     this.halfEdges = Object.assign({}, ...cells.map((cell) => cell.layout));
     this.primary = cells.filter((cell) => cell.primary).map((cell) => cell.halfEdges).flat();
 
-    for (const he of this.surface.halfEdges) {
+    for (const he of this.triangulation.halfEdges) {
       if (this.options.glue(he) === true && !this.layout(he).inner)
         console.log(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
       if (this.options.glue(he) === false && this.layout(he).inner)
@@ -101,8 +101,7 @@ export default class Layout {
     return Box.bbox(this.primary.map((halfEdge) => this.halfEdges[halfEdge].segment));
   }
 
-  // TODO; Rename to triangulation.
-  public readonly surface: FlatTriangulation;
+  public readonly triangulation: FlatTriangulation;
   private readonly options: LayoutOptions;
   private halfEdges!: Record<HalfEdge, HalfEdgeLayout>;
   // Which half edges should be considered the primary copies of half edges

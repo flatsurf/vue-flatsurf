@@ -1,7 +1,7 @@
 <template>
   <g v-if="layout != null">
     <!-- TODO: Do this only for actual half edges not for glued edges -->
-    <g v-for="halfEdge of layout.surface.halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge, true)">
+    <g v-for="halfEdge of layout.triangulation.halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge, true)">
       <segment-component :segment="segment(halfEdge)" :svg="svg" />
     </g>
   </g>
