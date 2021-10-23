@@ -54,6 +54,7 @@ const store: StoreOptions<typeof state> = {
     }) {
       state.raw = payload.raw;
       state.triangulation = payload.triangulation;
+      // TODO: Should be empty array if unset.
       state.flowComponents = payload.flowComponents;
       state.automorphisms = payload.automorphisms;
       state.error = null;

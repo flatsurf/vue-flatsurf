@@ -4,7 +4,7 @@ Visualizes a Surface.
 
 -->
 <template>
-  <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :ideal-coordinate-system="parsed.coordinateSystem">
+  <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :ideal-coordinate-system="parsed.coordinateSystem" :flow-components="parsed.flowComponents">
     <template v-slot:interaction="{ relayout, svg, triangulation, options }">
       <path-interaction v-if="action == 'path'" :relayout="relayout" :svg="svg" :triangulation="triangulation" :options="options" />
       <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
@@ -17,6 +17,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import ViewerComponent from "@/components/Viewer.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
+
+// TODO: Conditionally hide flow components.
 
 @Component({
   components: {
@@ -33,6 +35,7 @@ export default class Viewer extends Vue {
     if (triangulation != null) {
       return {
         triangulation,
+        flowComponents: this.$store.state.flowComponents,
         coordinateSystem: this.$store.state.coordinateSystem,
       }
     }
