@@ -5,8 +5,7 @@ Displays a surface from flatsurf and related objects such as flow components.
 -->
 <template>
   <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
-    <!-- TODO: Use @Ref in component -->
-    <svg :width="viewport.width" :height="viewport.height" ref="svg" @dblclick="focus = layout.hull">
+    <svg :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull">
       <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="viewport.viewportCoordinateSystem" :options="visualizationOptions">
         <flow-component-component v-for="(component, i) of components" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="viewport.viewportCoordinateSystem" />
       </flat-triangulation-component>
