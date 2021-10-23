@@ -17,7 +17,7 @@
       <template v-slot:activator>
         <v-btn :color="showParts ? 'secondary' : 'primary'" fab small>
           <v-icon v-if="showParts">mdi-close</v-icon>
-          <v-icon v-else>mdi-eye-outline</v-icon>
+          <v-icon v-else>mdi-set-left-right</v-icon>
         </v-btn>
       </template>
       <div v-for="[part, icon] of Object.entries(parts)" :key="part" >
