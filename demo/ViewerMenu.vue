@@ -36,8 +36,8 @@ export default class ViewerMenu extends Vue {
   showActions = false;
   showParts = false;
 
-  @Prop({ required: false, default: "glue", type: String }) action!: string;
-  @Prop({ required: false, default: () => ["outer"], type: Array }) show!: string[];
+  @Prop({ required: true, type: String }) action!: string;
+  @Prop({ required: true, type: Array }) show!: string[];
 
   actions = {
     'glue': 'mdi-link-variant',

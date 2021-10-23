@@ -1,7 +1,8 @@
 <template>
   <g v-if="layout != null">
     <!-- TODO: Do this only for actual half edges not for glued edges -->
-    <g v-for="halfEdge of layout.triangulation.halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge, true)">
+    <!-- TODO: Smarter glueing and unglueing: click should toggle true/null. contextmenu shuold toggle false/null. -->
+    <g v-for="halfEdge of layout.triangulation.halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge, true)" @contextmenu.prevent="glue(halfEdge, false)">
       <segment-component :segment="segment(halfEdge)" :svg="svg" />
     </g>
   </g>
@@ -46,9 +47,13 @@ export default class GlueInteraction extends Vue {
     const glued = {...this.glued};
     glued[edge.positive] = glue;
 
+    // TODO: Show the gluing status on hover.
     // TODO: Highlight all the glued half edges.
+    // TODO: Color code the gluing action (true/false.)
     this.options.select(halfEdge, true);
     this.options.select(-halfEdge, true);
+
+    this.unhover(halfEdge);
 
     try {
       const previousLayout = this.layout;
