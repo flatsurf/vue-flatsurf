@@ -29,5 +29,6 @@ text {
 	font-size: 75%;
   text-anchor: end;
 	font-weight: 700;
+  user-select: none;
 }
 </style>
