@@ -13,7 +13,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import Segment from "@/geometry/Segment";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import SegmentComponent from "@/components/svg/Segment.vue";
@@ -27,7 +27,7 @@ import VisualizationOptions from "@/components/flatsurf/options/VisualizationOpt
   components: { Arrow, SegmentComponent, SegmentLabel },
 })
 export default class HalfEdgeComponent extends Vue {
-  @Prop({required: true, type: Object}) layout!: FlatTriangulationLayout;
+  @Prop({required: true, type: Object}) layout!: Layout;
   @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({required: true, type: Boolean}) inner!: boolean;

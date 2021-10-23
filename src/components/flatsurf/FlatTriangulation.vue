@@ -23,7 +23,7 @@
 import { Vue, Component, Prop } from "vue-property-decorator";
 import Face from "./Face.vue";
 import HalfEdgeComponent from "./HalfEdge.vue";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import IFlatTriangulationOptions from "@/components/flatsurf/options/IFlatTriangulationOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
@@ -35,7 +35,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
   }
 })
 export default class FlatTriangulation extends Vue {
-  @Prop({required: true, type: Object}) layout!: FlatTriangulationLayout;
+  @Prop({required: true, type: Object}) layout!: Layout;
   @Prop({required: false, default: () => new VisualizationOptions(), type: Object}) options!: IFlatTriangulationOptions;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 

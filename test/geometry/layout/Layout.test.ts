@@ -25,7 +25,7 @@ import "chai/register-should";
 import chaiEquals from "../../chai-equal-to";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
 import LayoutOptions from "@/layout/LayoutOptions";
 import Edge from "@/flatsurf/Edge";
@@ -44,10 +44,10 @@ describe("Layout Triangulation", () => {
   }, coordinateSystem);
 
   describe("Default Layout for a Torus", () => {
-    let layout!: FlatTriangulationLayout;
+    let layout!: Layout;
 
     it("computes a layout", async () => {
-      layout = await FlatTriangulationLayout.layout(torus, new LayoutOptions());
+      layout = await Layout.layout(torus, new LayoutOptions());
     });
 
     it("lays out all half edges", () => {
@@ -66,10 +66,10 @@ describe("Layout Triangulation", () => {
   });
 
   describe("Forced Layout for a Torus", () => {
-    let layout!: FlatTriangulationLayout;
+    let layout!: Layout;
 
     it("computes a layout", async () => {
-      layout = await FlatTriangulationLayout.layout(torus, new LayoutOptions(
+      layout = await Layout.layout(torus, new LayoutOptions(
         (edge: Edge) => {
           if (edge.positive === 1)
             return true;
@@ -85,10 +85,10 @@ describe("Layout Triangulation", () => {
   });
 
   describe("Forced Layout for a Torus Without any Gluings", () => {
-    let layout!: FlatTriangulationLayout;
+    let layout!: Layout;
 
     it("computes a layout", async () => {
-      layout = await FlatTriangulationLayout.layout(torus, new LayoutOptions(
+      layout = await Layout.layout(torus, new LayoutOptions(
         () => false
       ));
     });

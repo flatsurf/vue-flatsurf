@@ -14,7 +14,7 @@ import  { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import FlowComponentData from "@/flatsurf/FlowComponent";
 import { Touch } from "@/flatsurf/FlowConnection";
 import SaddleConnectionComponent from "./SaddleConnection.vue";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import Ngon from "@/components/svg/Ngon.vue";
 import HalfEdge from "@/flatsurf/HalfEdge";
 import Point from "@/geometry/Point";
@@ -29,7 +29,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 })
 export default class FlowComponent extends Vue {
   @Prop({ required: true }) component!: FlowComponentData;
-  @Prop({ required: true }) layout!: FlatTriangulationLayout;
+  @Prop({ required: true }) layout!: Layout;
   @Prop({ required: true }) surface!: FlatTriangulation;
   @Prop({ required: false, type: String, default:"orange" }) color!: string;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;

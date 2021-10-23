@@ -31,8 +31,7 @@ import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 import LayoutOptions from './LayoutOptions';
 
-// TODO: Rename to Layout
-export default class FlatTriangulationLayout {
+export default class Layout {
   private constructor(surface: FlatTriangulation, options: LayoutOptions) {
     this.surface = surface;
     this.options = options;
@@ -40,7 +39,7 @@ export default class FlatTriangulationLayout {
   }
 
   public static async layout(surface: FlatTriangulation, options: LayoutOptions, cancellation = new CancellationToken(), progress = new Progress()) {
-    const layout = new FlatTriangulationLayout(surface, options);
+    const layout = new Layout(surface, options);
     await layout.recompute(cancellation, progress);
     return layout;
   }

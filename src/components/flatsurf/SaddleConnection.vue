@@ -4,7 +4,7 @@
   </g>
 </template>
 <script lang="ts">
-import FlatTriangulationLayout from '@/layout/FlatTriangulationLayout';
+import Layout from '@/layout/Layout';
 import  { Vue, Component, Prop } from "vue-property-decorator";
 import SaddleConnectionData from "@/flatsurf/SaddleConnection";
 import SegmentComponent from "@/components/svg/Segment.vue";
@@ -21,7 +21,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 })
 export default class FlowComponent extends Vue {
   @Prop({ required: true }) connection!: SaddleConnectionData;
-  @Prop({ required: true }) layout!: FlatTriangulationLayout;
+  @Prop({ required: true }) layout!: Layout;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 
   get segments(): Segment[] {

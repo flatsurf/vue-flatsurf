@@ -13,7 +13,7 @@ import clamp from "lodash-es/clamp";
 
 import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import LayoutOptions from "@/layout/LayoutOptions";
 import HalfEdge from "@/flatsurf/HalfEdge";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
@@ -26,10 +26,10 @@ import Edge from "@/flatsurf/Edge";
 })
 export default class GlueInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<FlatTriangulationLayout | null>;
+  @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<Layout | null>;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
 
-  layout: FlatTriangulationLayout | null = null;
+  layout: Layout | null = null;
 
   async created() {
     this.layout = await this.relayout();

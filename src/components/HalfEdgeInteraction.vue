@@ -7,7 +7,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 import HalfEdge from "@/flatsurf/HalfEdge";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import SegmentComponent from "./svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 
@@ -15,7 +15,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
   components: { SegmentComponent },
 })
 export default class HalFEdgeInteraction extends Vue {
-  @Prop({required: true, type: Object}) layout!: FlatTriangulationLayout;
+  @Prop({required: true, type: Object}) layout!: Layout;
   @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
 

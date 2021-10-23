@@ -22,7 +22,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import FlowComponent from "@/flatsurf/FlowComponent"
 import CoordinateSystem from "@/geometry/CoordinateSystem";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import VisualizationOptions from "./options/VisualizationOptions";
 import Palette from "@/Palette";
 
@@ -37,7 +37,7 @@ import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
 })
 export default class Flatsurf extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
-  @Prop({ required: true, type: Object }) layout!: FlatTriangulationLayout;
+  @Prop({ required: true, type: Object }) layout!: Layout;
   // TODO: This should not be required.
   @Prop({ required: true, type: Object }) viewportCoordinateSystem!: CoordinateSystem;
   // TODO: This should not be required.

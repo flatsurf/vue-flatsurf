@@ -44,7 +44,7 @@ import noop from "lodash-es/noop";
 import PointComponent from "@/components/svg/Point.vue";
 import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Point from "@/geometry/Point";
@@ -79,7 +79,7 @@ type PathPoint = VertexPoint | HalfEdgePoint | FacePoint;
 })
 export default class PathInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({ required: true, type: Object }) layout!: FlatTriangulationLayout;
+  @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
 

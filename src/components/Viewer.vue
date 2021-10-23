@@ -13,7 +13,7 @@ Displays a surface from flatsurf and related objects such as flow components.
 <script lang="ts">
 import { Component, Inject, Prop, Vue, Watch } from "vue-property-decorator";
 
-import FlatTriangulationLayout from "@/layout/FlatTriangulationLayout";
+import Layout from "@/layout/Layout";
 import Polygon from "@/geometry/Polygon";
 import FlowComponent from "@/flatsurf/FlowComponent"
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
@@ -40,7 +40,7 @@ export default class Viewer extends Vue {
 
   protected visualizationOptions = new VisualizationOptions();
 
-  protected layout = null as FlatTriangulationLayout | null;
+  protected layout = null as Layout | null;
 
   private pendingRelayout = new CancellationToken();
 
@@ -204,7 +204,7 @@ export default class Viewer extends Vue {
   }
   */
 
-  async relayout(layoutOptions?: LayoutOptions): Promise<FlatTriangulationLayout | null> {
+  async relayout(layoutOptions?: LayoutOptions): Promise<Layout | null> {
     if (layoutOptions === undefined) {
       if (this.layout != null)
         return this.layout;
@@ -216,7 +216,7 @@ export default class Viewer extends Vue {
       this.pendingRelayout = cancellation;
       try {
         // TODO: Relayout in a way that keeps the previous picture intact, e.g., by leaving the selected half edge in the same place.
-        this.layout = await FlatTriangulationLayout.layout(this.triangulation, layoutOptions!, cancellation, progress);
+        this.layout = await Layout.layout(this.triangulation, layoutOptions!, cancellation, progress);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
