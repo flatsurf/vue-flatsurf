@@ -8,9 +8,7 @@ A demo application that lets the user play with a YAML serialized surface.
     <v-main>
       <overlay :cancellation="overlay" :progress="progress" />
       <v-container class="container" fluid>
-        <keep-alive>
-          <router-view :key="$route.path"/>
-        </keep-alive>
+        <router-view />
       </v-container>
     </v-main>
     <router-view name="menu" />
