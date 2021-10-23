@@ -2,13 +2,13 @@
   <div>
     <v-speed-dial v-model="showActions" top left fixed direction="bottom">
       <template v-slot:activator>
-        <v-btn :color="showActions ? 'secondary' : 'orange'" fab small>
+        <v-btn :color="showActions ? 'secondary' : 'primary'" fab small>
           <v-icon v-if="showActions">mdi-close</v-icon>
           <v-icon v-else>{{ actions[action] }}</v-icon>
         </v-btn>
       </template>
       <div v-for="[action, icon] of Object.entries(actions)" :key="action" >
-        <v-btn @click="goto(action)" color="orange" small fab>
+        <v-btn @click="goto(action)" color="primary" small fab>
           <v-icon>{{ icon }}</v-icon>
         </v-btn>
       </div>

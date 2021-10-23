@@ -64,19 +64,10 @@ export default class HalfEdgeComponent extends Vue {
     stroke-width: 2px;
   }
 
+  /* TODO: Use Edge components instead */
   &.inner line {
     stroke: #ddd;
     stroke-dasharray: 8 6;
-  }
-
-  /* TODO: Rewrite to react to JS instead.
-  &:hover.inner line {
-    stroke: black;
-  }
-  */
-
-  .glued {
-    stroke: #eee;
   }
 
   .indicator path {
@@ -87,8 +78,8 @@ export default class HalfEdgeComponent extends Vue {
     fill: black;
   }
 
-  .selected {
-    stroke: red;
+  .selected, &.inner line.selected {
+    stroke: #ff9800;
     stroke-width: 2px;
     stroke-dasharray: 10;
     animation: dash 1000ms linear infinite;

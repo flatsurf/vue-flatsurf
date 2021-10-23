@@ -57,8 +57,10 @@ export default class GlueInteraction extends Vue {
     } finally {
       // TODO: Highlight the glued half edge for some time.
       // TODO: When the gluing failed, highlight the problematic half edges?
-      this.options.select(halfEdge, false);
-      this.options.select(-halfEdge, false);
+      setTimeout(() => {
+        this.options.select(halfEdge, false);
+        this.options.select(-halfEdge, false);
+      }, 1000);
     }
   }
 
