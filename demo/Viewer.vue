@@ -4,7 +4,7 @@ Visualizes a Surface.
 
 -->
 <template>
-  <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :flow-components="parsed.flowComponents">
+  <viewer-component v-if="parsed != null" class="surface" :triangulation="parsed.triangulation" :flow-components="flowComponents">
     <template v-slot:interaction="{ relayout, svg, triangulation, options }">
       <path-interaction v-if="action == 'path'" :relayout="relayout" :svg="svg" :triangulation="triangulation" :options="options" />
       <glue-interaction v-else-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" />
@@ -18,8 +18,6 @@ import ViewerComponent from "@/components/Viewer.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
 
-// TODO: Conditionally hide flow components.
-
 @Component({
   components: {
     ViewerComponent,
@@ -29,16 +27,22 @@ import PathInteraction from "@/components/interactions/PathInteraction.vue";
 })
 export default class Viewer extends Vue {
   @Prop({ required: false, default: "glue", type: String }) action!: string;
+  @Prop({ required: false, default: () => ["boundary"], type: Array }) show!: string[];
 
   get parsed() {
     const triangulation = this.$store.state.triangulation; 
     if (triangulation != null) {
       return {
         triangulation,
-        flowComponents: this.$store.state.flowComponents,
       }
     }
     return null;
+  }
+
+  get flowComponents() {
+    if (this.show.includes('flow-components'))
+      return this.$store.state.flowComponents;
+    return [];
   }
 }
 </script>
