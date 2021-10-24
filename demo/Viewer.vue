@@ -4,7 +4,7 @@ Visualizes a Surface.
 
 -->
 <template>
-  <layouter v-if="$store.state.triangulation != null" :triangulation="$store.state.triangulation" v-slot="{ layout, relayout }" @layout="layoutChanged">
+  <layouter v-if="$store.state.triangulation != null" :triangulation="$store.state.triangulation" :layout="$store.state.layout" v-slot="{ layout, relayout }" @layout="layoutChanged">
     <viewer-component class="surface" :triangulation="$store.state.triangulation" :flow-components="flowComponents" :layout="layout">
       <template v-slot:interaction="{ svg, triangulation, options, refocus, focus }">
         <g v-if="layout != null">
@@ -60,4 +60,3 @@ export default class Viewer extends Vue {
   width: 100%;
 }
 </style>
-

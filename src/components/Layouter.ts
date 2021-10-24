@@ -15,17 +15,18 @@ async function run(callback: (cancellation: CancellationToken, progress: Progres
 export default class Layouter extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
+  @Prop({ required: false, type: Object, default: null }) layout!: Layout | null;
 
   options: LayoutOptions = new LayoutOptions();
-  layout: Layout | null = null;
+  effectiveLayout: Layout | null = null;
 
   @Inject({ from: 'run', default: run })
   run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => Promise<void>;
 
   render() {
-    if (this.layout != null) {
+    if (this.effectiveLayout != null) {
       return this.$scopedSlots.default!({
-        layout: this.layout,
+        layout: this.effectiveLayout,
         relayout: this.relayout,
       });
     }
@@ -35,8 +36,8 @@ export default class Layouter extends Vue {
 
   async relayout(layoutOptions?: LayoutOptions): Promise<Layout> {
     if (layoutOptions === undefined) {
-      if (this.layout != null)
-        return this.layout;
+      if (this.effectiveLayout != null)
+        return this.effectiveLayout;
       layoutOptions = new LayoutOptions(() => null, this.automorphisms);
     }
 
@@ -47,8 +48,8 @@ export default class Layouter extends Vue {
       this.pendingRelayout = cancellation;
       try {
         // TODO: Relayout in a way that keeps the previous picture intact, e.g., by leaving the selected half edge in the same place.
-        this.layout = await Layout.layout(this.triangulation, this.options, cancellation, progress);
-        this.$emit("layout", this.layout);
+        this.effectiveLayout = await Layout.layout(this.triangulation, this.options, cancellation, progress);
+        this.$emit("layout", this.effectiveLayout);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
@@ -84,13 +85,13 @@ export default class Layouter extends Vue {
       */
     });
 
-    return this.layout!;
+    return this.effectiveLayout!;
   }
 
 
   @Watch("triangulation", { immediate: true })
   onSurfaceChanged() {
-    this.layout = null;
+    this.effectiveLayout = this.layout;
     this.relayout();
   }
 }
