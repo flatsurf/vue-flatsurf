@@ -26,6 +26,7 @@ import CoordinateSystem from "./CoordinateSystem";
 import Box from "./Box";
 import Polygon from "./Polygon";
 import Point from "./Point";
+import Vector from "./Vector";
 
 export default class Viewport {
   public constructor(ideal?: CoordinateSystem, width: number = 640, height: number = 640) {
@@ -83,7 +84,10 @@ export default class Viewport {
       this.zoom(factor);
       const centerAfter = this.viewportCoordinateSystem.embed(center);
       
-      this.focus(this.viewport.translate(centerAfter.x - centerBefore.x, centerAfter.y - centerBefore.y));
+      this.focus(this.viewport.translate(new Vector(
+        this.viewportCoordinateSystem,
+        centerBefore,
+        centerAfter)));
     }
   }
 

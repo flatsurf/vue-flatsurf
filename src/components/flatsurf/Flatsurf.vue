@@ -25,6 +25,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layout from "@/layout/Layout";
 import VisualizationOptions from "./options/VisualizationOptions";
 import Palette from "@/Palette";
+import SVGExporter from "@/export/SVGExporter";
 
 import FlatTriangulationComponent from "@/components/flatsurf/FlatTriangulation.vue";
 import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
@@ -49,5 +50,23 @@ export default class Flatsurf extends Vue {
     return new Palette(this.flowComponents.length);
   }
 
+  async svg() {
+    await this.$nextTick();
+
+    const exporter = new SVGExporter(this.$el);
+    exporter.simplifyColors();
+    exporter.dropNonStandardStyles();
+    exporter.dropNonInkscapeStyles();
+    exporter.dropTrivialStyles();
+    exporter.dropRedundantStyles();
+    exporter.dropClasses();
+    exporter.dropPrefixedStyles();
+    exporter.dropInvisible();
+    exporter.dropInteractiveStyles();
+    exporter.dropCustomAttributes();
+    exporter.usePresentationAttributes();
+    exporter.inlineStyles();
+    return exporter.toString();
+  }
 }
 </script>

@@ -27,6 +27,7 @@ import Viewport from "@/geometry/Viewport";
 import Box from "@/geometry/Box";
 import Point from "@/geometry/Point";
 import chaiEquals from "../chai-equal-to";
+import Vector from "@/geometry/Vector";
 
 chai.use(chaiEquals);
 
@@ -79,7 +80,7 @@ describe("Viewport", () => {
 
   it("when shifting the viewport, the content moves in the opposite direction", () => {
     // We shift the viewport to the left which makes the content move to the right.
-    viewport.focus(viewport.viewport.translate(-1024, 0));
+    viewport.focus(viewport.viewport.translate(new Vector(viewport.viewportCoordinateSystem, -1024, 0)));
     viewport.embed(box).should.equalTo(new Box(viewport.viewportCoordinateSystem, [1024, 1024], [2048, 0]), EPS);
   });
 

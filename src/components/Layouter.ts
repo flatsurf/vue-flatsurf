@@ -49,7 +49,6 @@ export default class Layouter extends Vue {
       try {
         // TODO: Relayout in a way that keeps the previous picture intact, e.g., by leaving the selected half edge in the same place.
         this.effectiveLayout = await Layout.layout(this.triangulation, this.options, cancellation, progress);
-        this.$emit("layout", this.effectiveLayout);
       } catch (e) {
         if (e instanceof OperationAborted) return;
         throw e;
@@ -63,28 +62,9 @@ export default class Layouter extends Vue {
         )
       );
       */
-      
-      /* TODO
-      this.$nextTick(() => {
-        // TODO: Maybe we should not always export the SVG but only do so on demand.
-        const exporter = new SVGExporter(this.$refs.svg as HTMLElement);
-        exporter.simplifyColors();
-        exporter.dropNonStandardStyles();
-        exporter.dropNonInkscapeStyles();
-        exporter.dropTrivialStyles();
-        exporter.dropRedundantStyles();
-        exporter.dropClasses();
-        exporter.dropPrefixedStyles();
-        exporter.dropInvisible();
-        exporter.dropInteractiveStyles();
-        exporter.dropCustomAttributes();
-        exporter.usePresentationAttributes();
-        exporter.inlineStyles();
-        this.$emit('svg', exporter.toString());
-      });
-      */
     });
 
+    this.$emit("layout", this.effectiveLayout);
     return this.effectiveLayout!;
   }
 

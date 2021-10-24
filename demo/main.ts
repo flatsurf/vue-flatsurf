@@ -3,6 +3,7 @@ import App from './App.vue';
 import Vuetify from 'vuetify/lib';
 import VueRouter from 'vue-router'
 import Vuex from 'vuex';
+import AsyncComputed from "vue-async-computed";
 import '@mdi/font/css/materialdesignicons.css'
 
 import routes from "./routes";
@@ -15,6 +16,7 @@ Vue.config.productionTip = false;
 Vue.use(Vuetify);
 Vue.use(VueRouter);
 Vue.use(Vuex);
+Vue.use(AsyncComputed);
 
 new Vue({
     render: (h): VNode => h(App),

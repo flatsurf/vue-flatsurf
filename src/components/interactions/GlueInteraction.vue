@@ -51,7 +51,7 @@ export default class GlueInteraction extends Vue {
     this.unhover(halfEdge);
 
     try {
-      const previousLayout = this.layout;
+      const previousStart = this.svg.embed(this.layout.layout(halfEdge).segment.start);
       const previousFocus = this.focus;
 
       // TODO: When gluing, give a higher score to the half edges that have
@@ -61,13 +61,14 @@ export default class GlueInteraction extends Vue {
         // TODO: Pass automorphisms here somehow.
         []));
 
-      if (previousLayout != null && previousFocus != null) {
+      // TODO: Also don't do this if we cannot relate the coordinate systems before and after. We could possibly relate everything in the viewport coordinate system anyway.
+      if (previousStart != null && previousFocus != null) {
         // Move the viewport such that the selected half edge does not seem to move.
-        this.refocus(previousFocus.translate(
-          new Vector(
-            previousFocus.parent,
-            previousLayout.layout(halfEdge).segment.start,
-            layout.layout(halfEdge).segment.start)));
+        const shift = new Vector(
+            this.svg,
+            new Point(this.svg, previousStart.value),
+            layout.layout(halfEdge).segment.start);
+        this.refocus(previousFocus.translate(shift));
       }
 
       this.glued = glued;

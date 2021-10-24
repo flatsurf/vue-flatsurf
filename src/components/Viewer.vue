@@ -5,7 +5,7 @@ Displays a surface from flatsurf and related objects such as flow components.
 -->
 <template>
   <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
-    <flatsurf v-if="layout != null" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="flowComponents">
+    <flatsurf v-if="layout != null" ref="flatsurf" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="flowComponents">
       <slot name="interaction" v-bind:layout="layout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:triangulation="triangulation" v-bind:options="visualizationOptions" v-bind:focus="focus" v-bind:refocus="refocus" />
     </flatsurf>
   </pan-zoom>
@@ -64,6 +64,21 @@ export default class Viewer extends Vue {
   onLayoutChanged() {
     if (this.focus == null)
       this.refocus(this.layout.hull);
+  }
+
+  async svg() {
+    while (this.layout == null) {
+      await new Promise<void>((resolve) => {
+        const unwatch = this.$watch('layout', () => {
+          resolve();
+          unwatch();
+        });
+      });
+    }
+
+    await this.$nextTick();
+
+    return await (this.$refs.flatsurf as any).svg();
   }
 }
 </script>
