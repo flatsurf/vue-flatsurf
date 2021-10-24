@@ -56,6 +56,7 @@ export default class FlatTriangulation extends Vue {
   }
 
   // Return a list of vertex indicators where half edges meet that are almost collinear.
+  // TODO: Only show indicators when inner edges are not rendered.
   get sourceIndicators() {
     return this.halfEdges.filter((a) => {
       if (this.layout.layout(a).inner) return false;

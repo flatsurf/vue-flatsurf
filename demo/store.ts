@@ -5,6 +5,7 @@ import FlatTriangulation from '@/flatsurf/FlatTriangulation';
 import FlowComponent from '@/flatsurf/FlowComponent';
 import Automorphism from '@/flatsurf/Automorphism';
 import CoordinateSystem from '@/geometry/CoordinateSystem';
+import Layout from "@/layout/Layout";
 
 const state = {
   raw: "",
@@ -12,6 +13,7 @@ const state = {
   triangulation: null as null | FlatTriangulation,
   flowComponents: null as null | FlowComponent[],
   automorphisms: null as null | Automorphism[],
+  layout: null as null | Layout,
   coordinateSystem: new CoordinateSystem(true),
 };
 
@@ -44,6 +46,12 @@ const store: StoreOptions<typeof state> = {
     },
   },
   mutations: {
+    layout: function(state, payload: {
+      layout: Layout
+    }) {
+      state.layout = payload.layout;
+    },
+
     reset: function(state, payload: {
       raw: string,
       triangulation: FlatTriangulation,
@@ -55,8 +63,10 @@ const store: StoreOptions<typeof state> = {
       // TODO: Should be empty array if unset.
       state.flowComponents = payload.flowComponents;
       state.automorphisms = payload.automorphisms;
+      state.layout = null;
       state.error = null;
     },
+
     error: function(state, payload: { message: string }) {
       state.error = payload.message;
     },

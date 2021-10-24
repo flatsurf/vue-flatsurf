@@ -30,16 +30,11 @@ import Edge from "@/flatsurf/Edge";
 })
 export default class GlueInteraction extends Vue {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<Layout | null>;
+  @Prop({ required: true, type: Object }) layout!: Layout;
+  @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<Layout>;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
   @Prop({required: false, default: () => null, type: Object}) focus!: Polygon | null;
   @Prop({required: false, default: () => nop, type: Function}) refocus!: (focus: Polygon) => void;
-
-  layout: Layout | null = null;
-
-  async created() {
-    this.layout = await this.relayout();
-  }
 
   async glue(halfEdge: HalfEdge, glue: boolean | null) {
     const edge = new Edge(halfEdge);
@@ -61,7 +56,7 @@ export default class GlueInteraction extends Vue {
 
       // TODO: When gluing, give a higher score to the half edges that have
       // been glued before, so the picture does not change that much?
-      this.layout = await this.relayout(new LayoutOptions(
+      const layout = await this.relayout(new LayoutOptions(
         (e: Edge) => glued[e.positive] || null,
         // TODO: Pass automorphisms here somehow.
         []));
@@ -72,7 +67,7 @@ export default class GlueInteraction extends Vue {
           new Vector(
             previousFocus.parent,
             previousLayout.layout(halfEdge).segment.start,
-            this.layout!.layout(halfEdge).segment.start)));
+            layout.layout(halfEdge).segment.start)));
       }
 
       this.glued = glued;
