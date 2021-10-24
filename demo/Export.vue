@@ -1,7 +1,7 @@
 <template>
   <layouter v-if="triangulation != null" :triangulation="triangulation" :layout="layout" v-slot="{ layout }" @layout="(l) => layout = l">
     <v-row>
-      <v-col>
+      <v-col class="col-md-4 col-12">
         <v-card>
           <v-card-text>
             <v-subheader>Width</v-subheader>
@@ -11,7 +11,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col>
+      <v-col class="col-md-8 col-12">
         <v-card v-if="layout != null && viewport != null">
           <v-card-title>
             <v-tabs v-model="tab" fixed-tabs >
