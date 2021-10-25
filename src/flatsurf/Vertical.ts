@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-// TODO: Copyright headers everywhere.
-
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Vector, { VectorSchema } from "@/geometry/Vector";
 import Flatten from "@flatten-js/core";
