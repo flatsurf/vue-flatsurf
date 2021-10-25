@@ -47,7 +47,6 @@ export default class Layouter extends Vue {
     await this.run(async (cancellation, progress) => {
       this.pendingRelayout = cancellation;
       try {
-        // TODO: Relayout in a way that keeps the previous picture intact, e.g., by leaving the selected half edge in the same place.
         this.effectiveLayout = await Layout.layout(this.triangulation, this.options, cancellation, progress);
       } catch (e) {
         if (e instanceof OperationAborted) return;
