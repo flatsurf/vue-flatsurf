@@ -18,6 +18,7 @@ import Polygon from "@/geometry/Polygon";
 import FlowComponent from "@/flatsurf/FlowComponent"
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
+import Vertical from "@/flatsurf/Vertical";
 
 import PanZoom from "./PanZoom.vue";
 import Flatsurf from "./flatsurf/Flatsurf.vue";
@@ -30,6 +31,7 @@ import Flatsurf from "./flatsurf/Flatsurf.vue";
 })
 export default class Viewer extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
+  @Prop({ required: false, default: null, type: Object }) vertical!: Vertical | null;
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
   @Prop({ required: true, type: Object }) layout!: Layout;
 
@@ -38,7 +40,7 @@ export default class Viewer extends Vue {
   private focus: Polygon | null = null;
 
   get idealCoordinateSystem() {
-    return this.triangulation.coordinateSystem;
+    return this.vertical?.coordinateSystem || this.triangulation.coordinateSystem;
   }
 
   /* TODO: Find another way to expose this.

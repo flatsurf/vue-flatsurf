@@ -93,5 +93,3 @@ export default class Vector {
   public readonly parent: CoordinateSystem;
   public readonly value: Flatten.Vector;
 }
-
-

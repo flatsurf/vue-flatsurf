@@ -59,6 +59,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import Viewport from "@/geometry/Viewport";
+import Vertical from "@/flatsurf/Vertical";
 
 @Component({
   components: {
@@ -96,6 +97,10 @@ export default class Export extends Vue {
 
   get triangulation() : FlatTriangulation | null {
     return this.$store.state.triangulation;
+  }
+
+  get vertical() : Vertical | null {
+    return this.$store.state.vertical;
   }
 
   get svgCoordinateSystem(): CoordinateSystem | null {
@@ -137,8 +142,9 @@ export default class Export extends Vue {
 
   @Watch("triangulation", { immediate: true })
   onTriangulationChange() {
-    if (this.triangulation != null)
-      this.viewport = new Viewport(this.triangulation.coordinateSystem);
+    if (this.triangulation != null) {
+      this.viewport = new Viewport(this.vertical!.coordinateSystem);
+    }
   }
 }
 </script>
