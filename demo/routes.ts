@@ -45,7 +45,6 @@ const routes = [
     },
   },
   { path: '*', redirect: '/view' },
-  // TODO: svg
 ]
 
 export default routes;
