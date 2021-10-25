@@ -24,7 +24,7 @@ import iwanthue, { ColorSpacePreset } from "iwanthue";
 
 export default class Palette {
   constructor(colors: number = 2, space: ColorSpacePreset = "fancy-light") {
-    // TODO: Typings in iwanthue are wrong.
+    // TODO: Typings in iwanthue are wrong, see https://github.com/medialab/iwanthue/pull/50
     this.palette = iwanthue(colors >= 2 ? colors : 2, { seed: 1337 as any, colorSpace: space });
   }
 
