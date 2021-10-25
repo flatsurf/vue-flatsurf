@@ -26,7 +26,7 @@ Displays a surface from flatsurf and related objects such as flow components.
  -->
 <template>
   <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
-    <flatsurf v-if="layout != null" ref="flatsurf" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="flowComponents">
+    <flatsurf v-if="layout != null" ref="flatsurf" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="visibleFlowComponents">
       <slot name="interaction" v-bind:layout="layout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:triangulation="triangulation" v-bind:options="visualizationOptions" v-bind:focus="focus" v-bind:refocus="refocus" />
     </flatsurf>
   </pan-zoom>
@@ -38,6 +38,7 @@ import Layout from "@/layout/Layout";
 import Polygon from "@/geometry/Polygon";
 import FlowComponent from "@/flatsurf/FlowComponent"
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+import FlowConnection from "@/flatsurf/FlowConnection";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Vertical from "@/flatsurf/Vertical";
 
@@ -82,6 +83,13 @@ export default class Viewer extends Vue {
     this.visualizationOptions = new VisualizationOptions();
   }
   */
+
+  get visibleFlowComponents() {
+    return this.flowComponents.filter((component) =>
+      !component.perimeter.some((connection: FlowConnection) =>
+        ! this.layout.primary.includes(connection.connection.source) && !this.layout.primary.includes(connection.connection.target)
+    ))
+  }
 
   @Watch("layout", { immediate: true })
   onLayoutChanged() {

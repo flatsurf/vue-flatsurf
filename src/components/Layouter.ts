@@ -74,15 +74,6 @@ export default class Layouter extends Vue {
         if (e instanceof OperationAborted) return;
         throw e;
       }
-      
-      // Only display components whose half edges and faces have been rendered.
-      /* TODO
-      this.components = this.parsed.components.filter((component) =>
-        !component.perimeter.some((connection: FlowConnection) =>
-          ! this.layout!.primary.includes(connection.connection.source) && !this.layout!.primary.includes(connection.connection.target)
-        )
-      );
-      */
     });
 
     this.$emit("layout", this.effectiveLayout);
