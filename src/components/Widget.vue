@@ -20,11 +20,12 @@
  | SOFTWARE.
  -->
 <template>
-  <layouter :triangulation="parsedTriangulation" v-slot="{ layout }">
+  <layouter :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
     <viewer class="surface" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical">
-      <template v-slot:interaction="{ options }">
+      <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
+        <glue-interaction v-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
       </template>
     </viewer>
   </layouter>
@@ -41,12 +42,14 @@ import Layouter from "@/components/Layouter";
 import Viewer from "@/components/Viewer.vue";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
+import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import Vertical from "@/flatsurf/Vertical";
 
 @Component({
   components: {
     Layouter,
     Viewer,
+    GlueInteraction,
     TriangulationInteraction,
     LabelInteraction,
   },
@@ -59,6 +62,7 @@ export default class Widget extends Vue {
   @Prop({ required: false, default: true, type: Boolean }) showOuterHalfEdges!: boolean;
   @Prop({ required: false, default: true, type: Boolean }) showOuterLabels!: boolean;
   @Prop({ required: false, default: false, type: Boolean }) showNumericLabels!: boolean;
+  @Prop({ required: false, default: null, type: String }) action!: string | null;
 
   coordinateSystem = new CoordinateSystem(true);
 

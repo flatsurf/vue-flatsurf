@@ -53,7 +53,21 @@
             Widget Interaction
           </v-card-title>
           <v-card-text>
-            TEXT
+            <v-select :items="actions" v-model="action" item-text="text" item-value="value"/>
+            <v-form v-if="action === null">
+              Drag &amp; Zoom the Surface.
+            </v-form>
+            <v-form v-if="action === 'glue'">
+              <p>
+                Left-click on a half edge to force it to be visually
+                glued. Click again to choose gluing automatically for this half
+                edge.
+              </p>
+              <p>
+                Right-click on a half edge to force it to be visually unglued.
+                Click again to choose gluing automatically for this half edge.
+              </p>
+            </v-form>
           </v-card-text>
         </v-card>
       </v-col>
@@ -63,7 +77,7 @@
             Widget Output
           </v-card-title>
           <v-card-text>
-            <widget-component :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" />
+            <widget-component :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" :action="action" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -93,6 +107,13 @@ export default class Widget extends Vue {
   showFlowComponents = false;
 
   applyVertical = true;
+
+  action = "glue";
+
+  actions = [
+    {text:"None", value: null},
+    {text:"Change Layout", value: "glue"},
+  ]
 
   get yaml() {
     return YAML.parse(this.$store.state.raw);
