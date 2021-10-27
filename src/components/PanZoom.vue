@@ -63,10 +63,12 @@ export default class PanZoom extends Vue {
       this.$emit('input', this.viewport.viewport);
   }
 
-  @Watch("coordinateSystem", {immediate: true})
+  @Watch("coordinateSystem", { immediate: true })
   onCoordinateSystemChange() {
     this.viewport = new Viewport(this.coordinateSystem);
     this.refocus(this.value);
+    // TODO: The resize logic is flaky here.
+    this.$nextTick(() => this.resize());
   }
 
   mounted() {

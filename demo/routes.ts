@@ -27,6 +27,7 @@ import ViewerMenu from './ViewerMenu.vue';
 import Editor from './Editor.vue';
 import EditorMenu from './EditorMenu.vue';
 import Export from './Export.vue';
+import Widget from './Widget.vue';
 
 import castArray from "lodash-es/castArray";
 
@@ -64,6 +65,10 @@ const routes = [
     },
     props: {
       default: exportProps,
+    },
+  },
+  { path: '/widget', components: {
+      default: Widget,
     },
   },
   { path: '*', redirect: '/view' },

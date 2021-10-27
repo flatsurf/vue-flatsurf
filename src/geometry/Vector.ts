@@ -45,7 +45,7 @@ export default class Vector {
       const b = parent.embed(y);
       this.value = new Flatten.Vector(a.value, b.value);
     } else
-      throw Error("Cannot initialize Vector from this data.");
+      throw Error(`Cannot initialize Vector from this data: parent=${parent}, x=${x}, y=${y}`);
   }
 
   public static parse(yaml: VectorSchema, coordinateSystem: CoordinateSystem): Vector {

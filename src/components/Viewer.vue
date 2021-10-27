@@ -65,6 +65,13 @@ export default class Viewer extends Vue {
     return this.vertical?.coordinateSystem || this.triangulation.coordinateSystem;
   }
 
+  @Watch("idealCoordinateSystem")
+  onCoordinateSystemChanged() {
+    if (this.focus != null) {
+      this.focus = this.triangulation.coordinateSystem.embed(this.focus);
+    }
+  }
+
   /* TODO: Find another way to expose this.
   @Watch("inner", {immediate: true})
   onInnerChanged() {

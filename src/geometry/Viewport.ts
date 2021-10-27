@@ -59,12 +59,12 @@ export default class Viewport {
     // We now need to embed the "ideal" coordinate system into the actual
     // "viewport" coordinate system so that the "visible" box fills the (0,
     // 0), (width, height) box.
-    this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
+    this.token = this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
       this.width / this.visible.width, 0,
       0, -this.height / this.visible.height,
       -this.visible.low.x * this.width / this.visible.width,
       this.visible.high.y * this.height / this.visible.height,
-    ));
+    ), this.token as any);
   }
 
   public zoom(factor: number, center?: Point) {
@@ -113,4 +113,6 @@ export default class Viewport {
   private focused: Box;
   // The currently visible rectangle.
   private visible: Box;
+
+  private token?: object;
 };

@@ -24,7 +24,7 @@ import Flatten from "@flatten-js/core";
 
 import findIndex from "lodash-es/findIndex";
 
-import CoordinateSystem from "./CoordinateSystem";
+import CoordinateSystem, { inverse } from "./CoordinateSystem";
 import Point from "./Point";
 import Box from "./Box";
 import Vector from "./Vector";
@@ -124,7 +124,7 @@ export default class Polygon {
         minArea = area;
 
         // Rotate the box back.
-        minAreaRect = new Polygon(this.parent, new Flatten.Polygon(aligned.box.toPoints()).transform(CoordinateSystem.inverse(rotation)));
+        minAreaRect = new Polygon(this.parent, new Flatten.Polygon(aligned.box.toPoints()).transform(inverse(rotation)));
       }
     }
 

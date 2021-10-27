@@ -24,12 +24,15 @@ import CoordinateSystem from '@/geometry/CoordinateSystem';
 import FlowConnection, { FlowConnectionSchema } from "./FlowConnection";
 import HalfEdge, { HalfEdgeSchema } from './HalfEdge';
 
+export interface FlowComponentSchema {
+  cylinder: boolean,
+  perimeter: FlowConnectionSchema[],
+  inside: HalfEdgeSchema[],
+};
+
 export default class FlowComponent {
-  public static parse(yaml: {
-    cylinder: boolean,
-    perimeter: FlowConnectionSchema[],
-    inside: HalfEdgeSchema[],
-  }, coordinateSystem: CoordinateSystem) : FlowComponent {
+  public static parse(yaml: FlowComponentSchema,
+  coordinateSystem: CoordinateSystem) : FlowComponent {
     return new FlowComponent(yaml.cylinder, yaml.perimeter.map(connection => FlowConnection.parse(connection, coordinateSystem)), yaml.inside);
   }
 

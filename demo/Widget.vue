@@ -20,34 +20,48 @@
  | SOFTWARE.
  -->
 <template>
-  <v-bottom-navigation color="primary" :value="$route.path" @change="(path) => $router.push({ path, query: $route.query })" fixed app>
-    <v-btn value="/edit">
-      <span>Surface</span>
-      <v-badge :value="error != null" color="error" icon="mdi-error" overlap>
-      <v-icon>mdi-layers</v-icon>
-      </v-badge>
-    </v-btn>
-    <v-btn value="/view">
-      <span>Visualization</span>
-      <v-icon>mdi-eye</v-icon>
-    </v-btn>
-    <v-btn value="/svg">
-      <span>SVG</span>
-      <v-icon>mdi-svg</v-icon>
-    </v-btn>
-    <v-btn value="/widget">
-      <span>Widget</span>
-      <v-icon>mdi-widgets</v-icon>
-    </v-btn>
-  </v-bottom-navigation>
+  <widget-component :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" />
 </template>
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
-@Component
-export default class BottomNavigation extends Vue {
-  get error() {
-    return this.$store.state.error;
+import YAML from "yaml";
+import WidgetComponent from "@/components/Widget.vue";
+import type { FlatTriangulationSchema } from "@/flatsurf/FlatTriangulation";
+import type { FlowComponentSchema } from "@/flatsurf/FlowComponent";
+import type { VerticalSchema } from "@/flatsurf/Vertical";
+
+@Component({
+  components: {
+    WidgetComponent,
+  },
+})
+export default class Widget extends Vue {
+  get yaml() {
+    return YAML.parse(this.$store.state.raw);
+  }
+  
+  get triangulation() {
+    const schema: FlatTriangulationSchema = {
+      vertices: this.yaml.vertices,
+      vectors: this.yaml.vectors,
+    };
+    return YAML.stringify(schema);
+  }
+
+  get flowComponents() {
+    const schema: FlowComponentSchema[] = this.yaml.components || [];
+
+    return schema.map((component) => YAML.stringify(component));
+  }
+
+  get vertical() {
+    if (this.yaml.vertical == null)
+      return null;
+
+    const schema: VerticalSchema = this.yaml.vertical;
+
+    return YAML.stringify(schema);
   }
 }
 </script>
