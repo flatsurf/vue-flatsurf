@@ -20,7 +20,54 @@
  | SOFTWARE.
  -->
 <template>
-  <widget-component :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" />
+    <v-row>
+      <v-col class="col-md-4 col-12">
+        <v-card>
+          <v-card-title>
+            vue-flatsurf Widget
+          </v-card-title>
+          <v-card-text>
+            <p>The <code>Widget</code> component encapsulated all the features of vue-flatsurf in a single component to simplify interacting with the widget from Jupyter Notebooks, e.g., through <a href="https://github.com/flatsurf/ipyvue-flatsurf">ipyvue-flatsurf</a>.</p>
+            <p>This view exposes all the features of that widget but is not connected to the other views of this demo application.</p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col class="col-md-4 col-12">
+        <v-card>
+          <v-card-title>
+            Widget Visualization
+          </v-card-title>
+          <v-card-text>
+            <v-checkbox v-model="showInnerEdges" label="Show Inner Edges" hide-details />
+            <v-checkbox v-model="showOuterHalfEdges" label="Show Outer Half Edges" hide-details />
+            <v-checkbox v-model="showNumericLabels" label="Show Numeric Labels on Edges and Half Edges" hide-details />
+            <v-checkbox v-model="showOuterLabels" label="Show Alphanumeric Labels on Outer Half Edges" hide-details />
+            <v-checkbox v-model="showFlowComponents" label="Show Flow Components" :disabled="yaml.components.length == 0" hide-details />
+            <v-checkbox v-model="applyVertical" label="Rotate to Vertical" :disabled="yaml.vertical == null" hide-details />
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col class="col-md-4 col-12">
+        <v-card>
+          <v-card-title>
+            Widget Interaction
+          </v-card-title>
+          <v-card-text>
+            TEXT
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col class="col-md-4 col-12">
+        <v-card>
+          <v-card-title>
+            Widget Output
+          </v-card-title>
+          <v-card-text>
+            <widget-component :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" />
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 </template>
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
@@ -37,6 +84,16 @@ import type { VerticalSchema } from "@/flatsurf/Vertical";
   },
 })
 export default class Widget extends Vue {
+  showInnerEdges = true;
+  showOuterHalfEdges = true;
+
+  showOuterLabels = true;
+  showNumericLabels = false;
+
+  showFlowComponents = false;
+
+  applyVertical = true;
+
   get yaml() {
     return YAML.parse(this.$store.state.raw);
   }
@@ -50,6 +107,9 @@ export default class Widget extends Vue {
   }
 
   get flowComponents() {
+    if (!this.showFlowComponents)
+      return [];
+
     const schema: FlowComponentSchema[] = this.yaml.components || [];
 
     return schema.map((component) => YAML.stringify(component));
@@ -57,6 +117,9 @@ export default class Widget extends Vue {
 
   get vertical() {
     if (this.yaml.vertical == null)
+      return null;
+
+    if (!this.applyVertical)
       return null;
 
     const schema: VerticalSchema = this.yaml.vertical;
