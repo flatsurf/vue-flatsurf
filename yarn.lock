@@ -8241,6 +8241,11 @@ vue-loader@^16.1.2:
     hash-sum "^2.0.0"
     loader-utils "^2.0.0"
 
+vue-promise-btn@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/vue-promise-btn/-/vue-promise-btn-2.1.0.tgz#85817bfa1b001823f383cc0fe28786775fdeeae4"
+  integrity sha512-rp2xRxrb4srtMwolmOfbh2CSEjQ8uXnBUUbn6rIIt2+BGO4i3PGXZ5WtVYS4AulapYIDhmll/yzkk36iyIntKQ==
+
 vue-property-decorator@^9.0.0:
   version "9.1.2"
   resolved "https://registry.yarnpkg.com/vue-property-decorator/-/vue-property-decorator-9.1.2.tgz#266a2eac61ba6527e2e68a6933cfb98fddab5457"

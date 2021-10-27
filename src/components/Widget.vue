@@ -21,7 +21,7 @@
  -->
 <template>
   <layouter :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
-    <viewer class="surface" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical">
+    <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical">
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
@@ -31,7 +31,7 @@
   </layouter>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Ref, Vue } from "vue-property-decorator";
 
 import YAML from "yaml";
 
@@ -66,6 +66,9 @@ export default class Widget extends Vue {
 
   coordinateSystem = new CoordinateSystem(true);
 
+  @Ref()
+  readonly viewer!: Viewer;
+
   get parsedTriangulation(): FlatTriangulation {
     return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem);
   }
@@ -79,6 +82,10 @@ export default class Widget extends Vue {
       return null;
 
     return Vertical.parse(YAML.parse(this.vertical), this.coordinateSystem);
+  }
+
+  async svg() {
+    return await this.viewer.svg();
   }
 }
 </script>

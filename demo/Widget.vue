@@ -50,14 +50,24 @@
       <v-col class="col-md-4 col-12">
         <v-card>
           <v-card-title>
+            Widget Output
+          </v-card-title>
+          <v-card-text>
+            <widget-component ref="widget" :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" :action="action" />
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col class="col-md-4 col-12">
+        <v-card>
+          <v-card-title>
             Widget Interaction
           </v-card-title>
           <v-card-text>
             <v-select :items="actions" v-model="action" item-text="text" item-value="value"/>
-            <v-form v-if="action === null">
+            <v-container v-if="action === null">
               Drag &amp; Zoom the Surface.
-            </v-form>
-            <v-form v-if="action === 'glue'">
+            </v-container>
+            <v-container v-if="action === 'glue'">
               <p>
                 Left-click on a half edge to force it to be visually
                 glued. Click again to choose gluing automatically for this half
@@ -67,24 +77,25 @@
                 Right-click on a half edge to force it to be visually unglued.
                 Click again to choose gluing automatically for this half edge.
               </p>
-            </v-form>
+            </v-container>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col class="col-md-4 col-12">
         <v-card>
           <v-card-title>
-            Widget Output
+            Extract SVG
           </v-card-title>
           <v-card-text>
-            <widget-component :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" :action="action" />
+            <p class="svg" v-text="svg" />
+            <div class="text-right"><v-btn v-promise-btn @click="refreshSvg">Refresh</v-btn></div>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Ref, Vue } from "vue-property-decorator";
 
 import YAML from "yaml";
 import WidgetComponent from "@/components/Widget.vue";
@@ -114,6 +125,8 @@ export default class Widget extends Vue {
     {text:"None", value: null},
     {text:"Change Layout", value: "glue"},
   ]
+
+  svg = "<svg />";
 
   get yaml() {
     return YAML.parse(this.$store.state.raw);
@@ -147,5 +160,19 @@ export default class Widget extends Vue {
 
     return YAML.stringify(schema);
   }
+
+  async refreshSvg() {
+    this.svg = await this.widget.svg();
+  }
+
+  @Ref()
+  readonly widget!: WidgetComponent;
 }
 </script>
+<style scoped>
+.svg {
+  font-family: monospace;
+  font-size: 6pt;
+  line-height: 1.4;
+}
+</style>

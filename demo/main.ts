@@ -26,6 +26,7 @@ import Vuetify from 'vuetify/lib';
 import VueRouter from 'vue-router'
 import Vuex from 'vuex';
 import AsyncComputed from "vue-async-computed";
+import VuePromiseBtn from "vue-promise-btn";
 import '@mdi/font/css/materialdesignicons.css'
 
 import routes from "./routes";
@@ -39,6 +40,7 @@ Vue.use(Vuetify);
 Vue.use(VueRouter);
 Vue.use(Vuex);
 Vue.use(AsyncComputed);
+Vue.use(VuePromiseBtn);
 
 new Vue({
     render: (h): VNode => h(App),
