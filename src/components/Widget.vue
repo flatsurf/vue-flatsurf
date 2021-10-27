@@ -26,6 +26,7 @@
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
         <glue-interaction v-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
+        <path-interaction v-if="action == 'path'" ref="pathInteraction" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" />
       </template>
     </viewer>
   </layouter>
@@ -43,6 +44,7 @@ import Viewer from "@/components/Viewer.vue";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
+import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import Vertical from "@/flatsurf/Vertical";
 
 @Component({
@@ -50,6 +52,7 @@ import Vertical from "@/flatsurf/Vertical";
     Layouter,
     Viewer,
     GlueInteraction,
+    PathInteraction,
     TriangulationInteraction,
     LabelInteraction,
   },
@@ -86,6 +89,40 @@ export default class Widget extends Vue {
 
   async svg() {
     return await this.viewer.svg();
+  }
+
+  @Ref()
+  readonly pathInteraction!: PathInteraction;
+
+  async path(when: "current" | "completed" | "changed") {
+    if (when === "completed") {
+      while (this.pathInteraction.editable === true) {
+        await new Promise<void>((resolve) => {
+          const unwatch = this.pathInteraction.$watch('editable', () => {
+            unwatch();
+            resolve();
+          });
+        });
+      }
+    } else if (when === 'changed') {
+      if (this.pathInteraction.editable === false)
+        this.pathInteraction.editable = true;
+      await new Promise<void>((resolve) => {
+        let unwatchEditable: () => void;
+        let unwatchPath: () => void;
+        unwatchEditable = this.pathInteraction.$watch('editable', () => {
+          unwatchEditable();
+          unwatchPath();
+          resolve();
+        });
+        unwatchPath = this.pathInteraction.$watch('path', () => {
+          unwatchEditable();
+          unwatchPath();
+          resolve();
+        });
+      });
+    }
+    return this.pathInteraction.points;
   }
 }
 </script>

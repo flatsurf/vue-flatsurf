@@ -105,7 +105,7 @@ export default class PathInteraction extends Vue {
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
 
   // The path constructed so far, given by the points on the path.
-  points: PathPoint[] = [];
+  public points: PathPoint[] = [];
 
   // The point to be added to the path.
   // For the purpose of previewing.

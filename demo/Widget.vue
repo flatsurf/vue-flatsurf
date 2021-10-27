@@ -78,24 +78,40 @@
                 Click again to choose gluing automatically for this half edge.
               </p>
             </v-container>
+            <v-container v-if="action === 'path'">
+              Click any vertex to start a path. Click half edges or vertices to draw the path. Press the escape key when the path is complete.
+            </v-container>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col class="col-md-4 col-12">
         <v-card>
           <v-card-title>
-            Extract SVG
+            Query Widget
           </v-card-title>
           <v-card-text>
-            <p class="svg" v-text="svg" />
-            <div class="text-right"><v-btn v-promise-btn @click="refreshSvg">Refresh</v-btn></div>
+            <v-select :items="queries" :disabled="info === '…'" v-model="query"/>
+            <p v-if="query === 'SVG'">
+              Return the widget as a standalone SVG.
+            </p>
+            <p v-else-if="query === 'Path'">
+              Return the currently drawn path if any path is being drawn.
+            </p>
+            <p v-else-if="query === 'Complete Path'">
+              Return the path once its complete, i.e., once the user pressed Escape.
+            </p>
+            <p v-else-if="query === 'Path Change'">
+              Return the path once it changes.
+            </p>
+            <p class="tiny" v-text="info" />
+            <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Refresh</v-btn></v-container>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 </template>
 <script lang="ts">
-import { Component, Ref, Vue } from "vue-property-decorator";
+import { Component, Ref, Vue, Watch } from "vue-property-decorator";
 
 import YAML from "yaml";
 import WidgetComponent from "@/components/Widget.vue";
@@ -119,14 +135,19 @@ export default class Widget extends Vue {
 
   applyVertical = true;
 
-  action = "glue";
-
   actions = [
-    {text:"None", value: null},
-    {text:"Change Layout", value: "glue"},
+    {text: "None", value: null},
+    {text: "Change Layout", value: "glue"},
+    {text: "Draw Path", value: "path"},
   ]
 
-  svg = "<svg />";
+  action = "path";
+
+  info = "(none)";
+
+  queries = ["SVG", "Path", "Complete Path", "Path Change"];
+
+  query = 'Path'
 
   get yaml() {
     return YAML.parse(this.$store.state.raw);
@@ -161,8 +182,30 @@ export default class Widget extends Vue {
     return YAML.stringify(schema);
   }
 
-  async refreshSvg() {
-    this.svg = await this.widget.svg();
+  @Watch("query", {immediate: true})
+  onQueryChanged() {
+    this.info = "(none)";
+  }
+
+  async performQuery() {
+    this.info = "…";
+
+    const query = (() => {
+      if (this.query === "SVG")
+        return this.widget.svg();
+      if (this.query === 'Path')
+        return this.widget.path("current");
+      if (this.query === 'Complete Path')
+        return this.widget.path("completed");
+      if (this.query === 'Path Change')
+        return this.widget.path("changed");
+    })();
+
+    try {
+      this.info = JSON.stringify(await query);
+    } catch(e) { 
+      this.info = e.message;
+    }
   }
 
   @Ref()
@@ -170,7 +213,7 @@ export default class Widget extends Vue {
 }
 </script>
 <style scoped>
-.svg {
+.tiny {
   font-family: monospace;
   font-size: 6pt;
   line-height: 1.4;

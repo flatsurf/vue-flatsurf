@@ -27,10 +27,10 @@ A demo application that lets the user play with a YAML serialized surface.
 <template>
   <v-app>
     <v-main>
-      <overlay :cancellation="overlay" :progress="progress" />
       <v-container class="container" fluid>
         <router-view />
       </v-container>
+      <overlay :cancellation="overlay" :progress="progress" />
     </v-main>
     <router-view name="menu" />
     <bottom-navigation />
