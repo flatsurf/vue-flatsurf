@@ -23,11 +23,17 @@
 import Vue from "vue";
 
 import HalfEdge from "@/flatsurf/HalfEdge";
+import Edge from "@/flatsurf/Edge";
 import IFlatTriangulationOptions from "./IFlatTriangulationOptions";
 import IHalfEdgeOptions from "./IHalfEdgeOptions";
 
 export default class VisualizationOptions implements IFlatTriangulationOptions {
-  public get(halfEdge: HalfEdge): IHalfEdgeOptions {
+  public get(edge: Edge): IHalfEdgeOptions;
+  public get(edge: HalfEdge): IHalfEdgeOptions;
+  public get(halfEdge: Edge | HalfEdge): IHalfEdgeOptions {
+    if (halfEdge instanceof Edge)
+      return this.get(halfEdge.positive);
+
     if (this.indicators[halfEdge] === undefined)
       this.indicate(halfEdge, null);
     if (this.selected[halfEdge] === undefined)

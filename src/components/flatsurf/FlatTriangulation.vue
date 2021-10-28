@@ -35,6 +35,7 @@
     <slot name="edges">
       <g>
         <half-edge-component v-for="halfEdge of halfEdges" :key="halfEdge" :inner="layout.layout(halfEdge).inner" :layout="layout" :half-edge="halfEdge" :source-indicator="sourceIndicators.includes(halfEdge)" :options="options.get(halfEdge)" :svg="svg" />
+        <edge-component v-for="edge of edges" :key="edge.positive" :layout="layout" :edge="edge" :svg="svg" :options="options.get(edge)" />
       </g>
     </slot>
     <slot name="overlay" />
@@ -44,6 +45,7 @@
 import { Vue, Component, Prop } from "vue-property-decorator";
 import Face from "./Face.vue";
 import HalfEdgeComponent from "./HalfEdge.vue";
+import EdgeComponent from "./Edge.vue";
 import Layout from "@/layout/Layout";
 import IFlatTriangulationOptions from "@/components/flatsurf/options/IFlatTriangulationOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
@@ -52,6 +54,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 @Component({
   components: {
     Face,
+    EdgeComponent,
     HalfEdgeComponent,
   }
 })
@@ -67,26 +70,21 @@ export default class FlatTriangulation extends Vue {
   }
 
   get halfEdges() {
-    return this.layout.triangulation.halfEdges.filter((halfEdge) => {
-      if (!this.layout.primary.includes(halfEdge))
-        return false;
-      if (!this.layout.layout(halfEdge).inner)
-        return true;
-      return halfEdge > 0;
-    });
+    return this.layout.triangulation.halfEdges.filter((halfEdge) => !this.layout.layout(halfEdge).inner);
+  }
+
+  get edges() {
+    return this.layout.triangulation.edges.filter((edge) => this.layout.layout(edge.positive).inner);
   }
 
   // Return a list of vertex indicators where half edges meet that are almost collinear.
   // TODO: Only show indicators when inner edges are not rendered.
   get sourceIndicators() {
     return this.halfEdges.filter((a) => {
-      if (this.layout.layout(a).inner) return false;
-
       const s = this.layout.layout(a).segment;
       const v = s.tangentInStart;
       return this.halfEdges.some((b) => {
         if (b === a) return false;
-        if (this.layout.layout(b).inner) return false;
 
         const t = this.layout.layout(b).segment;
 

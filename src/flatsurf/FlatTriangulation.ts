@@ -23,6 +23,7 @@
 import xor from "lodash-es/xor";
 
 import HalfEdge from "./HalfEdge";
+import Edge from "./Edge";
 import Permutation from "./Permutation";
 
 import Vector, { VectorSchema } from "@/geometry/Vector";
@@ -46,7 +47,8 @@ export default class FlatTriangulation {
   private constructor(vertices: Permutation<HalfEdge>, vectors: {[key: string]: Vector}) {
     this.vertices = vertices;
     this.vertexes = Vertex.fromPermutation(vertices);
-    this.halfEdges = vertices.domain,
+    this.halfEdges = vertices.domain;
+    this.edges = this.halfEdges.filter((halfEdge) => halfEdge > 0).map((halfEdge) => new Edge(halfEdge));
     this.faces = Permutation.fromMapping(this.halfEdges.map((he) => [-vertices.image(he), he]));
 
     this.vectors = vectors;
@@ -80,6 +82,7 @@ export default class FlatTriangulation {
   public readonly vertices: Permutation<HalfEdge>;
   public readonly vertexes: Vertex[];
   public readonly halfEdges : HalfEdge[];
+  public readonly edges: Edge[];
   public readonly faces : Permutation<HalfEdge>;
   private readonly vectors : {[key: string]: Vector };
 }
