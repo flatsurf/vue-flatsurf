@@ -194,7 +194,7 @@ export default class Widget extends Vue {
       if (this.query === "SVG")
         return this.widget.svg();
       if (this.query === 'Path')
-        return this.widget.path("current");
+        return this.widget.path("now");
       if (this.query === 'Complete Path')
         return this.widget.path("completed");
       if (this.query === 'Path Change')

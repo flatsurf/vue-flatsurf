@@ -94,35 +94,8 @@ export default class Widget extends Vue {
   @Ref()
   readonly pathInteraction!: PathInteraction;
 
-  async path(when: "current" | "completed" | "changed") {
-    if (when === "completed") {
-      while (this.pathInteraction.editable === true) {
-        await new Promise<void>((resolve) => {
-          const unwatch = this.pathInteraction.$watch('editable', () => {
-            unwatch();
-            resolve();
-          });
-        });
-      }
-    } else if (when === 'changed') {
-      if (this.pathInteraction.editable === false)
-        this.pathInteraction.editable = true;
-      await new Promise<void>((resolve) => {
-        let unwatchEditable: () => void;
-        let unwatchPath: () => void;
-        unwatchEditable = this.pathInteraction.$watch('editable', () => {
-          unwatchEditable();
-          unwatchPath();
-          resolve();
-        });
-        unwatchPath = this.pathInteraction.$watch('path', () => {
-          unwatchEditable();
-          unwatchPath();
-          resolve();
-        });
-      });
-    }
-    return this.pathInteraction.points;
+  async path(when: "now" | "completed" | "changed") {
+    return await this.pathInteraction.query(when);
   }
 }
 </script>

@@ -61,6 +61,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 import noop from "lodash-es/noop";
+import wait from "@/wait";
 
 import PointComponent from "@/components/svg/Point.vue";
 import SegmentComponent from "@/components/svg/Segment.vue";
@@ -379,6 +380,18 @@ export default class PathInteraction extends Vue {
       };
     else
       return point;
+  }
+
+  public async query(when: "now" | "completed" | "changed") {
+    if (when === "completed") {
+      while (this.editable === true)
+        await wait(this, "editable");
+    } else if (when === "changed") {
+      if (this.editable === false)
+        this.editable = true;
+      await wait(this, ["editable", "path"]);
+    }
+    return this.points;
   }
 }
 </script>

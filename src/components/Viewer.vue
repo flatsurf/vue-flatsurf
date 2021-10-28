@@ -42,6 +42,8 @@ import FlowConnection from "@/flatsurf/FlowConnection";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Vertical from "@/flatsurf/Vertical";
 
+import wait from "@/wait";
+
 import PanZoom from "./PanZoom.vue";
 import Flatsurf from "./flatsurf/Flatsurf.vue";
 
@@ -105,14 +107,8 @@ export default class Viewer extends Vue {
   }
 
   async svg() {
-    while (this.layout == null) {
-      await new Promise<void>((resolve) => {
-        const unwatch = this.$watch('layout', () => {
-          resolve();
-          unwatch();
-        });
-      });
-    }
+    while (this.layout == null)
+      await wait(this, "layout");
 
     await this.$nextTick();
 
