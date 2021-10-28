@@ -69,10 +69,12 @@ export default class FlatTriangulation extends Vue {
     return faces.map((face) => face.map((he) => this.layout.layout(he).segment.end));
   }
 
+  // TODO: Do not filter by inner. Use visilbe instead.
   get halfEdges() {
     return this.layout.triangulation.halfEdges.filter((halfEdge) => !this.layout.layout(halfEdge).inner);
   }
 
+  // TODO: Do not filter by inner. Use visilbe instead.
   get edges() {
     return this.layout.triangulation.edges.filter((edge) => this.layout.layout(edge.positive).inner);
   }

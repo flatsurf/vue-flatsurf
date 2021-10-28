@@ -20,7 +20,7 @@
  | SOFTWARE.
  -->
 <template>
-  <g class="Edge" :class="{ inner }" :style="{ ['--display']: options.visible ? 'inline' : 'none' }">
+  <g class="Edge" :style="{ ['--display']: options.visible ? 'inline' : 'none' }">
     <g v-if="options.label" class="label">
       <segment-label :at="segment" :svg="svg">{{ options.label }}</segment-label>
     </g>
@@ -41,7 +41,7 @@ import VisualizationOptions from "@/components/flatsurf/options/VisualizationOpt
 @Component({
   components: { SegmentComponent, SegmentLabel },
 })
-export default class HalfEdgeComponent extends Vue {
+export default class EdgeComponent extends Vue {
   @Prop({required: true, type: Object}) layout!: Layout;
   @Prop({required: true, type: Object}) edge!: Edge;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
