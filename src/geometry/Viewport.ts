@@ -22,7 +22,7 @@
 
 import Flatten from "@flatten-js/core";
 
-import CoordinateSystem from "./CoordinateSystem";
+import CoordinateSystem, {Embedding} from "./CoordinateSystem";
 import Box from "./Box";
 import Polygon from "./Polygon";
 import Point from "./Point";
@@ -33,38 +33,46 @@ export default class Viewport {
     this.idealCoordinateSystem = ideal || new CoordinateSystem(true);
     if (!this.idealCoordinateSystem.positive)
       throw new Error("ideal coordinate system must be positive");
+    if (width === 0 || height === 0)
+      throw new Error("cannot initialize viewport to be an empty box");
     this.viewportCoordinateSystem = new CoordinateSystem(false);
-    this.width = width;
-    this.height = height;
+    this.dimensions = { width, height };
     this.visible = new Box(this.viewportCoordinateSystem, [0, 0], [width, height]);
     this.focused = this.visible;
-
-    this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem);
   }
 
   // Resize the viewport while keeping the currently focused box unchanged.
   public resize(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+    if (width === 0 || width === 0)
+      throw Error("Cannot resize viewport to an empty box.");
+
+    this.dimensions = { width, height };
 
     this.focus(this.focused);
   }
 
-  public focus(focused: Box | Polygon) {
-    if (focused instanceof Box)
-      this.focused = this.idealCoordinateSystem.embed(focused).box;
-    else
-      this.focused = this.idealCoordinateSystem.embed(focused).box;
+  public focus(focus: Box | Polygon) {
+    if (this.token === undefined)
+      this.token = this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem);
+    if (this.token === null)
+      throw Error("Cannot change focus on a viewport that has already been destroyed.");
+
+    const focused = this.idealCoordinateSystem.embed(focus).box;
+
+    console.assert(focused.low.x != null && this.focused.low.y != null && this.focused.high.x != null && this.focused.high.y != null, "Focus not well-formed.");
+
+    this.focused = focused;
+
     this.visible = this.focused.contain(this.width / this.height);
     // We now need to embed the "ideal" coordinate system into the actual
     // "viewport" coordinate system so that the "visible" box fills the (0,
     // 0), (width, height) box.
-    this.token = this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
+    this.token = Object.freeze(this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
       this.width / this.visible.width, 0,
       0, -this.height / this.visible.height,
       -this.visible.low.x * this.width / this.visible.width,
       this.visible.high.y * this.height / this.visible.height,
-    ), this.token as any);
+    ), this.token));
   }
 
   public zoom(factor: number, center?: Point) {
@@ -91,6 +99,12 @@ export default class Viewport {
     }
   }
 
+  public destroy() {
+    if (this.token != null)
+      this.idealCoordinateSystem.reset(this.token);
+    this.token = null;
+  }
+
   public embed(point: Point) : Point;
   public embed(box: Box) : Polygon;
   public embed(value: Point | Box) : Point | Polygon {
@@ -101,8 +115,10 @@ export default class Viewport {
     return this.viewportCoordinateSystem.embed(this.visible).box;
   }
 
-  private width: number;
-  private height: number;
+  public get width() { return this.dimensions.width; }
+  public get height() { return this.dimensions.height; }
+
+  private dimensions: { width: number, height: number };
   // The underlying ideal coordinate system that is stable under resizing the
   // viewport, translating it and such.
   public readonly idealCoordinateSystem: CoordinateSystem;
@@ -114,5 +130,5 @@ export default class Viewport {
   // The currently visible rectangle.
   private visible: Box;
 
-  private token?: object;
+  private token?: Embedding | null;
 };

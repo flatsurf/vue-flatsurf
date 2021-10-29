@@ -131,7 +131,7 @@ export default class FlowComponent extends Vue {
       console.assert(this.at(a) === 0, "Edge-parallel connection must start at vertex.")
       console.assert(this.at(b) === 0, "Edge-parallel connection must end at vertex.");
     } else {
-      console.assert(a.halfEdge !== b.halfEdge, `Saddle Connection cannot cross the half edge ${a.halfEdge} twice in a row.`);
+      console.assert(a.halfEdge !== b.halfEdge, "Saddle Connection cannot cross the half edge %s twice in a row.", a.halfEdge);
     }
 
     const atouches = this.touches[a.halfEdge];
@@ -179,15 +179,15 @@ export default class FlowComponent extends Vue {
             return null;
           }
         } else {
-          console.assert(this.at(btouches[b.index + 1]) > this.at(b), `Touches are not ordered correctly on half edge ${b.halfEdge}. The ${btouches[b.index + 1].index}th touch at ${this.at(btouches[b.index + 1])} should not be after the ${b.index}th touch at ${this.at(b)}.`);
+          console.assert(this.at(btouches[b.index + 1]) > this.at(b), "Touches are not ordered correctly on half edge %s. The %sth touch at %s should not be after the %sth touch at %s.", b.halfEdge, btouches[b.index + 1].index, this.at(btouches[b.index + 1]), b.index, this.at(b));
           C = layout(b.halfEdge, this.at(btouches[b.index + 1]));
         }
       }
     }
 
-    console.assert(!A.equalTo(B), `Patch of kind '${scenario}' coming from the touches (${a.halfEdge}, ${a.index}) at ${this.at(a)} and (${b.halfEdge}, ${b.index}) at ${this.at(b)} has the same point twice A == B, i.e., ${A.toString()} == ${B.toString()}.`);
-    console.assert(!A.equalTo(C), `Patch of kind '${scenario}' coming from the touches (${a.halfEdge}, ${a.index}) at ${this.at(a)} and (${b.halfEdge}, ${b.index}) at ${this.at(b)} has the same point twice A == C, i.e., ${A.toString()} == ${C.toString()}.`);
-    console.assert(!B.equalTo(C), `Patch of kind '${scenario}' coming from the touches (${a.halfEdge}, ${a.index}) at ${this.at(a)} and (${b.halfEdge}, ${b.index}) at ${this.at(b)} has the same point twice B == C, i.e., ${B.toString()} == ${C.toString()}.`);
+    console.assert(!A.equalTo(B), "Patch of kind '%s' coming from the touches (%s, %s) at %s and (%s, %s) at %s has the same point twice A == B, i.e., %s == %s.", scenario, a.halfEdge, a.index, this.at(a), b.halfEdge, b.index, this.at(b), A.toString(), B.toString());
+    console.assert(!A.equalTo(C), `Patch of kind '%s' coming from the touches (%s, %s) at %s and (%s, %s) at %s has the same point twice A == C, i.e., %s == %s.`, scenario, a.halfEdge, a.index, this.at(a), b.halfEdge, b.index, this.at(b), A.toString(), C.toString());
+    console.assert(!B.equalTo(C), `Patch of kind '%s' coming from the touches (%s, %s) at %s and (%s, %s) at %s has the same point twice B == C, i.e., %s == %s.`, scenario, a.halfEdge, a.index, this.at(a), b.halfEdge, b.index, this.at(b), B.toString(), C.toString());
 
     return [A, B, C];
   }
@@ -242,9 +242,9 @@ export default class FlowComponent extends Vue {
       C = layout(face[1], this.at(touches[0]));
     }
 
-    console.assert(!A.equalTo(B), `Patch of kind '${scenario}' coming from the half edge ${halfEdge} has the same point twice A == B, i.e., ${A.toString()} == ${B.toString()}.`);
-    console.assert(!A.equalTo(C), `Patch of kind '${scenario}' coming from the half edge ${halfEdge} has the same point twice A == C, i.e., ${A.toString()} == ${C.toString()}.`);
-    console.assert(!B.equalTo(C), `Patch of kind '${scenario}' coming from the half edge ${halfEdge} has the same point twice B == C, i.e., ${B.toString()} == ${C.toString()}.`);
+    console.assert(!A.equalTo(B), `Patch of kind '%s' coming from the half edge %s has the same point twice A == B, i.e., %s == %s.`, scenario, halfEdge, A.toString(), B.toString());
+    console.assert(!A.equalTo(C), `Patch of kind '%s' coming from the half edge %s has the same point twice A == C, i.e., %s == %s.`, scenario, halfEdge, A.toString(), C.toString());
+    console.assert(!B.equalTo(C), `Patch of kind '%s' coming from the half edge %s has the same point twice B == C, i.e., %s == %s.`, scenario, halfEdge, B.toString(), C.toString());
 
     return [A, B, C];
   }

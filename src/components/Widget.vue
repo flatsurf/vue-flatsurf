@@ -99,3 +99,11 @@ export default class Widget extends Vue {
   }
 }
 </script>
+<style scoped>
+.surface {
+  display: inline-block;
+  overflow: hidden;
+  height: 640px;
+  width: 100%;
+}
+</style>

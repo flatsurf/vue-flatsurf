@@ -20,12 +20,12 @@
  | SOFTWARE.
  -->
 <template>
-  <div ref="viewport" @mousedown="pan = true" @mouseup="pan = false" :class="{ pan }">
-    <slot v-bind:viewport="viewport" />
+  <div ref="container" @mousedown="pan = true" @mouseup="pan = false" :class="{ pan, TODO: true }">
+    <slot v-if="viewport != null" v-bind:viewport="viewport" />
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { Component, Prop, Vue, Ref, Watch } from "vue-property-decorator";
 import Viewport from "@/geometry/Viewport";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Point from "@/geometry/Point";
@@ -42,57 +42,96 @@ export default class PanZoom extends Vue {
   private observer = new ResizeObserver(this.resize);
   private unpanzoom = () => {};
   protected pan = false;
-  private viewport = null as any as Viewport;
+  private viewport: Viewport | null = null;;
+
+  @Ref()
+  private readonly container!: HTMLElement;
+
+  private dimensions : null | { width: number, height: number } = null;
 
   private resize() {
-    this.viewport.resize(
-      Math.min((this.$refs.viewport as HTMLElement).clientWidth, window.innerWidth),
-      Math.min((this.$refs.viewport as HTMLElement).clientHeight, window.innerHeight));
+    const dimensions = this.redimension();
+
+    if (this.viewport == null)
+      throw Error("Cannot resize viewport before PanZoom has been mounted.");
+
+    this.viewport.resize(dimensions.width, dimensions.height);
     this.refocus(this.viewport.viewport);
   }
 
   @Watch("value")
   refocus(focus: Box | Polygon | null) {
+    if (this.viewport == null)
+      throw Error("Cannot change focus in PanZoom before it has been mounted.");
+  
     if (focus == null)
       return;
 
-    if (!(focus instanceof Box && focus.equalTo(this.viewport.viewport)))
+    if (!(focus instanceof Box && focus.equalTo(this.viewport.viewport))) {
       this.viewport.focus(focus);
+      console.assert(JSON.stringify(focus) !== JSON.stringify(this.viewport.viewport), "Changing focus to %s did not modify viewport.", JSON.stringify(focus))
+      if (JSON.stringify(focus) === JSON.stringify(this.viewport.viewport))
+        throw Error("TODO Aborting here to break infinite loop.");
+    }
 
-    if (this.value == null || !(this.value instanceof Box && this.value.equalTo(this.viewport.viewport)))
+    if (this.value == null || !(this.value instanceof Box && this.value.equalTo(this.viewport.viewport))) {
       this.$emit('input', this.viewport.viewport);
+    }
   }
 
-  @Watch("coordinateSystem", { immediate: true })
+  @Watch("coordinateSystem")
   onCoordinateSystemChange() {
-    this.viewport = new Viewport(this.coordinateSystem);
-    this.refocus(this.value);
-    // TODO: The resize logic is flaky here.
-    this.$nextTick(() => this.resize());
+    this.beforeDestroy();
+    this.mounted();
   }
 
   mounted() {
     this.unpanzoom = panzoom(this.$el, this.panzoom);
-    this.observer.observe(this.$el);
-    this.resize();
+    this.observer.observe(this.container);
+    const dimensions = this.redimension();
+    this.viewport = new Viewport(this.coordinateSystem, dimensions.width, dimensions.height);
+    this.refocus(this.value);
   }
 
   beforeDestroy() {
     this.unpanzoom();
-    this.observer.unobserve(this.$el);
+    this.observer.unobserve(this.container);
+    if (this.viewport != null)
+      this.viewport.destroy();
+    this.viewport = null;
+  }
+
+  private redimension() {
+    if (this.container == null)
+      throw Error("Cannot determine dimensions of PanZoom before it has been mounted.");
+
+    this.dimensions = {
+      width: Math.min(this.container.clientWidth, window.innerWidth),
+      height: Math.min(this.container.clientHeight, window.innerHeight),
+    };
+
+    if (this.dimensions.width === 0)
+      throw Error("PanZoom must explicitly have non-zero width.");
+
+    if (this.dimensions.height === 0)
+      throw Error("PanZoom must explicitly have non-zero height.");
+    
+    return this.dimensions;
   }
 
   private panzoom(e: any) {
+    console.assert(this.viewport != null, "PanZoom cannot receive events before it has been mounted.");
+
     // We either zoom or pan; mixing this is probably confusing.
     if (e.dz !== 0) {
-      this.viewport.zoom(Math.exp(-e.dz/96), new Point(this.viewport.viewportCoordinateSystem, e.x, e.y));
+      this.viewport!.zoom(Math.exp(-e.dz/96), new Point(this.viewport!.viewportCoordinateSystem, e.x, e.y));
     } else {
-      this.viewport.focus(this.viewport.viewport.translate(new Vector(
-        this.viewport.viewportCoordinateSystem,
+      this.viewport!.focus(this.viewport!.viewport.translate(new Vector(
+        this.viewport!.viewportCoordinateSystem,
         -e.dx,
         -e.dy)));
     }
-    this.$emit('input', this.viewport.viewport);
+    this.$emit('input', this.viewport!.viewport);
   }
 }
 </script>

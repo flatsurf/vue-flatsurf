@@ -34,7 +34,7 @@ import Line from "./Line";
 export type Coordinate = number;
 
 // A registered or discovered embedding between two coordinate systems.
-type Embedding = {
+export type Embedding = {
   // The embedding as an invertible matrix; null if the embedding is not valid
   // anymore.
   embedding: Readonly<Flatten.Matrix> | null,
@@ -59,6 +59,7 @@ export function inverse(A: Flatten.Matrix) {
   const det = a00*adj[0] - a01*adj[1] + a02*adj[2];
   const inv = [adj[0], -adj[3], adj[6], -adj[1], adj[4], -adj[7], adj[2], -adj[5], adj[8]].map(a => a / det);
   const affine = inv.map(a => a / inv[8]);
+  console.assert(affine.every((a) => a != null), `Matrix ${A} must be invertible.`);
   return new Flatten.Matrix(affine[0], affine[3], affine[1], affine[4], affine[2], affine[5]);
 }
 
@@ -92,6 +93,8 @@ export default class CoordinateSystem {
     }
 
     console.assert(embedding instanceof Flatten.Matrix);
+    if (embedding.tx == null || embedding.ty == null || !(embedding.a * embedding.d - embedding.b * embedding.c))
+      throw Error(`Embedding matrix is not invertible: ${JSON.stringify(embedding)}`);
 
     let existing = this.lookup(into);
 
@@ -101,7 +104,7 @@ export default class CoordinateSystem {
     } else {
       if (token === undefined)
         console.warn("Expected a token when resetting embedding of coordinate systems but no token found.");
-      if (token !== existing.embedding)
+      else if (token !== existing.embedding)
         console.warn("Expected correct token when resetting embedding of coordinate systems but the token was not the one last returned when the embedding was established.");
     }
 
@@ -119,18 +122,32 @@ export default class CoordinateSystem {
   }
 
   public reset(token: Embedding) {
-    token;
-    throw Error("not implemented: reset()");
+    const from = CoordinateSystem.registered.get(this);
+    if (from === undefined)
+      throw Error("Cannot reset embedding of this coordinate systems as none is registered anymore.");
+    for (const codomain of from.keys()) {
+      const registered = from.get(codomain)!;
+      if (registered.embedding == token) {
+        CoordinateSystem.invalidate(registered);
+        from.delete(codomain);
+        if (from.size === 0)
+          CoordinateSystem.registered.delete(this);
+        return;
+      }
+    }
+
+    throw Error("Cannot reset embedding. No embedding registered for this token.");
   }
 
-  public embed(box: Box): Polygon;
   public embed(point: Point): Point;
   public embed(vector: Vector): Vector;
   public embed(segment: Segment): Segment;
   public embed(line: Line): Line;
-  public embed(polygon: Polygon): Polygon;
+  public embed(polygon: Box | Polygon): Polygon;
   public embed(value: Box | Point | Vector | Segment | Line | Polygon) : Point | Vector | Segment | Line | Polygon {
     const discovered = this === value.parent ? new Flatten.Matrix() : value.parent.discover(this);
+
+    console.assert(discovered.tx != null && discovered.ty != null && discovered.a * discovered.d - discovered.b * discovered.c, "Discovered an embedding that is not invertible.", discovered);
 
     if (value instanceof Box) {
       const polygon = new Flatten.Polygon();
@@ -243,6 +260,7 @@ export default class CoordinateSystem {
             }
             dependency.dependents.push({ domain: this, codomain: into }); 
           }
+          // TODO: Rgister in discovered?
           return Vue.observable({
             embedding: Object.freeze(map)
           });
@@ -294,7 +312,7 @@ export default class CoordinateSystem {
 
       console.assert(embedding.embedding !== null);
 
-      return embedding!.embedding!;
+      return embedding.embedding!;
     }
 
     console.assert(discovered.embedding !== null);

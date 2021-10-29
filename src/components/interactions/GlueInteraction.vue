@@ -25,8 +25,8 @@
     <g v-for="halfEdge of halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge, true)" @contextmenu.prevent="glue(halfEdge, false)">
       <segment-component :segment="segment(halfEdge)" :svg="svg" />
     </g>
-    <g v-for="edge of edges" :key="edge.positive" class="click-area" @click="glue(halfEdge, true)" @contextmenu.prevent="glue(halfEdge, false)">
-      <segment-component :segment="segment(halfEdge)" :svg="svg" />
+    <g v-for="edge of edges" :key="edge.positive" class="click-area" @click="glue(edge, true)" @contextmenu.prevent="glue(edge, false)">
+      <segment-component :segment="segment(edge)" :svg="svg" />
     </g>
   </g>
 </template>
@@ -59,7 +59,12 @@ export default class GlueInteraction extends Vue {
   @Prop({required: false, default: () => null, type: Object}) focus!: Polygon | null;
   @Prop({required: false, default: () => nop, type: Function}) refocus!: (focus: Polygon) => void;
 
-  async glue(halfEdge: HalfEdge, glue: boolean | null) {
+  async glue(edge: Edge, glue: boolean | null): Promise<void>;
+  async glue(edge: HalfEdge, glue: boolean | null): Promise<void>;
+  async glue(halfEdge: Edge | HalfEdge, glue: boolean | null) {
+    if (halfEdge instanceof Edge)
+      return await this.glue(halfEdge.positive, glue);
+
     const edge = new Edge(halfEdge);
 
     const glued = {...this.glued};
