@@ -260,10 +260,16 @@ export default class CoordinateSystem {
             }
             dependency.dependents.push({ domain: this, codomain: into }); 
           }
-          // TODO: Register in discovered?
-          return Vue.observable({
+          const discovered = Vue.observable({
             embedding: Object.freeze(map)
           });
+
+          if (!CoordinateSystem.discovered.has(this))
+            CoordinateSystem.discovered.set(this, new Map());
+
+          CoordinateSystem.discovered.get(this)!.set(into, discovered);
+
+          return discovered;
         }
 
         const follow = (to: CoordinateSystem, definition: { embedding: Embedding } | { inverse: Embedding }, dependency: RegisteredEmbedding): Embedding | null => {
