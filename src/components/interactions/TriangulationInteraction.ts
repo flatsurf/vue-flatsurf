@@ -25,7 +25,7 @@ import VisualizationOptions from "../flatsurf/options/VisualizationOptions";
 import Layout from "@/layout/Layout";
 
 @Component
-export default class TriangulationVisibilityInteraction extends Vue {
+export default class TriangulationInteraction extends Vue {
   @Prop({ required: true, type: Object }) options!: VisualizationOptions;
   @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({ required: false, default: true, type: Boolean }) outer!: boolean;
@@ -37,10 +37,10 @@ export default class TriangulationVisibilityInteraction extends Vue {
   @Watch("options")
   resetVisiblity() {
     for (const halfEdge of this.layout.triangulation.halfEdges)
-      if (this.layout.layout(halfEdge).inner)
-        this.options.show(halfEdge, this.inner);
-      else
-        this.options.show(halfEdge, this.outer);
+      this.options.show(halfEdge, this.layout.layout(halfEdge).inner ? false : this.outer);
+
+    for (const edge of this.layout.triangulation.edges)
+      this.options.show(edge, this.layout.layout(edge.positive).inner ? this.inner : false);
   }
 
   render() {}

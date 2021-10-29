@@ -20,9 +20,11 @@
  * SOFTWARE.
  * *****************************************************************************/
 
+import Edge from "@/flatsurf/Edge";
 import HalfEdge from "@/flatsurf/HalfEdge";
 import IHalfEdgeOptions from "./IHalfEdgeOptions";
 
 export default interface IFlatTriangulationOptions {
   get(halfEdge: HalfEdge): IHalfEdgeOptions;
+  get(edge: Edge): IHalfEdgeOptions;
 };

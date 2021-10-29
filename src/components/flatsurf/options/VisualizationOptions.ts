@@ -24,51 +24,108 @@ import Vue from "vue";
 
 import HalfEdge from "@/flatsurf/HalfEdge";
 import Edge from "@/flatsurf/Edge";
-import IFlatTriangulationOptions from "./IFlatTriangulationOptions";
 import IHalfEdgeOptions from "./IHalfEdgeOptions";
+import IFlatTriangulationOptions from "./IFlatTriangulationOptions";
 
 export default class VisualizationOptions implements IFlatTriangulationOptions {
   public get(edge: Edge): IHalfEdgeOptions;
   public get(edge: HalfEdge): IHalfEdgeOptions;
   public get(halfEdge: Edge | HalfEdge): IHalfEdgeOptions {
-    if (halfEdge instanceof Edge)
-      return this.get(halfEdge.positive);
-
-    if (this.indicators[halfEdge] === undefined)
-      this.indicate(halfEdge, null);
-    if (this.selected[halfEdge] === undefined)
-      this.select(halfEdge, false);
-    if (this.visible[halfEdge] === undefined)
-      this.show(halfEdge, false);
-    if (this.labels[halfEdge] === undefined)
-      this.label(halfEdge, null);
-
-    return {
-      visible: this.visible[halfEdge],
-      indicator: this.indicators[halfEdge],
-      selected: this.selected[halfEdge],
-      label: this.labels[halfEdge],
+    this.ensure(halfEdge);
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      return this.edges[edge.positive];
+    } else {
+      return this.halfEdges[halfEdge];
     }
   }
 
-  public indicate(halfEdge: HalfEdge, at: number | null) {
-    Vue.set(this.indicators, halfEdge, at);
+  private ensure(halfEdge: Edge | HalfEdge) {
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      if (this.edges[edge.positive] === undefined) {
+        Vue.set(this.edges, edge.positive, {
+          indicator: null,
+          selected: false,
+          visible: false,
+          label: null,
+        } as IHalfEdgeOptions);
+      }
+    } else {
+      if (this.halfEdges[halfEdge] === undefined) {
+        Vue.set(this.halfEdges, halfEdge, {
+          indicator: null,
+          selected: false,
+          visible: false,
+          label: null,
+        } as IHalfEdgeOptions);
+      }
+    }
   }
 
-  public select(halfEdge: HalfEdge, selected: boolean) {
-    Vue.set(this.selected, halfEdge, selected);
+  public indicate(edge: Edge, at: number | null): void;
+  public indicate(edge: HalfEdge, at: number | null): void;
+  public indicate(halfEdge: Edge | HalfEdge, at: number | null) {
+    this.ensure(halfEdge);
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      this.edges[edge.positive].indicator = at;
+    } else {
+      this.halfEdges[halfEdge].indicator = at;
+    }
   }
 
-  public show(halfEdge: HalfEdge, visible: boolean) {
-    Vue.set(this.visible, halfEdge, visible);
+  public select(edge: Edge, selected: boolean): void;
+  public select(edge: HalfEdge, selected: boolean): void;
+  public select(halfEdge: Edge | HalfEdge, selected: boolean) {
+    this.ensure(halfEdge);
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      this.edges[edge.positive].selected = selected;
+    } else {
+      this.halfEdges[halfEdge].selected = selected;
+    }
   }
 
-  public label(halfEdge: HalfEdge, label: string | null) {
-    Vue.set(this.labels, halfEdge, label);
+  public show(edge: Edge, visible: boolean): void;
+  public show(halfEdge: HalfEdge, visible: boolean): void;
+  public show(halfEdge: Edge | HalfEdge, visible: boolean) {
+    this.ensure(halfEdge);
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      this.edges[edge.positive].visible = visible;
+    } else {
+      this.halfEdges[halfEdge].visible = visible;
+    }
   }
 
-  private indicators = {} as {[halfEdge: number]: number | null};
-  private selected = {} as {[halfEdge: number]: boolean};
-  private visible = {} as {[halfEdge: number]: boolean};
-  private labels = {} as {[halfEdge: number]: string};
+  public label(edge: Edge, label: string | null): void;
+  public label(halfEdge: HalfEdge, label: string | null): void;
+  public label(halfEdge: Edge | HalfEdge, label: string | null) {
+    this.ensure(halfEdge);
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      this.edges[edge.positive].label = label;
+    } else {
+      this.halfEdges[halfEdge].label = label;
+    }
+  }
+
+  private halfEdges: {
+    [halfEdge: number]: {
+      indicator: number | null,
+      selected: boolean,
+      visible: boolean,
+      label: string | null,
+    },
+  } = {};
+
+  private edges: {
+    [positive: number]: {
+      indicator: number | null,
+      selected: boolean,
+      visible: boolean,
+      label: string | null,
+    },
+  } = {};
 };

@@ -20,7 +20,7 @@
  | SOFTWARE.
  -->
 <template>
-  <g class="Edge" :style="{ ['--display']: options.visible ? 'inline' : 'none' }">
+  <g class="Edge">
     <g v-if="options.label" class="label">
       <segment-label :at="segment" :svg="svg">{{ options.label }}</segment-label>
     </g>
@@ -55,7 +55,6 @@ export default class EdgeComponent extends Vue {
 <style lang="scss">
 .Edge {
   line {
-    display: var(--display);
     stroke-width: 2px;
     stroke: #ddd;
     stroke-dasharray: 8 6;

@@ -34,7 +34,9 @@
     <slot />
     <slot name="edges">
       <g>
-        <half-edge-component v-for="halfEdge of halfEdges" :key="halfEdge" :inner="layout.layout(halfEdge).inner" :layout="layout" :half-edge="halfEdge" :source-indicator="sourceIndicators.includes(halfEdge)" :options="options.get(halfEdge)" :svg="svg" />
+        <half-edge-component v-for="halfEdge of halfEdges" :key="halfEdge" :layout="layout" :half-edge="halfEdge" :source-indicator="sourceIndicators.includes(halfEdge)" :options="options.get(halfEdge)" :svg="svg" />
+      </g>
+      <g>
         <edge-component v-for="edge of edges" :key="edge.positive" :layout="layout" :edge="edge" :svg="svg" :options="options.get(edge)" />
       </g>
     </slot>
@@ -47,9 +49,9 @@ import Face from "./Face.vue";
 import HalfEdgeComponent from "./HalfEdge.vue";
 import EdgeComponent from "./Edge.vue";
 import Layout from "@/layout/Layout";
-import IFlatTriangulationOptions from "@/components/flatsurf/options/IFlatTriangulationOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import IFlatTriangulationOptions from "./options/IFlatTriangulationOptions";
 
 @Component({
   components: {
@@ -69,14 +71,12 @@ export default class FlatTriangulation extends Vue {
     return faces.map((face) => face.map((he) => this.layout.layout(he).segment.end));
   }
 
-  // TODO: Do not filter by inner. Use visilbe instead.
   get halfEdges() {
-    return this.layout.triangulation.halfEdges.filter((halfEdge) => !this.layout.layout(halfEdge).inner);
+    return this.layout.triangulation.halfEdges.filter((halfEdge) => this.options.get(halfEdge).visible);
   }
 
-  // TODO: Do not filter by inner. Use visilbe instead.
   get edges() {
-    return this.layout.triangulation.edges.filter((edge) => this.layout.layout(edge.positive).inner);
+    return this.layout.triangulation.edges.filter((edge) => this.options.get(edge).visible);
   }
 
   // Return a list of vertex indicators where half edges meet that are almost collinear.

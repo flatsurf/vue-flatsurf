@@ -141,7 +141,7 @@ export default class Widget extends Vue {
     {text: "Draw Path", value: "path"},
   ]
 
-  action = "path";
+  action = "glue";
 
   info = "(none)";
 

@@ -23,6 +23,7 @@
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import VisualizationOptions from "../flatsurf/options/VisualizationOptions";
 import Layout from "@/layout/Layout";
+import Edge from "@/flatsurf/Edge";
 
 function nextLabel(label: string) {
   let chars = label.split('').map((c) => c.charCodeAt(0) - 65);
@@ -52,13 +53,13 @@ export default class TriangulationVisibilityInteraction extends Vue {
   @Watch("numeric")
   @Watch("options")
   resetVisiblity() {
-    nextLabel;;
-
     let alpha = "A";
 
     for (const halfEdge of this.layout.triangulation.halfEdges) {
       if (halfEdge < 0)
         continue;
+
+      const edge = new Edge(halfEdge);
 
       if (this.outer) {
         if (!this.layout.layout(halfEdge).inner) {
@@ -71,18 +72,21 @@ export default class TriangulationVisibilityInteraction extends Vue {
            */
           this.options.label(halfEdge, alpha);
           this.options.label(-halfEdge, alpha);
+          this.options.label(edge, null);
           alpha = nextLabel(alpha);
           continue;
         }
       }
       if (this.numeric) {
         this.options.label(halfEdge, String(halfEdge));
-        this.options.label(-halfEdge, String(-halfEdge));
+        this.options.label(-halfEdge, this.layout.layout(halfEdge).inner ? null : String(-halfEdge));
+        this.options.label(edge, String(edge.positive));
         continue;
       }
 
       this.options.label(halfEdge, null);
       this.options.label(-halfEdge, null);
+      this.options.label(edge, null);
     }
   }
 
