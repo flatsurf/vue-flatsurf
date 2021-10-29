@@ -99,6 +99,18 @@
             <p v-else-if="query === 'Path Change'">
               Return the path once it changes.
             </p>
+            <p v-else-if="query === 'Layout'">
+              Return the data underlying the visual layout of the surface.
+            </p>
+            <p v-else-if="query === 'Layout Change'">
+              Return the data underlying the visual layout of the surface once it changes.
+            </p>
+            <p v-else-if="query === 'Glue'">
+              Return the explicitly selected gluings that were used to create the surface's layout.
+            </p>
+            <p v-else-if="query === 'Glue Change'">
+              Return the explicitly selected gluings that were used to create the surface's layout once they change.
+            </p>
             <p class="tiny" v-text="info" />
             <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Refresh</v-btn></v-container>
           </v-card-text>
@@ -141,7 +153,7 @@ export default class Widget extends Vue {
 
   info = "(none)";
 
-  queries = ["SVG", "Path", "Complete Path", "Path Change"];
+  queries = ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change"];
 
   query = 'Path'
 
@@ -195,6 +207,14 @@ export default class Widget extends Vue {
         return this.widget.path("completed");
       if (this.query === 'Path Change')
         return this.widget.path("changed");
+      if (this.query === 'Layout')
+        return this.widget.layout("now");
+      if (this.query === "Layout Change")
+        return this.widget.layout("changed");
+      if (this.query === "Glue")
+        return this.widget.glued("now");
+      if (this.query === "Glue Change")
+        return this.widget.glued("changed");
     })();
 
     try {

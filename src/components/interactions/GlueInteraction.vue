@@ -36,6 +36,7 @@ import { mdiLinkOff, mdiLink, mdiAlert } from "@mdi/js";
 
 import nop from "lodash-es/noop";
 import clamp from "lodash-es/clamp";
+import wait from "@/wait";
 
 import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
@@ -215,6 +216,12 @@ export default class GlueInteraction extends Vue {
     while (svg.tagName !== "svg")
       svg = svg.parentElement!;
     return new Point(this.svg, e.clientX - svg.getBoundingClientRect().left, e.clientY - svg.getBoundingClientRect().top);
+  }
+
+  async query(when: "now" | "changed") {
+    if (when === "changed")
+      await wait(this, "glued");
+    return this.glued;
   }
 }
 </script>

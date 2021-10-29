@@ -20,12 +20,12 @@
  | SOFTWARE.
  -->
 <template>
-  <layouter :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
+  <layouter ref="layouter" :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
     <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical">
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
-        <glue-interaction v-if="action == 'glue'" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
+        <glue-interaction v-if="action == 'glue'" ref="glue" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
         <path-interaction v-if="action == 'path'" ref="pathInteraction" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" />
       </template>
     </viewer>
@@ -72,6 +72,12 @@ export default class Widget extends Vue {
   @Ref()
   readonly viewer!: Viewer;
 
+  @Ref()
+  readonly layouter!: Layouter;
+
+  @Ref()
+  readonly glue!: GlueInteraction;
+
   get parsedTriangulation(): FlatTriangulation {
     return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem);
   }
@@ -96,6 +102,14 @@ export default class Widget extends Vue {
 
   async path(when: "now" | "completed" | "changed") {
     return await this.pathInteraction.query(when);
+  }
+
+  async layout(when: "now" | "changed") {
+    return await this.layouter.query(when);
+  }
+
+  async glued(when: "now" | "changed") {
+    return await this.glue.query(when);
   }
 }
 </script>

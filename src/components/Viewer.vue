@@ -88,13 +88,6 @@ export default class Viewer extends Vue {
       this.focus = focus;
   }
 
-  /* TODO: Where should this go?
-  @Watch("triangulation", { immediate: true })
-  onSurfaceChanged() {
-    this.visualizationOptions = new VisualizationOptions();
-  }
-  */
-
   get visibleFlowComponents() {
     return this.flowComponents.filter((component) =>
       !component.perimeter.some((connection: FlowConnection) =>

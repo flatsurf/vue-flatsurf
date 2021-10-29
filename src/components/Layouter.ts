@@ -22,6 +22,8 @@
 
 import { Component, Inject, Prop, Vue, Watch } from "vue-property-decorator";
 
+import wait from "@/wait";
+
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import Layout from "@/layout/Layout";
 import CancellationToken, {OperationAborted} from "@/CancellationToken";
@@ -80,10 +82,15 @@ export default class Layouter extends Vue {
     return this.effectiveLayout!;
   }
 
-
   @Watch("triangulation", { immediate: true })
   onSurfaceChanged() {
     this.effectiveLayout = this.layout;
     this.relayout();
+  }
+
+  public async query(when: "now" | "changed") {
+    if (when === "changed")
+      await wait(this, "effectiveLayout");
+    return this.effectiveLayout;
   }
 }
