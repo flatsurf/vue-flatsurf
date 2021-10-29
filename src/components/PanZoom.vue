@@ -20,7 +20,7 @@
  | SOFTWARE.
  -->
 <template>
-  <div ref="container" @mousedown="pan = true" @mouseup="pan = false" :class="{ pan, TODO: true }">
+  <div ref="container" @mousedown="pan = true" @mouseup="pan = false" :class="{ pan }">
     <slot v-if="viewport != null" v-bind:viewport="viewport" />
   </div>
 </template>
@@ -70,8 +70,6 @@ export default class PanZoom extends Vue {
     if (!(focus instanceof Box && focus.equalTo(this.viewport.viewport))) {
       this.viewport.focus(focus);
       console.assert(JSON.stringify(focus) !== JSON.stringify(this.viewport.viewport), "Changing focus to %s did not modify viewport.", JSON.stringify(focus))
-      if (JSON.stringify(focus) === JSON.stringify(this.viewport.viewport))
-        throw Error("TODO Aborting here to break infinite loop.");
     }
 
     if (this.value == null || !(this.value instanceof Box && this.value.equalTo(this.viewport.viewport))) {
