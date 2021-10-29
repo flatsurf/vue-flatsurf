@@ -25,7 +25,7 @@
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
-        <glue-interaction v-if="action == 'glue'" ref="glue" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
+        <glue-interaction v-if="action == 'glue'" ref="glueInteraction" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
         <path-interaction v-if="action == 'path'" ref="pathInteraction" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" />
       </template>
     </viewer>
@@ -72,18 +72,12 @@ export default class Widget extends Vue {
   @Ref()
   readonly viewer!: Viewer;
 
-  @Ref()
-  readonly layouter!: Layouter;
-
-  @Ref()
-  readonly glue!: GlueInteraction;
-
   get parsedTriangulation(): FlatTriangulation {
     return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem);
   }
 
   get parsedFlowComponents(): FlowComponent[] {
-    return this.flowComponents.map((component) => FlowComponent.parse(YAML.parse(component), this.coordinateSystem)); 
+    return this.flowComponents.map((component) => FlowComponent.parse(YAML.parse(component), this.coordinateSystem));
   }
 
   get parsedVertical() {
@@ -98,18 +92,30 @@ export default class Widget extends Vue {
   }
 
   @Ref()
-  readonly pathInteraction!: PathInteraction;
-
-  async path(when: "now" | "completed" | "changed") {
-    return await this.pathInteraction.query(when);
-  }
+  readonly layouter!: Layouter;
 
   async layout(when: "now" | "changed") {
     return await this.layouter.query(when);
   }
 
+  @Ref()
+  readonly glueInteraction!: GlueInteraction;
+
   async glued(when: "now" | "changed") {
-    return await this.glue.query(when);
+    return await this.glueInteraction.query(when);
+  }
+
+  async glue(glued: {[positive: number]: boolean}) {
+    const layout = await this.glueInteraction.force(glued);
+    this.viewer.refocus();
+    return layout;
+  }
+
+  @Ref()
+  readonly pathInteraction!: PathInteraction;
+
+  async path(when: "now" | "completed" | "changed") {
+    return await this.pathInteraction.query(when);
   }
 }
 </script>

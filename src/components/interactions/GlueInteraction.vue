@@ -113,10 +113,7 @@ export default class GlueInteraction extends Vue {
       const previousStart = this.svg.embed(this.layout.layout(halfEdge).segment.start);
       const previousFocus = this.focus;
 
-      const layout = await this.relayout(new LayoutOptions(
-        (e: Edge) => glued[e.positive] === undefined ? null : glued[e.positive],
-        // TODO: Pass automorphisms here somehow.
-        []));
+      const layout = await this.reglue();
 
       // TODO: Also don't do this if we cannot relate the coordinate systems before and after. We could possibly relate everything in the viewport coordinate system anyway.
       if (previousStart != null && previousFocus != null) {
@@ -132,6 +129,13 @@ export default class GlueInteraction extends Vue {
         this.events = this.events.filter((e) => e.id != ev.id);
       }, 800);
     }
+  }
+
+  async reglue() {
+    return this.relayout(new LayoutOptions(
+      (e: Edge) => this.glued[e.positive] === undefined ? null : this.glued[e.positive],
+      // TODO: Pass automorphisms here somehow.
+      []));
   }
 
   get halfEdges() {
@@ -222,6 +226,11 @@ export default class GlueInteraction extends Vue {
     if (when === "changed")
       await wait(this, "glued");
     return this.glued;
+  }
+
+  async force(glued: {[positive: number]: boolean }) {
+    this.glued = glued;
+    return await this.reglue();
   }
 }
 </script>

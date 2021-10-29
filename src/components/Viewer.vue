@@ -76,14 +76,9 @@ export default class Viewer extends Vue {
     });
   }
 
-  /* TODO: Find another way to expose this.
-  @Watch("inner", {immediate: true})
-  onInnerChanged() {
-    this.forced = this.inner;
-  }
-  */
-
-  refocus(focus: Polygon) {
+  refocus(focus?: Polygon) {
+    if (focus == null)
+      focus = this.layout.hull;
     if (this.focus == null || !this.focus.equalTo(focus))
       this.focus = focus;
   }
@@ -98,7 +93,7 @@ export default class Viewer extends Vue {
   @Watch("layout", { immediate: true })
   onLayoutChanged() {
     if (this.focus == null)
-      this.refocus(this.layout.hull);
+      this.refocus();
   }
 
   async svg() {

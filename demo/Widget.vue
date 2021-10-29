@@ -111,6 +111,10 @@
             <p v-else-if="query === 'Glue Change'">
               Return the explicitly selected gluings that were used to create the surface's layout once they change.
             </p>
+            <p v-else-if="query === 'Force Gluing'">
+              Establish the specified visual gluing and return the resulting layout.
+              <v-text-field class="parameters" label="Gluing" v-model="parameters" />
+            </p>
             <p class="tiny" v-text="info" />
             <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Refresh</v-btn></v-container>
           </v-card-text>
@@ -153,14 +157,16 @@ export default class Widget extends Vue {
 
   info = "(none)";
 
-  queries = ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change"];
+  queries = ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"];
 
   query = 'Path'
+
+  parameters = "{1: true, 2: false}"
 
   get yaml() {
     return YAML.parse(this.$store.state.raw);
   }
-  
+
   get triangulation() {
     const schema: FlatTriangulationSchema = {
       vertices: this.yaml.vertices,
@@ -215,11 +221,17 @@ export default class Widget extends Vue {
         return this.widget.glued("now");
       if (this.query === "Glue Change")
         return this.widget.glued("changed");
+      if (this.query === "Force Gluing")
+        return (async () => {
+          const glued = JSON.parse(this.parameters);
+          return await this.widget.glue(glued);
+        })();
     })();
 
     try {
-      this.info = JSON.stringify(await query);
-    } catch(e) { 
+      const result = await query;
+      this.info = JSON.stringify(result);
+    } catch(e) {
       this.info = e.message;
     }
   }
@@ -233,5 +245,9 @@ export default class Widget extends Vue {
   font-family: monospace;
   font-size: 6pt;
   line-height: 1.4;
+}
+
+.parameters {
+  font-family: monospace;
 }
 </style>
