@@ -69,13 +69,9 @@
             </v-container>
             <v-container v-if="action === 'glue'">
               <p>
-                Left-click on a half edge to force it to be visually
-                glued. Click again to choose gluing automatically for this half
-                edge.
-              </p>
-              <p>
-                Right-click on a half edge to force it to be visually unglued.
-                Click again to choose gluing automatically for this half edge.
+                Left-click on a half edge to force it to be visually glued.
+                Click again to force it to be unglued. Click again to choose
+                gluing automatically.
               </p>
             </v-container>
             <v-container v-if="action === 'path'">

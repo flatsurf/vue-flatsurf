@@ -21,20 +21,21 @@
  -->
 <template>
   <g v-if="layout != null">
-    <!-- TODO: Smarter glueing and unglueing: click should toggle true/null. contextmenu shuold toggle false/null. -->
-    <g v-for="halfEdge of halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge, true)" @contextmenu.prevent="glue(halfEdge, false)">
+    <g v-for="halfEdge of halfEdges" :key="halfEdge" class="click-area" @mousemove="(e) => hover(halfEdge, e)" @mouseleave="unhover(halfEdge)" @click="glue(halfEdge)" >
       <segment-component :segment="segment(halfEdge)" :svg="svg" />
     </g>
-    <g v-for="edge of edges" :key="edge.positive" class="click-area" @click="glue(edge, true)" @contextmenu.prevent="glue(edge, false)">
+    <g v-for="edge of edges" :key="edge.positive" class="click-area" @mousemove="(e) => hover(edge, e)" @mouseleave="unhover(edge)" @click="glue(edge)" >
       <segment-component :segment="segment(edge)" :svg="svg" />
     </g>
   </g>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
-import clamp from "lodash-es/clamp";
+import { mdiLinkOff, mdiLink, mdiAlert } from "@mdi/js";
+
 import nop from "lodash-es/noop";
+import clamp from "lodash-es/clamp";
 
 import SegmentComponent from "@/components/svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
@@ -59,33 +60,60 @@ export default class GlueInteraction extends Vue {
   @Prop({required: false, default: () => null, type: Object}) focus!: Polygon | null;
   @Prop({required: false, default: () => nop, type: Function}) refocus!: (focus: Polygon) => void;
 
-  async glue(edge: Edge, glue: boolean | null): Promise<void>;
-  async glue(edge: HalfEdge, glue: boolean | null): Promise<void>;
-  async glue(halfEdge: Edge | HalfEdge, glue: boolean | null) {
+  glued: {[positive: number]: boolean } = {}
+
+  events: Array<{
+    kind: "HOVER",
+    id: number,
+    halfEdge: HalfEdge,
+    at: number
+  } | {
+    kind: "GLUE",
+    id: number,
+    edge: Edge
+  }> = [];
+
+  async glue(edge: Edge): Promise<void>;
+  async glue(edge: HalfEdge): Promise<void>;
+  async glue(halfEdge: Edge | HalfEdge) {
     if (halfEdge instanceof Edge)
-      return await this.glue(halfEdge.positive, glue);
+      return await this.glue(halfEdge.positive);
 
     const edge = new Edge(halfEdge);
 
     const glued = {...this.glued};
-    glued[edge.positive] = glue;
+    if (glued[edge.positive] === undefined)
+      glued[edge.positive] = true;
+    else if (glued[edge.positive] === true)
+      glued[edge.positive] = false;
+    else
+      delete glued[edge.positive];
 
-    // TODO: Show the gluing status on hover.
-    // TODO: Highlight all the glued half edges.
-    // TODO: Color code the gluing action (true/false.)
-    this.options.select(halfEdge, true);
-    this.options.select(-halfEdge, true);
+    this.glued = glued;
 
-    this.unhover(halfEdge);
+    console.assert(this.events.every((e) => e.kind !== "GLUE"), "Overlapping glue events.");
+
+    const ev = {
+      kind: "GLUE" as "GLUE",
+      id: Math.random(),
+      edge,
+    };
+
+    this.events = [...this.events];
+
+    if (this.glued[edge.positive] === true && this.layout.layout(edge.positive).inner)
+      return;
+    if (this.glued[edge.positive] === false && !this.layout.layout(edge.positive).inner)
+      return;
+
+    this.events.push(ev);
 
     try {
       const previousStart = this.svg.embed(this.layout.layout(halfEdge).segment.start);
       const previousFocus = this.focus;
 
-      // TODO: When gluing, give a higher score to the half edges that have
-      // been glued before, so the picture does not change that much?
       const layout = await this.relayout(new LayoutOptions(
-        (e: Edge) => glued[e.positive] || null,
+        (e: Edge) => glued[e.positive] === undefined ? null : glued[e.positive],
         // TODO: Pass automorphisms here somehow.
         []));
 
@@ -98,15 +126,10 @@ export default class GlueInteraction extends Vue {
             layout.layout(halfEdge).segment.start);
         this.refocus(previousFocus.translate(shift));
       }
-
-      this.glued = glued;
     } finally {
-      // TODO: Highlight the glued half edge for some time.
-      // TODO: When the gluing failed, highlight the problematic half edges?
       setTimeout(() => {
-        this.options.select(halfEdge, false);
-        this.options.select(-halfEdge, false);
-      }, 300);
+        this.events = this.events.filter((e) => e.id != ev.id);
+      }, 800);
     }
   }
 
@@ -122,15 +145,69 @@ export default class GlueInteraction extends Vue {
     return this.layout!.layout(halfEdge).segment;
   }
 
-  hover(halfEdge: HalfEdge, e: MouseEvent) {
-    const at = this.segment(halfEdge).relativize(this.toPoint(e));
-    this.options.indicate(halfEdge, clamp(at, 0, 1));
-    this.options.indicate(-halfEdge, 1 - clamp(at, 0, 1));
+  hover(halfEdge: Edge | HalfEdge, e: MouseEvent): void {
+    if (halfEdge instanceof Edge)
+      return this.hover(halfEdge.positive, e);
+
+    this.unhover();
+
+    this.events.push({
+      kind: "HOVER",
+      id: Math.random(),
+      halfEdge,
+      at: this.segment(halfEdge).relativize(this.toPoint(e)),
+    });
   }
 
-  unhover(halfEdge: HalfEdge) {
-    this.options.indicate(halfEdge, null);
-    this.options.indicate(-halfEdge, null);
+  unhover(): void {
+    this.events = this.events.filter((e) => e.kind !== "HOVER");
+  }
+
+  @Watch("events")
+  @Watch("layout")
+  onEvent() {
+    const hover = this.events.some((e) => e.kind === "HOVER");
+    const glue = this.events.some((e) => e.kind === "GLUE");
+
+    for (const edge of this.layout.triangulation.edges) {
+      const icon = (() => {
+        if (hover || glue) {
+          if (this.glued[edge.positive] === undefined)
+            return null;
+          const glue = this.glued[edge.positive];
+          if (glue != this.layout.layout(edge.positive).inner)
+            return mdiAlert;
+          return glue ? mdiLink : mdiLinkOff;
+        } else {
+          return null;
+        }
+      })();
+
+      this.options.icon(edge.positive, icon);
+      this.options.icon(edge.negative, icon);
+      this.options.icon(edge, icon);
+
+      const indicator = (() => {
+        for (const e of this.events) {
+          if (e.kind === "HOVER") {
+            const at = clamp(e.at, 0, 1);
+            if (e.halfEdge === edge.positive)
+              return at;
+            if (e.halfEdge === edge.negative)
+              return 1 - at;
+          }
+        }
+        return null;
+      })();
+      this.options.indicate(edge.positive, indicator);
+      this.options.indicate(edge.negative, indicator == null ? null : 1 - indicator);
+
+      const selected = this.events.some((e) => e.kind === "GLUE" && e.edge.positive === edge.positive);
+
+      this.options.select(edge, selected);
+      this.options.select(edge.positive, selected);
+      this.options.select(edge.negative, selected);
+    }
   }
 
   toPoint(e: MouseEvent): Point {
@@ -139,8 +216,6 @@ export default class GlueInteraction extends Vue {
       svg = svg.parentElement!;
     return new Point(this.svg, e.clientX - svg.getBoundingClientRect().left, e.clientY - svg.getBoundingClientRect().top);
   }
-
-  glued: {[positive: number]: boolean | null} = {};
 }
 </script>
 <style lang="scss" scoped>

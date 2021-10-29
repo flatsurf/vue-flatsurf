@@ -67,11 +67,13 @@ export default class Viewer extends Vue {
     return this.vertical?.coordinateSystem || this.triangulation.coordinateSystem;
   }
 
+  // TODO: This works around a flakiness of pan-zoom. Without this the focus is
+  // sometimes not recomputed correctly.
   @Watch("idealCoordinateSystem")
   onCoordinateSystemChanged() {
-    if (this.focus != null) {
-      this.focus = this.triangulation.coordinateSystem.embed(this.focus);
-    }
+    this.$nextTick(() => {
+      this.focus = this.layout.hull;
+    });
   }
 
   /* TODO: Find another way to expose this.

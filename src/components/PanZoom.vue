@@ -67,33 +67,54 @@ export default class PanZoom extends Vue {
     if (focus == null)
       return;
 
-    if (!(focus instanceof Box && focus.equalTo(this.viewport.viewport))) {
+    const changed = () => {
+      if (focus instanceof Box) {
+        try {
+          return !focus.equalTo(this.viewport!.viewport);
+        } catch {
+          return true;
+        }
+      }
+      return true;
+    };
+
+    if (changed()) {
       this.viewport.focus(focus);
       console.assert(JSON.stringify(focus) !== JSON.stringify(this.viewport.viewport), "Changing focus to %s did not modify viewport.", JSON.stringify(focus))
     }
 
-    if (this.value == null || !(this.value instanceof Box && this.value.equalTo(this.viewport.viewport))) {
+    if (this.value == null || changed()) {
       this.$emit('input', this.viewport.viewport);
     }
   }
 
   @Watch("coordinateSystem")
   onCoordinateSystemChange() {
-    this.beforeDestroy();
-    this.mounted();
+    const focus = this.value == null ? null : this.coordinateSystem.embed(this.value);
+    this.cleanup();
+    this.initialize();
+    this.refocus(focus);
   }
 
   mounted() {
     this.unpanzoom = panzoom(this.$el, this.panzoom);
     this.observer.observe(this.container);
+    this.initialize();
+    this.refocus(this.value);
+  }
+
+  initialize() {
     const dimensions = this.redimension();
     this.viewport = new Viewport(this.coordinateSystem, dimensions.width, dimensions.height);
-    this.refocus(this.value);
   }
 
   beforeDestroy() {
     this.unpanzoom();
     this.observer.unobserve(this.container);
+    this.cleanup();
+  }
+
+  cleanup() {
     if (this.viewport != null)
       this.viewport.destroy();
     this.viewport = null;

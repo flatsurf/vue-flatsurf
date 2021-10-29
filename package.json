@@ -21,6 +21,7 @@
   ],
   "dependencies": {
     "@flatten-js/core": "^1.2.24",
+    "@mdi/js": "^6.4.95",
     "color-normalize": "^1.5.2",
     "iwanthue": "^1.4.2",
     "lodash-es": "^4.17.15",

@@ -25,4 +25,5 @@ export default interface IHalfEdgeOptions {
   indicator: number | null;
   selected: boolean;
   label: string | null;
+  icon: string | null;
 };

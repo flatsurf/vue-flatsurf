@@ -260,7 +260,7 @@ export default class CoordinateSystem {
             }
             dependency.dependents.push({ domain: this, codomain: into }); 
           }
-          // TODO: Rgister in discovered?
+          // TODO: Register in discovered?
           return Vue.observable({
             embedding: Object.freeze(map)
           });

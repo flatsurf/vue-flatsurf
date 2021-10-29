@@ -25,6 +25,7 @@
       <segment-label :at="segment" :svg="svg">{{ options.label }}</segment-label>
     </g>
     <segment-component :class="{ selected: options.selected }" :segment="segment" :svg="svg" />
+    <segment-icon v-if="options.icon" :segment="segment" :svg="svg" :icon="options.icon" />
   </g>
 </template>
 <script lang="ts">
@@ -37,9 +38,10 @@ import Edge from "@/flatsurf/Edge";
 import SegmentLabel from "@/components/svg/SegmentLabel.vue";
 import IHalfEdgeOptions from "@/components/flatsurf/options/IHalfEdgeOptions";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
+import SegmentIcon from "@/components/svg/SegmentIcon.vue";
 
 @Component({
-  components: { SegmentComponent, SegmentLabel },
+  components: { SegmentComponent, SegmentLabel, SegmentIcon },
 })
 export default class EdgeComponent extends Vue {
   @Prop({required: true, type: Object}) layout!: Layout;

@@ -49,6 +49,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
           selected: false,
           visible: true,
           label: null,
+          icon: null,
         } as IHalfEdgeOptions);
       }
     } else {
@@ -58,6 +59,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
           selected: false,
           visible: false,
           label: null,
+          icon: null,
         } as IHalfEdgeOptions);
       }
     }
@@ -111,12 +113,25 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
     }
   }
 
+  public icon(edge: Edge, icon: string | null): void;
+  public icon(halfEdge: HalfEdge, icon: string | null): void;
+  public icon(halfEdge: Edge | HalfEdge, icon: string | null) {
+    this.ensure(halfEdge);
+    if (halfEdge instanceof Edge) {
+      const edge = halfEdge;
+      this.edges[edge.positive].icon = icon;
+    } else {
+      this.halfEdges[halfEdge].icon = icon;
+    }
+  }
+
   private halfEdges: {
     [halfEdge: number]: {
       indicator: number | null,
       selected: boolean,
       visible: boolean,
       label: string | null,
+      icon: string | null,
     },
   } = {};
 
@@ -126,6 +141,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
       selected: boolean,
       visible: boolean,
       label: string | null,
+      icon: string | null,
     },
   } = {};
 };

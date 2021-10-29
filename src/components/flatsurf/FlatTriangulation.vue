@@ -105,4 +105,8 @@ export default class FlatTriangulation extends Vue {
 .FlatTriangulation:hover {
   --flat-triangulation-hover: 1;
 }
+
+.icon {
+  fill-opacity: .4;
+}
 </style>
