@@ -28,9 +28,9 @@ Renders objects from flatsurf as SVG.
   <svg v-on="$listeners">
     <slot name="background" />
     <slot name="triangulation">
-      <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="viewportCoordinateSystem" :options="visualizationOptions">
+      <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="svgCoordinateSystem" :options="visualizationOptions">
         <slot name="components">
-          <flow-component-component v-for="(component, i) of flowComponents" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="viewportCoordinateSystem" />
+          <flow-component-component v-for="(component, i) of flowComponents" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="svgCoordinateSystem" />
         </slot>
       </flat-triangulation-component>
     </slot>
@@ -60,15 +60,17 @@ import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
 export default class Flatsurf extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: true, type: Object }) layout!: Layout;
-  // TODO: This should not be required.
-  @Prop({ required: true, type: Object }) viewportCoordinateSystem!: CoordinateSystem;
-  // TODO: This should not be required.
+  @Prop({ required: false, type: Object, default: null }) viewportCoordinateSystem!: CoordinateSystem | null;
   @Prop({ required: true, type: Object }) visualizationOptions!: VisualizationOptions;
   // TODO: Filter depending on automorphisms.
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
 
   get palette() {
     return new Palette(this.flowComponents.length);
+  }
+
+  get svgCoordinateSystem() {
+    return this.viewportCoordinateSystem || this.triangulation.coordinateSystem;
   }
 
   async svg() {
