@@ -61,7 +61,7 @@ export default class Flatsurf extends Vue {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({ required: false, type: Object, default: null }) viewportCoordinateSystem!: CoordinateSystem | null;
-  @Prop({ required: true, type: Object }) visualizationOptions!: VisualizationOptions;
+  @Prop({ required: false, type: Object, default: new VisualizationOptions() }) visualizationOptions!: VisualizationOptions;
   // TODO: Filter depending on automorphisms.
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
 

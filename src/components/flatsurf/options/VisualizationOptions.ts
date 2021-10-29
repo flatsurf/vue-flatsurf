@@ -47,7 +47,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
         Vue.set(this.edges, edge.positive, {
           indicator: null,
           selected: false,
-          visible: false,
+          visible: true,
           label: null,
         } as IHalfEdgeOptions);
       }
