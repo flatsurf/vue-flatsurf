@@ -20,8 +20,31 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-/* eslint-disable import/prefer-default-export */
-export { default as FlatTriangulation } from '@/components/flatsurf/FlatTriangulation.vue';
-export { default as PanZoom } from '@/components/PanZoom.vue';
-export { default as Viewer } from '@/components/Viewer.vue';
-export { default as Widget } from '@/components/Widget.vue';
+import HalfEdge from "@/flatsurf/HalfEdge";
+
+// A (start or end) point on the path, given by the vertex at the start of these half edges.
+export type VertexPoint = {
+  vertex: HalfEdge[];
+};
+
+// A point on the path that is on the interior of a half edge.
+export type HalfEdgePoint = {
+  halfEdge: HalfEdge,
+  // The relative position on the half edge in [0, 1].
+  at: number;
+};
+
+// A point on the path that is on the interior of a face.
+export type FacePoint = {
+  // The boundary of the face.
+  face: HalfEdge[],
+  // The relative position in the face in the coordinate system given by two half edges on the face.
+  at: [number, number],
+};
+
+// A point on the path.
+export type PathPoint = VertexPoint | HalfEdgePoint | FacePoint;
+
+export default interface IPathInteraction {
+  query(when: "now" | "completed" | "changed"): Promise<PathPoint[]>;
+}

@@ -20,8 +20,11 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-/* eslint-disable import/prefer-default-export */
-export { default as FlatTriangulation } from '@/components/flatsurf/FlatTriangulation.vue';
-export { default as PanZoom } from '@/components/PanZoom.vue';
-export { default as Viewer } from '@/components/Viewer.vue';
-export { default as Widget } from '@/components/Widget.vue';
+import Layout from "@/layout/Layout";
+
+export type GlueSelection = {[positive: number]: boolean};
+
+export default interface IGlueInteraction {
+  query(when: "now" | "changed"): Promise<GlueSelection>;
+  force(glued: GlueSelection): Promise<Layout>;
+}

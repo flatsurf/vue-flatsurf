@@ -46,6 +46,7 @@ import wait from "@/wait";
 
 import PanZoom from "./PanZoom.vue";
 import Flatsurf from "./flatsurf/Flatsurf.vue";
+import IViewer from "./IViewer";
 
 @Component({
   components: {
@@ -53,7 +54,7 @@ import Flatsurf from "./flatsurf/Flatsurf.vue";
     Flatsurf,
   }
 })
-export default class Viewer extends Vue {
+export default class Viewer extends Vue implements IViewer {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: false, default: null, type: Object }) vertical!: Vertical | null;
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
@@ -75,7 +76,7 @@ export default class Viewer extends Vue {
     });
   }
 
-  refocus(focus?: Polygon) {
+  public refocus(focus?: Polygon) {
     if (focus == null)
       focus = this.layout.hull;
     if (this.focus == null || !this.focus.equalTo(focus))

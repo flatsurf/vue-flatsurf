@@ -72,34 +72,13 @@ import VisualizationOptions from "@/components/flatsurf/options/VisualizationOpt
 import Point from "@/geometry/Point";
 import Segment from "@/geometry/Segment";
 import HalfEdge, { isHalfEdge } from "@/flatsurf/HalfEdge";
+import IPathInteraction, { PathPoint } from "@/components/interactions/IPathInteraction";
 
-// A (start or end) point on the path, given by the vertex at the start of these half edges.
-type VertexPoint = {
-  vertex: HalfEdge[];
-};
-
-// A point on the path that is on the interior of a half edge.
-type HalfEdgePoint = {
-  halfEdge: HalfEdge,
-  // The relative position on the half edge in [0, 1].
-  at: number;
-};
-
-// A point on the path that is on the interior of a face.
-type FacePoint = {
-  // The boundary of the face.
-  face: HalfEdge[],
-  // The relative position in the face in the coordinate system given by two half edges on the face.
-  at: [number, number],
-};
-
-// A point on the path.
-type PathPoint = VertexPoint | HalfEdgePoint | FacePoint;
 
 @Component({
   components: { PointComponent, SegmentComponent },
 })
-export default class PathInteraction extends Vue {
+export default class PathInteraction extends Vue implements IPathInteraction {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;

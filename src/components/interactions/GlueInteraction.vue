@@ -49,11 +49,12 @@ import Segment from "@/geometry/Segment";
 import Polygon from "@/geometry/Polygon";
 import Vector from "@/geometry/Vector";
 import Edge from "@/flatsurf/Edge";
+import IGlueInteraction, { GlueSelection } from "@/components/interactions/IGlueInteraction";
 
 @Component({
   components: { SegmentComponent },
 })
-export default class GlueInteraction extends Vue {
+export default class GlueInteraction extends Vue implements IGlueInteraction {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({required: true, type: Function}) relayout!: (layoutOptions?: LayoutOptions) => Promise<Layout>;
@@ -61,7 +62,7 @@ export default class GlueInteraction extends Vue {
   @Prop({required: false, default: () => null, type: Object}) focus!: Polygon | null;
   @Prop({required: false, default: () => nop, type: Function}) refocus!: (focus: Polygon) => void;
 
-  glued: {[positive: number]: boolean } = {}
+  glued: GlueSelection = {}
 
   events: Array<{
     kind: "HOVER",
@@ -228,7 +229,7 @@ export default class GlueInteraction extends Vue {
     return this.glued;
   }
 
-  async force(glued: {[positive: number]: boolean }) {
+  async force(glued: GlueSelection) {
     this.glued = glued;
     return await this.reglue();
   }

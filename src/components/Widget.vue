@@ -41,10 +41,13 @@ import FlowComponent from "@/flatsurf/FlowComponent";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layouter from "@/components/Layouter";
 import Viewer from "@/components/Viewer.vue";
+import IViewer from "@/components/IViewer";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
+import IPathInteraction from "@/components/interactions/IPathInteraction";
+import IGlueInteraction from "@/components/interactions/IGlueInteraction";
 import Vertical from "@/flatsurf/Vertical";
 
 @Component({
@@ -70,7 +73,7 @@ export default class Widget extends Vue {
   coordinateSystem = new CoordinateSystem(true);
 
   @Ref()
-  readonly viewer!: Viewer;
+  readonly viewer!: IViewer;
 
   get parsedTriangulation(): FlatTriangulation {
     return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem);
@@ -99,7 +102,7 @@ export default class Widget extends Vue {
   }
 
   @Ref()
-  readonly glueInteraction!: GlueInteraction;
+  readonly glueInteraction!: IGlueInteraction;
 
   async glued(when: "now" | "changed") {
     return await this.glueInteraction.query(when);
@@ -112,7 +115,7 @@ export default class Widget extends Vue {
   }
 
   @Ref()
-  readonly pathInteraction!: PathInteraction;
+  readonly pathInteraction!: IPathInteraction;
 
   async path(when: "now" | "completed" | "changed") {
     return await this.pathInteraction.query(when);
