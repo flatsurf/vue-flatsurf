@@ -63,13 +63,7 @@ export default class TriangulationVisibilityInteraction extends Vue {
 
       if (this.outer) {
         if (!this.layout.layout(halfEdge).inner) {
-          // TODO: Do not give labels to invisible components:
-          /*
-          for (const orbit of Automorphism.orbit(halfEdge, this.parsed.automorphisms)) {
-            this.defaultLabel[orbit] = nextLabel;
-            this.defaultLabel[-orbit] = nextLabel;
-          }
-           */
+          // TODO: Do not give labels to invisible components. See https://github.com/flatsurf/vue-flatsurf/issues/36.
           this.options.label(halfEdge, alpha);
           this.options.label(-halfEdge, alpha);
           this.options.label(edge, null);

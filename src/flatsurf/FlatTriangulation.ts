@@ -65,7 +65,7 @@ export default class FlatTriangulation {
       const sum = face.reduce((sum, he) => sum.translate(this.vector(he)), new Point(coordinateSystem, 0, 0));
       if (!sum.equalTo(new Point(coordinateSystem, 0, 0), 1e-6))
         throw Error(`Face ${face} is not closed. Going around the face gives (${sum.x}, ${sum.y}) but should be zero.`);
-      // TODO: Wiggle the half edges to a place to make the faces closed in double coordinates.
+      // TODO: Wiggle the half edges to a place to make the faces closed in double coordinates. See https://github.com/flatsurf/vue-flatsurf/issues/38.
     }
   }
 

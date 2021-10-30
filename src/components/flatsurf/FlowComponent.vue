@@ -170,11 +170,11 @@ export default class FlowComponent extends Vue {
           if (a.index === 0) {
             // Everything next to A is part of this patch.
             console.assert(this.at(a) !== 0);
-            // TODO: Is this always taken care of by something else?
+            // TODO: Is this always taken care of by something else? See https://github.com/flatsurf/vue-flatsurf/issues/34.
             C = layout(a.halfEdge, 0);
             return null;
           } else {
-            // TODO: Is this always taken care of by something else?
+            // TODO: Is this always taken care of by something else? See https://github.com/flatsurf/vue-flatsurf/issues/34.
             C = layout(a.halfEdge, this.at(atouches[a.index - 1]));
             return null;
           }
@@ -219,7 +219,7 @@ export default class FlowComponent extends Vue {
       if (touches.every((touch) => this.at(touch) === 0 || this.at(touch) === 1)) {
         // ...it is just the following half edge itself.
         scenario = "entire face 2";
-        // TODO: Is this always taken care of by something else?
+        // TODO: Is this always taken care of by something else? See https://github.com/flatsurf/vue-flatsurf/issues/34.
         C = layout(face[1], 1);
         if (face[0] !== Math.min(...face))
           return null;
@@ -231,7 +231,7 @@ export default class FlowComponent extends Vue {
         scenario = "on previous half edge";
         for (const touch of touches) {
           if (this.at(touch) !== 0) {
-            // TODO: Is this always taken care of by something else?
+            // TODO: Is this always taken care of by something else? See https://github.com/flatsurf/vue-flatsurf/issues/34.
             C = layout(face[2], 1 - this.at(touch));
             return null;
           }

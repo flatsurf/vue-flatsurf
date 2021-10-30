@@ -298,7 +298,7 @@ export default class CoordinateSystem {
           }
         }
 
-        // TODO: This is quite inefficient.
+        // TODO: This is quite inefficient. See https://github.com/flatsurf/vue-flatsurf/issues/39.
         for (const to of CoordinateSystem.registered.keys()) {
           if (CoordinateSystem.registered.get(to)!.has(from)) {
             const dependency = CoordinateSystem.registered.get(to)!.get(from)!;

@@ -83,7 +83,7 @@ export default class Polygon {
           next = p;
       }
       hull.push(next);
-      // TODO: This is numerically too unstable (and hangs sometimes.)
+      // TODO: This is numerically too unstable (and hangs sometimes.) See https://github.com/flatsurf/vue-flatsurf/issues/40.
       if (hull.length > vertices.length + 1) {
         console.error("Convex Hull incorrect");
         break;

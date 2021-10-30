@@ -272,7 +272,7 @@ export default class PathInteraction extends Vue {
 
   // Return the visible half edges.
   get halfEdges(): HalfEdge[] {
-    // TODO: Drop duplicates.
+    // TODO: Drop duplicates. See https://github.com/flatsurf/vue-flatsurf/issues/37.
     return this.triangulation.halfEdges;
   }
 

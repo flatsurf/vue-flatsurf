@@ -67,8 +67,7 @@ export default class Viewer extends Vue {
     return this.vertical?.coordinateSystem || this.triangulation.coordinateSystem;
   }
 
-  // TODO: This works around a flakiness of pan-zoom. Without this the focus is
-  // sometimes not recomputed correctly.
+  // TODO: This works around a flakiness of pan-zoom. Without this the focus is sometimes not recomputed correctly, see https://github.com/flatsurf/vue-flatsurf/issues/31
   @Watch("idealCoordinateSystem")
   onCoordinateSystemChanged() {
     this.$nextTick(() => {

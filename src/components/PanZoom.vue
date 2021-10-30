@@ -34,6 +34,7 @@ import Vector from "@/geometry/Vector";
 import Polygon from "@/geometry/Polygon";
 import panzoom from "pan-zoom/index.js";
 
+// See https://github.com/flatsurf/vue-flatsurf/issues/31 for issues with this component.
 @Component
 export default class PanZoom extends Vue {
   @Prop({required: true, type: CoordinateSystem}) coordinateSystem!: CoordinateSystem;

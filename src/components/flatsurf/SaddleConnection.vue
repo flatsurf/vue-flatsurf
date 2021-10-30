@@ -40,7 +40,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
     SegmentComponent,
   }
 })
-export default class FlowComponent extends Vue {
+export default class SaddleConnection extends Vue {
   @Prop({ required: true }) connection!: SaddleConnectionData;
   @Prop({ required: true }) layout!: Layout;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
@@ -54,7 +54,7 @@ export default class FlowComponent extends Vue {
     let start = this.layout.layout(this.connection.source).segment.start;
     const end = crossings.length > 0 ? this.layout.layout(this.connection.target).segment.start : this.layout.layout(this.connection.source).segment.end;
 
-    // TODO: Use at() instead of halfEdge() to construct the point of intersection.
+    // TODO: Use at() instead of halfEdge() to construct the point of intersection. See https://github.com/flatsurf/vue-flatsurf/issues/35.
     while(crossings.length) {
 		  const crossing = crossings.shift()!;
       if (this.layout.layout(crossing.halfEdge).inner)

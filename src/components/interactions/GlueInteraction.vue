@@ -115,7 +115,7 @@ export default class GlueInteraction extends Vue {
 
       const layout = await this.reglue();
 
-      // TODO: Also don't do this if we cannot relate the coordinate systems before and after. We could possibly relate everything in the viewport coordinate system anyway.
+      // TODO: Also don't do this if we cannot relate the coordinate systems before and after. We could possibly relate everything in the viewport coordinate system anyway. See https://github.com/flatsurf/vue-flatsurf/issues/36.
       if (previousStart != null && previousFocus != null) {
         // Move the viewport such that the selected half edge does not seem to move.
         const shift = new Vector(
@@ -134,7 +134,7 @@ export default class GlueInteraction extends Vue {
   async reglue() {
     return this.relayout(new LayoutOptions(
       (e: Edge) => this.glued[e.positive] === undefined ? null : this.glued[e.positive],
-      // TODO: Pass automorphisms here somehow.
+      // TODO: Pass automorphisms here somehow. See https://github.com/flatsurf/vue-flatsurf/issues/33.
       []));
   }
 

@@ -72,10 +72,10 @@ export default class Segment {
   public intersect(shape: Polygon): Point[] {
     const intersections = shape.parent.embed(this).value.intersect(shape.value).map(value => new Point(shape.parent, value));
     if(this.start.on(shape))
-      // TODO: Bug in flatten.
+      // TODO: Bug in flatten. See https://github.com/flatsurf/vue-flatsurf/issues/41.
       intersections.push(this.start);
     if (this.end.on(shape))
-      // TODO: Bug in flatten.
+      // TODO: Bug in flatten. See https://github.com/flatsurf/vue-flatsurf/issues/41.
       intersections.push(this.end);
     return intersections;
   }
