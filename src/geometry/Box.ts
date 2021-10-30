@@ -25,6 +25,7 @@ import Flatten from "@flatten-js/core";
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
 import Point from "./Point";
 import Segment from './Segment';
+import Vector from "./Vector";
 
 export default class Box {
   public constructor(parent: CoordinateSystem, box: Flatten.Box);
@@ -33,7 +34,7 @@ export default class Box {
     this.parent = parent;
 
     if (xy0 instanceof Flatten.Box) {
-      this.value = xy0;
+      this.value = xy0.clone();
     } else {
       console.assert(xy1 instanceof Array);
       this.value = new Flatten.Box(Math.min(xy0[0], xy1![0]), Math.min(xy0[1], xy1![1]), Math.max(xy0[0], xy1![0]), Math.max(xy0[1], xy1![1]));
@@ -67,7 +68,10 @@ export default class Box {
     return new Box(this.parent, this.value.merge(this.parent.embed(other).value.box));
   }
 
-  public translate(x: Coordinate, y: Coordinate) {
+  public translate(xy: Vector) {
+    xy = this.parent.embed(xy);
+    const x = xy.value.x;
+    const y = xy.value.y;
     return new Box(this.parent, [this.value.xmin + x, this.value.ymin + y], [this.value.xmax + x, this.value.ymax + y]);
   }
 

@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,10 @@ import Flatten from "@flatten-js/core";
 
 import findIndex from "lodash-es/findIndex";
 
-import CoordinateSystem from "./CoordinateSystem";
+import CoordinateSystem, { inverse } from "./CoordinateSystem";
 import Point from "./Point";
 import Box from "./Box";
+import Vector from "./Vector";
 
 export default class Polygon {
   public constructor(parent: CoordinateSystem, value: Point[][]);
@@ -43,6 +44,10 @@ export default class Polygon {
     } else {
       throw Error("Cannot create polygon from this data.");
     }
+  }
+
+  public translate(xy: Vector): Polygon {
+    return new Polygon(this.parent, this.value.translate(this.parent.embed(xy).value));
   }
 
   public get convexHull(): Polygon {
@@ -78,7 +83,7 @@ export default class Polygon {
           next = p;
       }
       hull.push(next);
-      // TODO: This is numerically too unstable (and hangs sometimes.)
+      // TODO: This is numerically too unstable (and hangs sometimes.) See https://github.com/flatsurf/vue-flatsurf/issues/40.
       if (hull.length > vertices.length + 1) {
         console.error("Convex Hull incorrect");
         break;
@@ -119,7 +124,7 @@ export default class Polygon {
         minArea = area;
 
         // Rotate the box back.
-        minAreaRect = new Polygon(this.parent, new Flatten.Polygon(aligned.box.toPoints()).transform(CoordinateSystem.inverse(rotation)));
+        minAreaRect = new Polygon(this.parent, new Flatten.Polygon(aligned.box.toPoints()).transform(inverse(rotation)));
       }
     }
 

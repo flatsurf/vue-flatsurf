@@ -24,7 +24,7 @@ import chai from "chai";
 import "chai/register-should";
 import chaiEquals from "../../chai-equal-to";
 
-import FlatTriangulation from "@/geometry/triangulation/FlatTriangulation";
+import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import Vector from "@/geometry/Vector";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
 

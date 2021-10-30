@@ -27,6 +27,7 @@ import Viewport from "@/geometry/Viewport";
 import Box from "@/geometry/Box";
 import Point from "@/geometry/Point";
 import chaiEquals from "../chai-equal-to";
+import Vector from "@/geometry/Vector";
 
 chai.use(chaiEquals);
 
@@ -38,10 +39,10 @@ describe("CoordinateSystem", () => {
     svg.embedInto(ideal);
 
     it("converts coordinates correctly", () => {
-      svg.point(0, 0).should.equalTo(svg.point(0, 0));
-      svg.point(0, 0).should.equalTo(ideal.point(0, 0));
-      svg.point(1, 0).should.equalTo(ideal.point(1, 0));
-      svg.point(0, 1).should.equalTo(ideal.point(0, -1));
+      new Point(svg, 0, 0).should.equalTo(new Point(svg, 0, 0));
+      new Point(svg, 0, 0).should.equalTo(new Point(ideal, 0, 0));
+      new Point(svg, 1, 0).should.equalTo(new Point(ideal, 1, 0));
+      new Point(svg, 0, 1).should.equalTo(new Point(ideal, 0, -1));
     });
   });
 });
@@ -50,7 +51,7 @@ describe("Viewport", () => {
   const ideal = new CoordinateSystem(true);
 
   const viewport = new Viewport(ideal, 1024, 768);
-  const box = ideal.box([0, 0], [1, 1]);
+  const box = new Box(ideal, [0, 0], [1, 1]);
 
   const EPS = .01;
 
@@ -79,7 +80,7 @@ describe("Viewport", () => {
 
   it("when shifting the viewport, the content moves in the opposite direction", () => {
     // We shift the viewport to the left which makes the content move to the right.
-    viewport.focus(viewport.viewport.translate(-1024, 0));
+    viewport.focus(viewport.viewport.translate(new Vector(viewport.viewportCoordinateSystem, -1024, 0)));
     viewport.embed(box).should.equalTo(new Box(viewport.viewportCoordinateSystem, [1024, 1024], [2048, 0]), EPS);
   });
 
