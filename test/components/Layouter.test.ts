@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,35 +20,27 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai from "chai";
-import "chai/register-should";
-import chaiEquals from "../../chai-equal-to";
-
+import chai, { expect } from "chai";
+import chaiEquals from "../chai-equal-to";
+import { mount } from '@vue/test-utils'
+import Layouter from "@/components/Layouter";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import Vector from "@/geometry/Vector";
-import CoordinateSystem from '@/geometry/CoordinateSystem';
+import CoordinateSystem from "@/geometry/CoordinateSystem";
+import {torus} from "@/../test/geometry/triangulation/FlatTriangulation.test";
+import Layout from "@/layout/Layout";
 
 chai.use(chaiEquals);
 
-export const torus = {
-  vertices: [[3, 2, -1, -3, -2, 1]],
-  vectors: {
-    1: { x: 1, y: 0 },
-    2: { x: 0, y: 1 },
-    3: { x: 1, y: 1 }
-  }
-};
-
-describe("Flat Triangulation", () => {
-  it("can be created from a dump", () => {
-    const coordinateSystem = new CoordinateSystem(true);
-    const surface = FlatTriangulation.parse(torus, coordinateSystem);
-
-    surface.vertices.cycles.should.eql([[3, 2, -1, -3, -2, 1]]);
-    surface.faces.cycles.should.eql([[ -2, 3, -1 ], [ 1, 2, -3 ]]);
-    surface.halfEdges.should.eql([3, -1, 2, -3, -2, 1]);
-
-    surface.vector(1).should.equalTo(new Vector(coordinateSystem, 1, 0));
-    surface.vector(-1).should.equalTo(new Vector(coordinateSystem, -1, 0));
+describe("Layouter", () => {
+  it("computes a layout", async () => {
+    const layouter = mount(Layouter, {
+      propsData: {
+        triangulation: FlatTriangulation.parse(torus, new CoordinateSystem(true)),
+      }
+    });
+    const layout: Layout = await new Promise((resolve) => {
+      layouter.vm.$on("layout", (layout: Layout) => resolve(layout))
+    });
+    expect(layout.triangulation.vertices.cycles).to.eql(torus.vertices);
   });
 });

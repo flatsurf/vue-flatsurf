@@ -31,7 +31,7 @@ import Progress from "@/Progress";
 import LayoutOptions from "@/layout/LayoutOptions";
 import Automorphism from "@/flatsurf/Automorphism";
 
-async function run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
+async function runSilently(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
   await callback(new CancellationToken(), new Progress());
 }
 
@@ -44,12 +44,12 @@ export default class Layouter extends Vue {
   options: LayoutOptions = new LayoutOptions();
   effectiveLayout: Layout | null = null;
 
-  @Inject({ from: 'run', default: run })
+  @Inject({ from: 'run', default: () => runSilently })
   run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => Promise<void>;
 
   render() {
-    if (this.effectiveLayout != null) {
-      return this.$scopedSlots.default!({
+    if (this.effectiveLayout != null && this.$scopedSlots.default != null) {
+      return this.$scopedSlots.default({
         layout: this.effectiveLayout,
         relayout: this.relayout,
       });
