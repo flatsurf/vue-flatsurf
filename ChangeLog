@@ -4,6 +4,16 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.8.1
+====================
+
+**Fixed:**
+
+* Made `Layouter` work without an explicit `run` injected from the outside.
+* Show inner edges in demo app initially. Otherwise, it is unclear how gluing is performed.
+
+
+
 v0.8.0
 ====================
 
