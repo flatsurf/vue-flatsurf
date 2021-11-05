@@ -33,6 +33,12 @@ Renders objects from flatsurf as SVG.
           <flow-component-component v-for="(component, i) of flowComponents" :key="i" :color="palette.color(i)" :component="component" :layout="layout" :surface="triangulation" :svg="svgCoordinateSystem" />
         </slot>
       </flat-triangulation-component>
+      <slot name="connections">
+        <saddle-connection-component v-for="(connection, i) of saddleConnections" :key="i" :svg="svgCoordinateSystem" :layout="layout" :connection="connection" />
+      </slot>
+      <slot name="paths">
+        <path-component v-for="(path, i) of paths" :key="i" :svg="svgCoordinateSystem" :layout="layout" :path="path" />
+      </slot>
     </slot>
     <slot />
   </svg>
@@ -41,20 +47,26 @@ Renders objects from flatsurf as SVG.
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import FlowComponent from "@/flatsurf/FlowComponent"
+import FlowComponent from "@/flatsurf/FlowComponent";
+import SaddleConnection from "@/flatsurf/SaddleConnection";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layout from "@/layout/Layout";
 import VisualizationOptions from "./options/VisualizationOptions";
 import Palette from "@/Palette";
+import Path from "@/flatsurf/Path";
 import SVGExporter from "@/export/SVGExporter";
 
 import FlatTriangulationComponent from "@/components/flatsurf/FlatTriangulation.vue";
 import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
+import SaddleConnectionComponent from "@/components/flatsurf/SaddleConnection.vue";
+import PathComponent from "@/components/flatsurf/Path.vue";
 
 @Component({
   components: {
     FlatTriangulationComponent,
     FlowComponentComponent,
+    SaddleConnectionComponent,
+    PathComponent,
   }
 })
 export default class Flatsurf extends Vue {
@@ -64,6 +76,8 @@ export default class Flatsurf extends Vue {
   @Prop({ required: false, type: Object, default: new VisualizationOptions() }) visualizationOptions!: VisualizationOptions;
   // TODO: Filter depending on automorphisms, see https://github.com/flatsurf/vue-flatsurf/issues/33
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
+  @Prop({ required: false, default: () => [], type: Array }) saddleConnections!: SaddleConnection[];
+  @Prop({ required: false, default: () => [], type: Array }) paths!: Path[];
 
   get palette() {
     return new Palette(this.flowComponents.length);

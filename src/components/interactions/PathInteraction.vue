@@ -5,17 +5,17 @@
 -->
 <!--
  | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
+ |
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
  | in the Software without restriction, including without limitation the rights
  | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  | copies of the Software, and to permit persons to whom the Software is
  | furnished to do so, subject to the following conditions:
- | 
+ |
  | The above copyright notice and this permission notice shall be included in all
  | copies or substantial portions of the Software.
- | 
+ |
  | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,17 +26,12 @@
  -->
 <template>
   <g v-if="layout != null" @keydown.esc="edit(false)" tabindex="0">
-    <g class="path">
-      <g>
-        <point-component v-for="(point, i) of controlPoints" :key="i" :svg="svg" :point="fromPathPoint(point)" :radius="3" />
-      </g>
-      <g>
-        <segment-component v-for="(segment, i) of path" :key="i" :svg="svg" :segment="segment" />
-      </g>
+    <g :animated="animated" class="path">
+      <path-component :path="path" :svg="svg" :layout="layout" />
     </g>
     <g v-if="editable" @click="append()">
       <g class="preview">
-        <point-component v-if="points.length !== 0" :point="fromPathPoint(cross(points[points.length - 1]))" :radius="5" :svg="svg" />
+        <point-component v-if="points.length !== 0 && nextSegment == null" :point="fromPathPoint(cross(points[points.length - 1]))" :radius="10" :svg="svg" />
         <segment-component v-if="nextSegment != null" :svg="svg" :segment="nextSegment" />
       </g>
       <g class="select-half-edge">
@@ -73,16 +68,18 @@ import Point from "@/geometry/Point";
 import Segment from "@/geometry/Segment";
 import HalfEdge, { isHalfEdge } from "@/flatsurf/HalfEdge";
 import IPathInteraction, { PathPoint } from "@/components/interactions/IPathInteraction";
+import PathComponent from "@/components/flatsurf/Path.vue";
 
 
 @Component({
-  components: { PointComponent, SegmentComponent },
+  components: { PointComponent, SegmentComponent, PathComponent },
 })
 export default class PathInteraction extends Vue implements IPathInteraction {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
   @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
+  @Prop({required: false, type: Boolean, default: true }) animated!: boolean;
 
   // The path constructed so far, given by the points on the path.
   public points: PathPoint[] = [];
@@ -115,7 +112,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
   hover(item: HalfEdge | HalfEdge[] | PathPoint, e?: MouseEvent): void {
     if (!this.editable)
       return;
-    
+
     const next = this.toPathPoint(item, e);
 
     this.next = null;
@@ -137,7 +134,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
     // Ignore half edges that we intersect at the starting point.
     if ("halfEdge" in previous) {
-      intersections = intersections.filter((halfEdge) => halfEdge !== previous.halfEdge); 
+      intersections = intersections.filter((halfEdge) => halfEdge !== previous.halfEdge);
     } else if ("face" in previous) {
     } else {
       const boundary = [sector(previous.vertex)[0], -sector(previous.vertex)[1]]
@@ -146,7 +143,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
     // Ignore half edges that we intersect at the end point.
     if ("halfEdge" in next) {
-      intersections = intersections.filter((halfEdge) => halfEdge !== next.halfEdge); 
+      intersections = intersections.filter((halfEdge) => halfEdge !== next.halfEdge);
     } else if ("face" in next) {
     } else {
       const boundary = [sector(next.vertex)[0], -sector(next.vertex)[1]]
@@ -282,13 +279,13 @@ export default class PathInteraction extends Vue implements IPathInteraction {
     for (let i = 0; i < this.points.length; i++) {
       const point = this.points[i];
       if (i === 0) {
-        controlPoints.push(this.cross(point)); 
+        controlPoints.push(this.cross(point));
       } else if (i === this.points.length - 1) {
-        controlPoints.push(point); 
+        controlPoints.push(point);
       } else {
         controlPoints.push(point);
         if (this.cross(point) !== point)
-        controlPoints.push(this.cross(point)); 
+          controlPoints.push(this.cross(point));
       }
     }
 
@@ -331,7 +328,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
       return { face, at: [
         segments[0].relativize(point),
-        segments[1].relativize(point),
+          segments[1].relativize(point),
       ]};
     }
   }
@@ -387,18 +384,10 @@ export default class PathInteraction extends Vue implements IPathInteraction {
   cursor: crosshair;
 }
 
-.path .point {
-  fill: #d95f02; 
-}
-
-.path .segment {
-  stroke: #d95f02;
-  stroke-width: 2px;
-}
-
 .preview .segment {
   stroke: rgba(#d95f02, .3);
-  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-width: 8px;
 }
 
 .preview .point {

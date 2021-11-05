@@ -21,12 +21,12 @@
  -->
 <template>
   <layouter ref="layouter" :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
-    <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical">
+    <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical" :saddle-connections="parsedSaddleConnections" :paths="parsedPaths">
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
-        <glue-interaction v-if="action == 'glue'" ref="glueInteraction" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
-        <path-interaction v-if="action == 'path'" ref="pathInteraction" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" />
+        <glue-interaction v-if="action == 'glue'" ref="glue" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
+        <path-interaction v-if="action == 'path'" ref="path" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" :animated="animated" />
       </template>
     </viewer>
   </layouter>
@@ -38,6 +38,8 @@ import YAML from "yaml";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import FlowComponent from "@/flatsurf/FlowComponent";
+import SaddleConnection from "@/flatsurf/SaddleConnection";
+import Path from "@/flatsurf/Path";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layouter from "@/components/Layouter";
 import Viewer from "@/components/Viewer.vue";
@@ -64,17 +66,32 @@ import IWidget from "@/components/IWidget";
 export default class Widget extends Vue implements IWidget {
   @Prop({ required: true, type: String }) triangulation!: string;
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: string[];
+  @Prop({ required: false, default: () => [], type: Array }) saddleConnections!: string[];
+  @Prop({ required: false, default: () => [], type: Array }) paths!: string[];
   @Prop({ required: false, default: null, type: String }) vertical!: string | null;
   @Prop({ required: false, default: true, type: Boolean }) showInnerEdges!: boolean;
   @Prop({ required: false, default: true, type: Boolean }) showOuterHalfEdges!: boolean;
   @Prop({ required: false, default: true, type: Boolean }) showOuterLabels!: boolean;
   @Prop({ required: false, default: false, type: Boolean }) showNumericLabels!: boolean;
   @Prop({ required: false, default: null, type: String }) action!: string | null;
+  @Prop({ required: false, default: false, type: Boolean }) animated!: boolean;
 
   coordinateSystem = new CoordinateSystem(true);
 
-  @Ref()
-  readonly viewer!: IViewer;
+  @Ref("viewer")
+  readonly _viewer!: IViewer;
+
+  get viewer() {
+    return (async () => {
+      if (this._viewer === undefined) {
+        await new Promise<void>((resolve) => {
+          this.layouter.$once("layout", () => resolve());
+        });
+        await this.$nextTick();
+      }
+      return this._viewer;
+    })();
+  }
 
   get parsedTriangulation(): FlatTriangulation {
     return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem);
@@ -82,6 +99,14 @@ export default class Widget extends Vue implements IWidget {
 
   get parsedFlowComponents(): FlowComponent[] {
     return this.flowComponents.map((component) => FlowComponent.parse(YAML.parse(component), this.coordinateSystem));
+  }
+
+  get parsedSaddleConnections(): SaddleConnection[] {
+    return [...this.saddleConnections].map((connection) => SaddleConnection.parse(YAML.parse(connection), this.coordinateSystem));
+  }
+
+  get parsedPaths(): Path[] {
+    return [...this.paths].map((path) => Path.parse(YAML.parse(path), this.coordinateSystem));
   }
 
   get parsedVertical() {
@@ -92,13 +117,7 @@ export default class Widget extends Vue implements IWidget {
   }
 
   async svg(): Promise<string> {
-    if (this.viewer === undefined) {
-      await new Promise<void>((resolve) => {
-        this.layouter.$once("layout", () => resolve());
-      });
-      await this.$nextTick();
-    }
-    return await this.viewer.svg();
+    return await (await this.viewer).svg();
   }
 
   @Ref()
@@ -108,24 +127,46 @@ export default class Widget extends Vue implements IWidget {
     return await this.layouter.query(when);
   }
 
-  @Ref()
-  readonly glueInteraction!: IGlueInteraction;
+  @Ref("glue")
+  readonly _glueInteraction!: IGlueInteraction;
+
+  get glueInteraction(): Promise<IGlueInteraction> {
+    return (async () => {
+      await this.viewer;
+
+      if (this.action !== "glue")
+        throw Error("Cannot access glue interaction when action is not set to 'glue'.");
+
+      return this._glueInteraction;
+    })();
+  }
 
   async glued(when: "now" | "changed") {
-    return await this.glueInteraction.query(when);
+    return await (await this.glueInteraction).query(when);
   }
 
   async glue(glued: {[positive: number]: boolean}) {
-    const layout = await this.glueInteraction.force(glued);
-    this.viewer.refocus();
+    const layout = await (await this.glueInteraction).force(glued);
+    (await this.viewer).refocus();
     return layout;
   }
 
-  @Ref()
-  readonly pathInteraction!: IPathInteraction;
+  @Ref("path")
+  readonly _pathInteraction!: IPathInteraction;
+
+  get pathInteraction(): Promise<IPathInteraction> {
+    return (async () => {
+      await this.viewer;
+
+      if (this.action !== "path")
+        throw Error("Cannot access path interaction when action is not set to 'path'.");
+
+      return this._pathInteraction;
+    })();
+  }
 
   async path(when: "now" | "completed" | "changed") {
-    return await this.pathInteraction.query(when);
+    return await (await this.pathInteraction).query(when);
   }
 }
 </script>

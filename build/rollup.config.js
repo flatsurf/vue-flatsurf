@@ -87,7 +87,10 @@ if (!argv.format || argv.format === 'es') {
         ...baseConfig.plugins.replace,
         'process.env.ES_BUILD': JSON.stringify('true'),
       }),
-      resolve(),
+      resolve({
+        // TODO: Remove this setting, see https://github.com/flatsurf/vue-flatsurf/issues/51.
+        browser: true,
+      }),
       typescript(baseConfig.plugins.typescript),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
@@ -123,7 +126,10 @@ if (!argv.format || argv.format === 'cjs') {
     },
     plugins: [
       replace(baseConfig.plugins.replace),
-      resolve(),
+      resolve({
+        // TODO: Remove this setting, see https://github.com/flatsurf/vue-flatsurf/issues/51.
+        browser: true,
+      }),
       typescript(baseConfig.plugins.typescript),
       ...baseConfig.plugins.preVue,
       vue({
@@ -155,7 +161,10 @@ if (!argv.format || argv.format === 'iife') {
     },
     plugins: [
       replace(baseConfig.plugins.replace),
-      resolve(),
+      resolve({
+        // TODO: Remove this setting, see https://github.com/flatsurf/vue-flatsurf/issues/51.
+        browser: true,
+      }),
       typescript(baseConfig.plugins.typescript),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),

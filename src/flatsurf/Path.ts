@@ -20,9 +20,23 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import {PathPoint} from "./interactions/IPathInteraction";
+import CoordinateSystem from "@/geometry/CoordinateSystem";
+import SaddleConnection, {SaddleConnectionSchema} from "./SaddleConnection";
 
-export default interface IWidget {
-  svg() : Promise<string>;
-  path(when: "now" | "completed" | "changed"): Promise<PathPoint[]>;
+export interface PathSchema {
+  connections: SaddleConnectionSchema[],
+};
+
+export default class Path {
+  public static parse(yaml: PathSchema, coordinateSystem: CoordinateSystem): Path {
+    return new Path(yaml.connections.map((connection) => SaddleConnection.parse(connection, coordinateSystem)));
+  }
+
+  private constructor(connections: SaddleConnection[]) {
+    this.connections = connections;
+  }
+
+  public readonly connections: SaddleConnection[];
 }
+
+
