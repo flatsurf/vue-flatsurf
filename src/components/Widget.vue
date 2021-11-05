@@ -49,6 +49,7 @@ import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import IPathInteraction from "@/components/interactions/IPathInteraction";
 import IGlueInteraction from "@/components/interactions/IGlueInteraction";
 import Vertical from "@/flatsurf/Vertical";
+import IWidget from "@/components/IWidget";
 
 @Component({
   components: {
@@ -60,7 +61,7 @@ import Vertical from "@/flatsurf/Vertical";
     LabelInteraction,
   },
 })
-export default class Widget extends Vue {
+export default class Widget extends Vue implements IWidget {
   @Prop({ required: true, type: String }) triangulation!: string;
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: string[];
   @Prop({ required: false, default: null, type: String }) vertical!: string | null;
@@ -90,7 +91,13 @@ export default class Widget extends Vue {
     return Vertical.parse(YAML.parse(this.vertical), this.coordinateSystem);
   }
 
-  async svg() {
+  async svg(): Promise<string> {
+    if (this.viewer === undefined) {
+      await new Promise<void>((resolve) => {
+        this.layouter.$once("layout", () => resolve());
+      });
+      await this.$nextTick();
+    }
     return await this.viewer.svg();
   }
 
