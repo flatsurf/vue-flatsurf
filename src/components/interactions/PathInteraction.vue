@@ -26,17 +26,8 @@
  -->
 <template>
   <g v-if="layout != null" @keydown.esc="edit(false)" tabindex="0">
-    <g class="path">
-      <g>
-        <point-component v-for="(point, i) of controlPoints" :key="i" :svg="svg" :point="fromPathPoint(point)" :radius="2" />
-      </g>
-      <g>
-        <segment-component v-for="(segment, i) of path" :key="i" :svg="svg" :segment="segment" />
-        <g v-if="animated && path.length > 1 && path[animation]" class="animated">
-          <segment-component :svg="svg" :segment="path[(animation + path.length - 1) % path.length]" />
-          <segment-component :svg="svg" :segment="path[animation]" :key="`animation-${animation}`" animated @animationend="onAnimationEnd" />
-        </g>
-      </g>
+    <g :animated="animated" class="path">
+      <path-component :path="path" :svg="svg" :layout="layout" />
     </g>
     <g v-if="editable" @click="append()">
       <g class="preview">
@@ -77,10 +68,11 @@ import Point from "@/geometry/Point";
 import Segment from "@/geometry/Segment";
 import HalfEdge, { isHalfEdge } from "@/flatsurf/HalfEdge";
 import IPathInteraction, { PathPoint } from "@/components/interactions/IPathInteraction";
+import PathComponent from "@/components/flatsurf/Path.vue";
 
 
 @Component({
-  components: { PointComponent, SegmentComponent },
+  components: { PointComponent, SegmentComponent, PathComponent },
 })
 export default class PathInteraction extends Vue implements IPathInteraction {
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
@@ -98,13 +90,6 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
   editable: boolean = true;
 
-  animation = 0;
-
-  onAnimationEnd() {
-    const next = (this.animation + 1) % this.path.length;
-    this.animation = next;
-  }
-
   // Make path editable.
   edit(editable: boolean): void {
     this.editable = editable;
@@ -117,8 +102,6 @@ export default class PathInteraction extends Vue implements IPathInteraction {
       this.points.push(this.next);
       this.next = null;
     }
-
-    this.animation = 0;
   }
 
   // Preview the effect of adding item to the path.
@@ -399,21 +382,6 @@ export default class PathInteraction extends Vue implements IPathInteraction {
   stroke: transparent;
   stroke-width: 30px;
   cursor: crosshair;
-}
-
-.path .point {
-  fill: #d95f02;
-}
-
-.path .segment {
-  stroke: #d95f02;
-  stroke-width: 1px;
-}
-
-.path .animated .segment {
-  stroke-width: 10px;
-  stroke-linecap: round;
-  stroke: rgba(#d95f02, .2);
 }
 
 .preview .segment {
