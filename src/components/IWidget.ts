@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-declare module "@thesoulfresh/pan-zoom" {
-  const panzoom: any;
-  export default panzoom;
+export default interface IWidget {
+  svg() : Promise<string>;
 }
-

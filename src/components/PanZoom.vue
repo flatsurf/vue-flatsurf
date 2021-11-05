@@ -32,7 +32,7 @@ import Point from "@/geometry/Point";
 import Box from "@/geometry/Box";
 import Vector from "@/geometry/Vector";
 import Polygon from "@/geometry/Polygon";
-import panzoom from "pan-zoom/index.js";
+import panzoom from "@thesoulfresh/pan-zoom";
 
 // See https://github.com/flatsurf/vue-flatsurf/issues/31 for issues with this component.
 @Component
@@ -129,6 +129,14 @@ export default class PanZoom extends Vue {
       width: Math.min(this.container.clientWidth, window.innerWidth),
       height: Math.min(this.container.clientHeight, window.innerHeight),
     };
+
+    // Work around clientWidth and clientHeight === 0 when testing.
+    if (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom")) {
+      this.dimensions = {
+        width: 640,
+        height: 480,
+      };
+    }
 
     if (this.dimensions.width === 0)
       throw Error("PanZoom must explicitly have non-zero width.");
