@@ -26,7 +26,7 @@
 </template>
 <script lang="ts">
 import Layout from '@/layout/Layout';
-import  { Vue, Component, Prop } from "vue-property-decorator";
+import { Vue, Component, Prop } from "vue-property-decorator";
 import SaddleConnectionData from "@/flatsurf/SaddleConnection";
 import SegmentComponent from "@/components/svg/Segment.vue";
 import Segment from "@/geometry/Segment";

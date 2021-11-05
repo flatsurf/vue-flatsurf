@@ -5,17 +5,17 @@
 -->
 <!--
  | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
+ |
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
  | in the Software without restriction, including without limitation the rights
  | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  | copies of the Software, and to permit persons to whom the Software is
  | furnished to do so, subject to the following conditions:
- | 
+ |
  | The above copyright notice and this permission notice shall be included in all
  | copies or substantial portions of the Software.
- | 
+ |
  | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -115,7 +115,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
   hover(item: HalfEdge | HalfEdge[] | PathPoint, e?: MouseEvent): void {
     if (!this.editable)
       return;
-    
+
     const next = this.toPathPoint(item, e);
 
     this.next = null;
@@ -137,7 +137,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
     // Ignore half edges that we intersect at the starting point.
     if ("halfEdge" in previous) {
-      intersections = intersections.filter((halfEdge) => halfEdge !== previous.halfEdge); 
+      intersections = intersections.filter((halfEdge) => halfEdge !== previous.halfEdge);
     } else if ("face" in previous) {
     } else {
       const boundary = [sector(previous.vertex)[0], -sector(previous.vertex)[1]]
@@ -146,7 +146,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
     // Ignore half edges that we intersect at the end point.
     if ("halfEdge" in next) {
-      intersections = intersections.filter((halfEdge) => halfEdge !== next.halfEdge); 
+      intersections = intersections.filter((halfEdge) => halfEdge !== next.halfEdge);
     } else if ("face" in next) {
     } else {
       const boundary = [sector(next.vertex)[0], -sector(next.vertex)[1]]
@@ -282,13 +282,13 @@ export default class PathInteraction extends Vue implements IPathInteraction {
     for (let i = 0; i < this.points.length; i++) {
       const point = this.points[i];
       if (i === 0) {
-        controlPoints.push(this.cross(point)); 
+        controlPoints.push(this.cross(point));
       } else if (i === this.points.length - 1) {
-        controlPoints.push(point); 
+        controlPoints.push(point);
       } else {
         controlPoints.push(point);
         if (this.cross(point) !== point)
-        controlPoints.push(this.cross(point)); 
+          controlPoints.push(this.cross(point));
       }
     }
 
@@ -331,7 +331,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
       return { face, at: [
         segments[0].relativize(point),
-        segments[1].relativize(point),
+          segments[1].relativize(point),
       ]};
     }
   }
@@ -388,7 +388,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 }
 
 .path .point {
-  fill: #d95f02; 
+  fill: #d95f02;
 }
 
 .path .segment {

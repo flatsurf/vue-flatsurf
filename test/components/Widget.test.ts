@@ -41,4 +41,15 @@ describe("Widget", () => {
     const svg = await (widget.vm as unknown as IWidget).svg();
     expect(svg).to.be.equal(`<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg"><g fill="#E0FFFF" fill-opacity=".5"><path d="M80 480 560 0H80zM560 480V0L80 480z"/></g><text font-size="75%" text-anchor="end" font-weight="700" transform="translate(326 16)">B</text><path stroke="#D1D1D1" stroke-width="2" d="M560 0H80"/><text font-size="75%" text-anchor="end" font-weight="700" transform="translate(554 244)">A</text><path stroke="#D1D1D1" stroke-width="2" d="M560 480V0"/><g><text font-size="75%" text-anchor="end" font-weight="700" transform="translate(98 244)">A</text><path stroke="#D1D1D1" stroke-width="2" d="M80 0v480"/></g><g><text font-size="75%" text-anchor="end" font-weight="700" transform="translate(326 472)">B</text><path stroke="#D1D1D1" stroke-width="2" d="M80 480h480"/></g><g><path stroke-width="2" stroke="#DDD" stroke-dasharray="8 6" d="M80 480 560 0"/></g></svg>`);
   });
+
+  it("can export a trivial path drawing", async () => {
+    const widget = mount(Widget, {
+      propsData: {
+        triangulation: YAML.stringify(torus),
+        action: "path",
+      },
+    });
+    const path = await (widget.vm as unknown as IWidget).path("now");
+    expect(path).eql([]);
+  });
 });

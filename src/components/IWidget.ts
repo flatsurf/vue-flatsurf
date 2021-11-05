@@ -20,6 +20,9 @@
  * SOFTWARE.
  * *****************************************************************************/
 
+import {PathPoint} from "./interactions/IPathInteraction";
+
 export default interface IWidget {
   svg() : Promise<string>;
+  path(when: "now" | "completed" | "changed"): Promise<PathPoint[]>;
 }
