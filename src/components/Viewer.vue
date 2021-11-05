@@ -26,7 +26,7 @@ Displays a surface from flatsurf and related objects such as flow components.
  -->
 <template>
   <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
-    <flatsurf v-if="layout != null" ref="flatsurf" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="visibleFlowComponents">
+    <flatsurf v-if="layout != null" ref="flatsurf" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="visibleFlowComponents" :saddle-connections="saddleConnections" :paths="paths">
       <slot name="interaction" v-bind:layout="layout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:triangulation="triangulation" v-bind:options="visualizationOptions" v-bind:focus="focus" v-bind:refocus="refocus" />
     </flatsurf>
   </pan-zoom>
@@ -37,10 +37,12 @@ import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import Layout from "@/layout/Layout";
 import Polygon from "@/geometry/Polygon";
 import FlowComponent from "@/flatsurf/FlowComponent"
+import SaddleConnection from "@/flatsurf/SaddleConnection";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import FlowConnection from "@/flatsurf/FlowConnection";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Vertical from "@/flatsurf/Vertical";
+import Path from "@/flatsurf/Path";
 
 import wait from "@/wait";
 
@@ -58,6 +60,8 @@ export default class Viewer extends Vue implements IViewer {
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({ required: false, default: null, type: Object }) vertical!: Vertical | null;
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
+  @Prop({ required: false, default: () => [], type: Array }) saddleConnections!: SaddleConnection[];
+  @Prop({ required: false, default: () => [], type: Array }) paths!: Path[];
   @Prop({ required: true, type: Object }) layout!: Layout;
 
   protected visualizationOptions = new VisualizationOptions();

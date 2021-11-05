@@ -21,7 +21,7 @@
  -->
 <template>
   <layouter ref="layouter" :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
-    <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical">
+    <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical" :saddle-connections="parsedSaddleConnections" :paths="parsedPaths">
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
@@ -38,6 +38,8 @@ import YAML from "yaml";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import FlowComponent from "@/flatsurf/FlowComponent";
+import SaddleConnection from "@/flatsurf/SaddleConnection";
+import Path from "@/flatsurf/Path";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layouter from "@/components/Layouter";
 import Viewer from "@/components/Viewer.vue";
@@ -64,6 +66,8 @@ import IWidget from "@/components/IWidget";
 export default class Widget extends Vue implements IWidget {
   @Prop({ required: true, type: String }) triangulation!: string;
   @Prop({ required: false, default: () => [], type: Array }) flowComponents!: string[];
+  @Prop({ required: false, default: () => [], type: Array }) saddleConnections!: string[];
+  @Prop({ required: false, default: () => [], type: Array }) paths!: string[];
   @Prop({ required: false, default: null, type: String }) vertical!: string | null;
   @Prop({ required: false, default: true, type: Boolean }) showInnerEdges!: boolean;
   @Prop({ required: false, default: true, type: Boolean }) showOuterHalfEdges!: boolean;
@@ -95,6 +99,14 @@ export default class Widget extends Vue implements IWidget {
 
   get parsedFlowComponents(): FlowComponent[] {
     return this.flowComponents.map((component) => FlowComponent.parse(YAML.parse(component), this.coordinateSystem));
+  }
+
+  get parsedSaddleConnections(): SaddleConnection[] {
+    return [...this.saddleConnections].map((connection) => SaddleConnection.parse(YAML.parse(connection), this.coordinateSystem));
+  }
+
+  get parsedPaths(): Path[] {
+    return [...this.paths].map((path) => Path.parse(YAML.parse(path), this.coordinateSystem));
   }
 
   get parsedVertical() {
