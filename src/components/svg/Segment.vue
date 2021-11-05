@@ -20,10 +20,10 @@
  | SOFTWARE.
  -->
 <template>
-  <line class="segment" :x1="coords[0]" :y1="coords[1]" :x2="coords[2]" :y2="coords[3]" />
+  <line ref="line" class="segment" :class="{ animated }" :style="{'--length': length}" :x1="coords[0]" :y1="coords[1]" :x2="coords[2]" :y2="coords[3]" />
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Ref, Prop, Vue, Watch } from "vue-property-decorator";
 
 import Segmnt from "@/geometry/Segment";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
@@ -32,6 +32,24 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 export default class Segment extends Vue {
   @Prop({ required: true, type: Object }) segment!: Segmnt;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;
+  @Prop({required: false, type: Boolean, default: false}) animated!: boolean;
+
+  @Ref()
+  line!: SVGLineElement;
+
+  readonly onAnimationEnd = () => this.$emit("animationend");
+
+  @Watch("animated")
+  onAnimated() {
+    if (this.animated)
+      this.line.addEventListener("animationend", this.onAnimationEnd);
+    else
+      this.line.removeEventListener("animationend", this.onAnimationEnd);
+  }
+
+  mounted() {
+    this.onAnimated();
+  }
 
   // For performance reasons we compute all coordinates at once since this
   // gets called a lot.
@@ -39,5 +57,25 @@ export default class Segment extends Vue {
     const embedded = this.svg.embed(this.segment);
     return [embedded.start.x, embedded.start.y, embedded.end.x, embedded.end.y];
   }
+
+  get length() {
+    const embedded = this.svg.embed(this.segment);
+    return embedded.length;
+  }
+
 }
 </script>
+<style lang="scss" scoped>
+.animated {
+  stroke-dasharray: var(--length);
+  stroke-dashoffset: var(--length);
+  animation: segment-dash .8s linear forwards;
+}
+
+@keyframes segment-dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+</style>

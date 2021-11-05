@@ -28,15 +28,19 @@
   <g v-if="layout != null" @keydown.esc="edit(false)" tabindex="0">
     <g class="path">
       <g>
-        <point-component v-for="(point, i) of controlPoints" :key="i" :svg="svg" :point="fromPathPoint(point)" :radius="3" />
+        <point-component v-for="(point, i) of controlPoints" :key="i" :svg="svg" :point="fromPathPoint(point)" :radius="2" />
       </g>
       <g>
         <segment-component v-for="(segment, i) of path" :key="i" :svg="svg" :segment="segment" />
+        <g v-if="animated && path.length > 1 && path[animation]" class="animated">
+          <segment-component :svg="svg" :segment="path[(animation + path.length - 1) % path.length]" />
+          <segment-component :svg="svg" :segment="path[animation]" :key="`animation-${animation}`" animated @animationend="onAnimationEnd" />
+        </g>
       </g>
     </g>
     <g v-if="editable" @click="append()">
       <g class="preview">
-        <point-component v-if="points.length !== 0" :point="fromPathPoint(cross(points[points.length - 1]))" :radius="5" :svg="svg" />
+        <point-component v-if="points.length !== 0 && nextSegment == null" :point="fromPathPoint(cross(points[points.length - 1]))" :radius="10" :svg="svg" />
         <segment-component v-if="nextSegment != null" :svg="svg" :segment="nextSegment" />
       </g>
       <g class="select-half-edge">
@@ -83,6 +87,7 @@ export default class PathInteraction extends Vue implements IPathInteraction {
   @Prop({ required: true, type: Object }) layout!: Layout;
   @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
   @Prop({required: true, type: Object }) options!: VisualizationOptions;
+  @Prop({required: false, type: Boolean, default: true }) animated!: boolean;
 
   // The path constructed so far, given by the points on the path.
   public points: PathPoint[] = [];
@@ -92,6 +97,13 @@ export default class PathInteraction extends Vue implements IPathInteraction {
   next: PathPoint | null = null;
 
   editable: boolean = true;
+
+  animation = 0;
+
+  onAnimationEnd() {
+    const next = (this.animation + 1) % this.path.length;
+    this.animation = next;
+  }
 
   // Make path editable.
   edit(editable: boolean): void {
@@ -105,6 +117,8 @@ export default class PathInteraction extends Vue implements IPathInteraction {
       this.points.push(this.next);
       this.next = null;
     }
+
+    this.animation = 0;
   }
 
   // Preview the effect of adding item to the path.
@@ -393,12 +407,19 @@ export default class PathInteraction extends Vue implements IPathInteraction {
 
 .path .segment {
   stroke: #d95f02;
-  stroke-width: 2px;
+  stroke-width: 1px;
+}
+
+.path .animated .segment {
+  stroke-width: 10px;
+  stroke-linecap: round;
+  stroke: rgba(#d95f02, .2);
 }
 
 .preview .segment {
   stroke: rgba(#d95f02, .3);
-  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-width: 8px;
 }
 
 .preview .point {

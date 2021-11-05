@@ -44,6 +44,7 @@
             <v-checkbox v-model="showOuterLabels" label="Show Alphanumeric Labels on Outer Half Edges" hide-details />
             <v-checkbox v-model="showFlowComponents" label="Show Flow Components" :disabled="yaml.components.length == 0" hide-details />
             <v-checkbox v-model="applyVertical" label="Rotate to Vertical" :disabled="yaml.vertical == null" hide-details />
+            <v-checkbox v-model="showAnimations" label="Use Animations" hide-details />
           </v-card-text>
         </v-card>
       </v-col>
@@ -53,7 +54,7 @@
             Widget Output
           </v-card-title>
           <v-card-text>
-            <widget-component ref="widget" :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" :action="action" />
+            <widget-component ref="widget" :triangulation="triangulation" :flow-components="flowComponents" :vertical="vertical" :showInnerEdges="showInnerEdges" :showOuterHalfEdges="showOuterHalfEdges" :showOuterLabels="showOuterLabels" :showNumericLabels="showNumericLabels" :action="action" :animated="showAnimations" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -144,6 +145,8 @@ export default class Widget extends Vue {
   showNumericLabels = false;
 
   showFlowComponents = false;
+
+  showAnimations = true;
 
   applyVertical = true;
 

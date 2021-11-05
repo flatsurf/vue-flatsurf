@@ -1,3 +1,5 @@
 **Added:**
 
-* Currently drawn path is exposed in the Widget as `Widget.path()`.
+* Added a callback to request the currently drawn path as `Widget.path()`.
+
+* Added an animation to make it easier to understand the currently drawn path.

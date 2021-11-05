@@ -26,7 +26,7 @@
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
         <glue-interaction v-if="action == 'glue'" ref="glue" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
-        <path-interaction v-if="action == 'path'" ref="path" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" />
+        <path-interaction v-if="action == 'path'" ref="path" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" :animated="animated" />
       </template>
     </viewer>
   </layouter>
@@ -70,6 +70,7 @@ export default class Widget extends Vue implements IWidget {
   @Prop({ required: false, default: true, type: Boolean }) showOuterLabels!: boolean;
   @Prop({ required: false, default: false, type: Boolean }) showNumericLabels!: boolean;
   @Prop({ required: false, default: null, type: String }) action!: string | null;
+  @Prop({ required: false, default: false, type: Boolean }) animated!: boolean;
 
   coordinateSystem = new CoordinateSystem(true);
 
