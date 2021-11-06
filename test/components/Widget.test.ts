@@ -28,7 +28,9 @@ import { mount } from '@vue/test-utils'
 import Widget from "@/components/Widget.vue";
 import {torus} from "@/../test/geometry/triangulation/FlatTriangulation.test";
 import IWidget from "@/components/IWidget";
+import chaiAsPromised from "chai-as-promised";
 
+chai.use(chaiAsPromised);
 chai.use(chaiEquals);
 
 describe("Widget", () => {
@@ -49,7 +51,21 @@ describe("Widget", () => {
         action: "path",
       },
     });
+
     const path = await (widget.vm as unknown as IWidget).path("now");
     expect(path).eql([]);
+
+    // This test is only important to make the converse test below meaningful.
+    expect((widget.vm as unknown as IWidget).path("now")).to.eventually.equal(path);
+
+    widget.setProps({action: null});
+    await widget.vm.$nextTick();
+
+    expect((widget.vm as unknown as IWidget).path("now")).to.be.rejected;
+
+    widget.setProps({action: "path"});
+    await widget.vm.$nextTick();
+
+    expect((widget.vm as unknown as IWidget).path("now")).to.eventually.not.equal(path);
   });
 });
