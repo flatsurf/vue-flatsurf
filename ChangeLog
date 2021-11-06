@@ -4,6 +4,17 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.9.1
+====================
+
+**Fixed:**
+
+* Allow library to be built in development mode and demo app to be built in production mode.
+* Do not cache `PathInteraction` in computed property. Otherwise, it is only
+  possible to draw a path once in the widget.
+
+
+
 v0.9.0
 ====================
 
