@@ -57,7 +57,7 @@ import Point from "@/geometry/Point";
 @Component({
   components: { PointComponent, SegmentComponent },
 })
-export default class Path extends Vue {
+export default class PathComponent extends Vue {
   @Prop({required: true}) path!: PathData | Array<Segment | SaddleConnection>;
   @Prop({required: true}) layout!: Layout;
   @Prop({required: true, type: Object}) svg!: CoordinateSystem;

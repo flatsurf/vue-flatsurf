@@ -131,11 +131,11 @@ export default class Widget extends Vue implements IWidget {
   readonly _glueInteraction!: IGlueInteraction;
 
   get glueInteraction(): Promise<IGlueInteraction> {
+    if (this.action !== "glue")
+      throw Error("Cannot access glue interaction when action is not set to 'glue'.");
+
     return (async () => {
       await this.viewer;
-
-      if (this.action !== "glue")
-        throw Error("Cannot access glue interaction when action is not set to 'glue'.");
 
       return this._glueInteraction;
     })();
@@ -155,11 +155,11 @@ export default class Widget extends Vue implements IWidget {
   readonly _pathInteraction!: IPathInteraction;
 
   get pathInteraction(): Promise<IPathInteraction> {
+    if (this.action !== "path")
+      throw Error("Cannot access path interaction when action is not set to 'path'.");
+
     return (async () => {
       await this.viewer;
-
-      if (this.action !== "path")
-        throw Error("Cannot access path interaction when action is not set to 'path'.");
 
       return this._pathInteraction;
     })();
