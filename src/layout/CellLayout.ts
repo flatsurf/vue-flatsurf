@@ -359,21 +359,28 @@ export default class CellLayout {
     }
   }
 
-  private static packable(cells: CellLayout[], packed: CellLayout[]) {
-    for (let i = 0; i < cells.length; i++) {
-      const cell = cells[i];
+  // Find a cell of unpacked that can be packed with the cells in packed, i.e.,
+  // than can be shifted to a place so it does not overlap with any of the
+  // cells in packed.
+  // Returns the cell as "unpackedCell" and a "packedCell" relative to which it
+  // should be positioned, e.g., because both have a half edge in common.
+  // Also returns a pair of half edges of the respective cells that should be
+  // aligned in the output to make the resulting picture easier to parse.
+  private static packable(unpacked: CellLayout[], packed: CellLayout[]) {
+    for (let i = 0; i < unpacked.length; i++) {
+      const unpackedCell = unpacked[i];
 
       // Find a half edge that connects to something that has already been packed
-      for (let halfEdge of cell.halfEdges) {
-        for (let cell_ of packed) {
-          for (let halfEdge_ of cell_.halfEdges) {
-            if (halfEdge === -halfEdge_) {
-              cells.splice(i, 1);
+      for (let unpackedHalfEdge of unpackedCell.halfEdges) {
+        for (let packedCell of packed) {
+          for (let packedHalfEdge of packedCell.halfEdges) {
+            if (unpackedHalfEdge === -packedHalfEdge) {
+              unpacked.splice(i, 1);
               return {
-                cell,
-                cell_,
-                halfEdge,
-                halfEdge_,
+                unpackedCell,
+                packedCell,
+                unpackedHalfEdge,
+                packedHalfEdge,
               };
             }
           }
@@ -381,43 +388,71 @@ export default class CellLayout {
       }
     }
 
-    throw Error(`Could not find any cells packable with ${packed} among ${cells}`);
+    // The surface is not connected.
+    // Find half edges that go in opposite directions.
+    // (It is not clear that this is a good approach actually but it is
+    // somewhat similar to the above.)
+    const unpackedCell = unpacked.pop()!;
+    const packedCell = packed[0];
+    const pairsOfHalfEdges = unpackedCell.halfEdges.filter((unpackedHalfEdge) => !unpackedCell.layout[unpackedHalfEdge].inner).flatMap(unpackedHalfEdge => 
+        packedCell.halfEdges.filter((packedHalfEdge) => !packedCell.layout[packedHalfEdge].inner).map(packedHalfEdge => ({unpackedHalfEdge, packedHalfEdge})));
+    const {unpackedHalfEdge, packedHalfEdge} = minBy(pairsOfHalfEdges, ({unpackedHalfEdge, packedHalfEdge}) => {
+      let angle = unpackedCell.layout[unpackedHalfEdge].segment.tangentInStart.angleTo(
+        packedCell.layout[packedHalfEdge].segment.tangentInEnd);
+      if (angle > Math.PI)
+        angle -= 2*Math.PI;
+      angle = Math.abs(angle);
+      return angle;
+    })!; 
+      
+    return {
+      unpackedCell,
+      packedCell,
+      unpackedHalfEdge,
+      packedHalfEdge,
+    };
   }
 
   static pack(cells: CellLayout[], progress: Progress): CellLayout[] {
     if (cells.length <= 1) return cells;
 
-    const packed = [cells.pop()] as CellLayout[];
+    const packedCells = [cells.pop()] as CellLayout[];
 
     progress.task("Packing Cells", cells.length);
 
     while (cells.length) {
       progress.progress();
 
-      const {cell, cell_, halfEdge, halfEdge_} = CellLayout.packable(cells, packed)!;
+      const {unpackedCell, packedCell, unpackedHalfEdge, packedHalfEdge } = CellLayout.packable(cells, packedCells)!;
 
-      const segment = cell.layout[halfEdge].segment;
-      const segment_ = cell_.layout[halfEdge_].segment.reverse();
+      const unpackedSegment = unpackedCell.layout[unpackedHalfEdge].segment;
+      const packedSegment = packedCell.layout[packedHalfEdge].segment.reverse();
+      console.log(packedSegment.tangentInStart.angleTo(unpackedSegment.tangentInStart));
+      console.log(`${unpackedHalfEdge} ${packedHalfEdge}`)
 
-      cell.translate(halfEdge, segment_);
+      // Move the cell such that the half edges touch in one point (typically, they will completely overlap then.)
+      unpackedCell.translate(unpackedHalfEdge,
+        unpackedSegment.
+          translate(new Vector(unpackedSegment.parent, unpackedSegment.start, new Point(unpackedSegment.parent, 0, 0))).
+          translate(new Vector(packedSegment.parent, new Point(packedSegment.parent, 0, 0), packedSegment.start)));
 
       // We determine a distance that two edges have to be separated from each
       // other to make it clear that they are not glued.
-      // The idea is that the entire `packed` presumably fills a notebook cell,
-      // probably 800 x 600 pixels. A gap of 10 pixels (minus SVG borders) can
-      // easily be recognized as a gap.
-      const screen = packed.map((cell) => cell.polygon.value.box).reduce((box, cell) => box.merge(cell), new Flatten.Box());
+      // The idea is that the entire `packedCells` presumably fills a notebook
+      // cell, probably 800 x 600 pixels. A gap of 10 pixels (minus SVG
+      // borders) can easily be recognized as a gap.
+      const screen = packedCells.map((cell) => cell.polygon.value.box).reduce((box, cell) => box.merge(cell), new Flatten.Box());
       const step = Math.max((screen.xmax - screen.xmin) / 800, (screen.ymax - screen.ymin) / 600) * 10;
-      const delta = segment.tangentInStart.rotate90CCW().multiply(step);
+      const delta = unpackedSegment.tangentInStart.rotate90CCW().multiply(step);
       
       do {
-        cell.translate(delta);
-      } while(packed.some((other) => cell.touches(other).length))
+        unpackedCell.translate(delta);
+      } while(packedCells.some((packed) => unpackedCell.touches(packed).length))
 
-      packed.push(cell);
+      packedCells.push(unpackedCell);
     }
 
-    return packed;
+    return packedCells;
   }
 
   protected readonly surface: FlatTriangulation;
