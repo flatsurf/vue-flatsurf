@@ -40,14 +40,15 @@
   </v-navigation-drawer>
 </template>
 <script lang="ts">
-import Torus from "!!raw-loader!./torus.txt"
-import Triangle_1_1_1 from "!!raw-loader!./1-1-1.txt"
-import Triangle_1_1_3 from "!!raw-loader!./1-1-3.txt"
+import Torus from "!!raw-loader!./torus.txt";
+import Triangle_1_1_1 from "!!raw-loader!./1-1-1.txt";
+import Triangle_1_1_3 from "!!raw-loader!./1-1-3.txt";
 import Triangle_1_1_3_Without_Marked_Point from "!!raw-loader!./1-1-3-without-marked-point.txt";
-import Triangle_1_2_2 from "!!raw-loader!./1-2-2.txt"
+import Triangle_1_2_2 from "!!raw-loader!./1-2-2.txt";
 import Triangle_1_2_2_Without_Marked_Point from "!!raw-loader!./1-2-2-without-marked-point.txt";
-import Triangle_1_2_5 from "!!raw-loader!./1-2-5.txt"
-import Triangle_2_3_4 from "!!raw-loader!./2-3-4.txt"
+import Triangle_1_2_5 from "!!raw-loader!./1-2-5.txt";
+import Triangle_2_3_4 from "!!raw-loader!./2-3-4.txt";
+import Disconnected from "!!raw-loader!./disconnected.txt";
 
 import { Component, Vue } from "vue-property-decorator";
 
@@ -62,6 +63,7 @@ export default class EditorMenu extends Vue {
     "Triangle (1, 2, 2) w/o Marked Points": Triangle_1_2_2_Without_Marked_Point,
     "Triangle (1, 2, 5) with Marked Points": Triangle_1_2_5,
     "Triangle (2, 3, 4)": Triangle_2_3_4,
+    "Disconnected Surface": Disconnected,
   } as {[name: string]: string};
 
   get selected(): string {

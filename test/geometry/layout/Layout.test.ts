@@ -100,3 +100,32 @@ describe("Layout Triangulation", () => {
     });
   });
 });
+
+describe("Layout of a Disconnected Surface", () => {
+  const coordinateSystem = new CoordinateSystem(true);
+  const disconnected = FlatTriangulation.parse({
+    vertices: [[1, -3, 2, -1, 3, -2], [4, -5, 6, -4, 5, -6]],
+    vectors: {
+      1: { x: 1, y: 1 },
+      2: { x: -1, y: 0 },
+      3: { x: 0, y: -1 },
+      4: { x: 1, y: 1 },
+      5: { x: 0, y: -1 },
+      6: { x: -1, y: 0 }
+    },
+  }, coordinateSystem);
+
+  describe("Default Layout of a Disconnected Surface", () => {
+    let layout!: Layout;
+
+    it("computes a layout", async () => {
+      layout = await Layout.layout(disconnected, new LayoutOptions());
+    });
+
+    it("lays out all half edges", () => {
+      for (const he of disconnected.halfEdges) {
+        layout.layout(he).should.not.be.null;
+      }
+    });
+  });
+});

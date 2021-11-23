@@ -72,6 +72,7 @@ export default class Vector {
     return new Vector(this.parent, this.value.multiply(scalar));
   }
 
+  // Return the angle to ccw in [0, 2π).
   public angleTo(ccw: Vector) {
     return this.parent.positive ? this.parent.embed(ccw).value.angleTo(this.value) : this.value.angleTo(this.parent.embed(ccw).value);
   }
