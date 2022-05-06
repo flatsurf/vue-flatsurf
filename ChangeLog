@@ -4,6 +4,20 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.10.1
+====================
+
+**Added:**
+
+* Added a `build:es:dev` target to rebuild more conveniently when developing
+  inside Jupyter(Lab)
+
+**Fixed:**
+
+* Fixed loading of widget in JupyterLab.
+
+
+
 v0.10.0
 ====================
 
