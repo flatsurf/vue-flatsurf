@@ -25,6 +25,10 @@ import xor from "lodash-es/xor";
 // A permutation of T where T is something that can be safely converted to a
 // key in an object, i.e., T should probably be number or string.
 export default class Permutation<T> {
+  public static parse(raw: string): Permutation<number> {
+    return Permutation.fromCycles<number>(raw.substr(1, raw.length - 2).split(/\)\(/).map(cycle => cycle.split(/, /).map(Number)));
+  }
+
   public static fromCycles<T>(cycles: Array<T[]>) : Permutation<T> {
     const mapping = [] as Array<[T, T]>;
     for (let cycle of cycles)
