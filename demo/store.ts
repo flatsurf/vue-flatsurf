@@ -48,7 +48,7 @@ const store: StoreOptions<typeof state> = {
       try {
         const parsed = YAML.parse(payload.raw);
 
-        const triangulation = FlatTriangulation.parse(parsed, state.coordinateSystem);
+        const triangulation = FlatTriangulation.parse(parsed.triangulation || parsed, state.coordinateSystem);
         const vertical = Vertical.parse(parsed.vertical || { x: 0, y: 1 }, state.coordinateSystem);
         const flowComponents = (parsed.components || []).map((component: any) => FlowComponent.parse(component, state.coordinateSystem));
         const automorphisms = (parsed.automorphisms || []).map((automorphism: any) => Automorphism.parse(automorphism));
