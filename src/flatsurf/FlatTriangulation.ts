@@ -33,6 +33,7 @@ import Vector, { VectorSchema } from "@/geometry/Vector";
 import Point from "@/geometry/Point";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
 import Vertex from "./Vertex";
+import { parse } from "../NumberParser";
 
 export interface FlatTriangulationSchema {
   vertices: Array<HalfEdge[]>,
@@ -50,22 +51,13 @@ export default class FlatTriangulation {
       if (match === null)
         throw Error(`FlatTriangulation description does not match expected pattern ${pattern}`);
 
-      const parseNumber = (x: string) => {
-        console.log(x);
-        if (x.match(/ ~ /)) {
-          return Number(x.split(/ ~ /)[1]);
-        } else {
-          return Number(x);
-        }
-      };
-
       return new FlatTriangulation(
         Permutation.parse(match[1]),
         mapValues(
         zipObject(
-          ...partition(match[2].substring(0, match[2].length - 1).split(/(?:: \()|(?:\), )/),
+          ...partition(match[2].substring(0, match[2].length - 1).split(/(?:: \()|(?:\), (?=\d+:))/),
           (v: string) => !v.match(/,/)) as [string[], string[]]
-        ), xy => Vector.parse(zipObject(['x', 'y'], xy.split(/, /).map(parseNumber)) as unknown as VectorSchema, coordinateSystem)));
+        ), xy => Vector.parse(zipObject(['x', 'y'], xy.split(/, /).map(parse)) as unknown as VectorSchema, coordinateSystem)));
     } else {
       return new FlatTriangulation(
         Permutation.fromCycles(data.vertices),

@@ -49,6 +49,7 @@ import Triangle_1_2_2_Without_Marked_Point from "!!raw-loader!./1-2-2-without-ma
 import Triangle_1_2_5 from "!!raw-loader!./1-2-5.txt";
 import Triangle_2_3_4 from "!!raw-loader!./2-3-4.txt";
 import Disconnected from "!!raw-loader!./disconnected.txt";
+import Quadrilateral_1_2_2_1 from "!!raw-loader!./1_2_2_1.txt";
 
 import { Component, Vue } from "vue-property-decorator";
 
@@ -64,6 +65,7 @@ export default class EditorMenu extends Vue {
     "Triangle (1, 2, 5) with Marked Points": Triangle_1_2_5,
     "Triangle (2, 3, 4)": Triangle_2_3_4,
     "Disconnected Surface": Disconnected,
+    "Quadrilateral (1, 2, 2, 1) as a Raw Flatsurf String": Quadrilateral_1_2_2_1,
   } as {[name: string]: string};
 
   get selected(): string {
