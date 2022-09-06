@@ -45,6 +45,7 @@ export default class FlatTriangulation {
   public static parse(yaml: FlatTriangulationSchema, coordinateSystem: CoordinateSystem) : FlatTriangulation;
   public static parse(data: FlatTriangulationSchema | string, coordinateSystem: CoordinateSystem) : FlatTriangulation {
     if (typeof data === "string") {
+      data = data.trim().replaceAll(/\n/g, ' ');
       const pattern = /^FlatTriangulationCombinatorial\(vertices = (.*), faces = .*\) with vectors \{(.*)\}$/;
       const match = data.match(pattern);
 
