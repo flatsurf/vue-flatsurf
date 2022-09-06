@@ -33,7 +33,6 @@ import Vector, { VectorSchema } from "@/geometry/Vector";
 import Point from "@/geometry/Point";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
 import Vertex from "./Vertex";
-import { parse } from "../NumberParser";
 
 export interface FlatTriangulationSchema {
   vertices: Array<HalfEdge[]>,
@@ -58,7 +57,7 @@ export default class FlatTriangulation {
         zipObject(
           ...partition(match[2].substring(0, match[2].length - 1).split(/(?:: \()|(?:\), (?=\d+:))/),
           (v: string) => !v.match(/,/)) as [string[], string[]]
-        ), xy => Vector.parse(zipObject(['x', 'y'], xy.split(/, /).map(parse)) as unknown as VectorSchema, coordinateSystem)));
+        ), xy => Vector.parse(`(${xy})`, coordinateSystem)));
     } else {
       return new FlatTriangulation(
         Permutation.fromCycles(data.vertices),

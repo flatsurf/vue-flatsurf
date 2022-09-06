@@ -24,6 +24,7 @@ import Flatten from "@flatten-js/core";
 
 import CoordinateSystem, { Coordinate } from "./CoordinateSystem";
 import Point from './Point';
+import { parse } from "../NumberParser";
 
 export interface VectorSchema {
   x: number,
@@ -48,8 +49,21 @@ export default class Vector {
       throw Error(`Cannot initialize Vector from this data: parent=${parent}, x=${x}, y=${y}`);
   }
 
-  public static parse(yaml: VectorSchema, coordinateSystem: CoordinateSystem): Vector {
-    return new Vector(coordinateSystem, yaml.x, yaml.y);
+  public static parse(raw: string, coordinateSystem: CoordinateSystem): Vector;
+  public static parse(yaml: VectorSchema, coordinateSystem: CoordinateSystem): Vector;
+  public static parse(data: VectorSchema | string, coordinateSystem: CoordinateSystem): Vector {
+    if (typeof data === "string") {
+      data = data.trim().replaceAll(/\n/g, ' ');
+      const pattern = /^\((.*),(.*)\)$/;
+      const match = data.match(pattern);
+
+      if (match === null)
+        throw Error(`Vector description does not match the expected pattern ${pattern}`);
+
+      return new Vector(coordinateSystem, parse(match[1]), parse(match[2]));
+    } else {
+      return new Vector(coordinateSystem, data.x, data.y);
+    }
   }
   
   public get x() { return this.value.x; }
