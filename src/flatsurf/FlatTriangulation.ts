@@ -21,6 +21,9 @@
  * *****************************************************************************/
 
 import xor from "lodash-es/xor";
+import partition from "lodash-es/partition";
+import zipObject from "lodash-es/zipObject";
+import mapValues from "lodash-es/mapValues";
 
 import HalfEdge from "./HalfEdge";
 import Edge from "./Edge";
@@ -37,11 +40,30 @@ export interface FlatTriangulationSchema {
 };
 
 export default class FlatTriangulation {
-  public static parse(yaml: FlatTriangulationSchema, coordinateSystem: CoordinateSystem) : FlatTriangulation {
-    return new FlatTriangulation(
-      Permutation.fromCycles(yaml.vertices),
-      Object.fromEntries(Object.entries(yaml.vectors).map(([halfEdge, vector]) => [halfEdge, Vector.parse(vector, coordinateSystem)]))
-    );
+  public static parse(raw: string, coordinateSystem: CoordinateSystem) : FlatTriangulation;
+  public static parse(yaml: FlatTriangulationSchema, coordinateSystem: CoordinateSystem) : FlatTriangulation;
+  public static parse(data: FlatTriangulationSchema | string, coordinateSystem: CoordinateSystem) : FlatTriangulation {
+    if (typeof data === "string") {
+      data = data.trim().replaceAll(/\n/g, ' ');
+      const pattern = /^FlatTriangulationCombinatorial\(vertices = (.*), faces = .*\) with vectors \{(.*)\}$/;
+      const match = data.match(pattern);
+
+      if (match === null)
+        throw Error(`FlatTriangulation description does not match expected pattern ${pattern}`);
+
+      return new FlatTriangulation(
+        Permutation.parse(match[1]),
+        mapValues(
+        zipObject(
+          ...partition(match[2].substring(0, match[2].length - 1).split(/(?:: \()|(?:\), (?=\d+:))/),
+          (v: string) => !v.match(/,/)) as [string[], string[]]
+        ), xy => Vector.parse(`(${xy})`, coordinateSystem)));
+    } else {
+      return new FlatTriangulation(
+        Permutation.fromCycles(data.vertices),
+        Object.fromEntries(Object.entries(data.vectors).map(([halfEdge, vector]) => [halfEdge, Vector.parse(vector, coordinateSystem)]))
+      );
+    }
   }
 
   private constructor(vertices: Permutation<HalfEdge>, vectors: {[key: string]: Vector}) {
