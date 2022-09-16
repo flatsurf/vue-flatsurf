@@ -43,6 +43,7 @@ describe("NumberParser", () => {
     expect(parse("1 + 2*3")).to.equal(1 + 2*3);
     expect(parse("2*3 + 5*7")).to.equal(2*3 + 5*7);
     expect(parse("2*3 + 5*(7 + 11)")).to.equal(2*3 + 5*(7 + 11));
+    expect(parse("1/2")).to.equal(.5);
   });
 
   it("can parse exact reals", () => {
