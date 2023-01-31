@@ -80,7 +80,7 @@ export default class Layout {
 
     for (const he of this.triangulation.halfEdges) {
       if (this.options.glue(he) === true && !this.layout(he).inner)
-        console.log(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
+        console.warn(`Half edge ${he} should be visually glued in the layout but this was not possible.`);
       if (this.options.glue(he) === false && this.layout(he).inner)
         console.error(`Half edge ${he} should not be visually glued in the layout but it is.`);
     }

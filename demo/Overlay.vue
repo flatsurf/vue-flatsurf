@@ -1,24 +1,3 @@
-<!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
- | Permission is hereby granted, free of charge, to any person obtaining a copy
- | of this software and associated documentation files (the "Software"), to deal
- | in the Software without restriction, including without limitation the rights
- | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- | copies of the Software, and to permit persons to whom the Software is
- | furnished to do so, subject to the following conditions:
- | 
- | The above copyright notice and this permission notice shall be included in all
- | copies or substantial portions of the Software.
- | 
- | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- | SOFTWARE.
- -->
 <template>
   <v-overlay class="loading-overlay" :opacity=".2" v-if="cancellation != null && visible" :z-index="0">
     <v-container>
@@ -37,38 +16,59 @@
   </v-overlay>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import CancellationToken from "../src/CancellationToken";
-import Progress from "../src/Progress";
+import CancellationToken from "@/CancellationToken";
+import Progress from "@/Progress";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class Overlay extends Vue {
-  @Prop({required: true}) cancellation!: CancellationToken | null;
-  @Prop({required: true}) progress!: Progress | null;
+export default defineComponent({
+  name: "Overlay",
 
-  visible = false;
+  props: {
+    cancellation: {
+      type: CancellationToken as PropType<CancellationToken | null>,
+      required: true
+    },
 
-  @Watch("cancellation", {immediate: true})
-  onCancellation(value: CancellationToken) {
-    if (value == null)
-      this.visible = false;
-    else
-      setTimeout(() => {
-        if (this.cancellation === value)
-          this.visible = true
-      }, 150);
+    progress: {
+      type: Progress as PropType<Progress | null>,
+      required: true
+    }
+  },
+
+  data() {
+    return {
+      visible: false
+    };
+  },
+
+  computed: {
+    name(): string {
+      return this.progress!.stats.name;
+    },
+
+    value(): number | null {
+      if (this.progress!.stats.step == null || this.progress!.stats.steps == null)
+        return null;
+      return this.progress!.stats.step / this.progress!.stats.steps * 100;
+    }
+  },
+
+  watch: {
+    cancellation: {
+      immediate: true,
+
+      handler(value: CancellationToken) {
+        if (value == null)
+          this.visible = false;
+        else
+          setTimeout(() => {
+            if (this.cancellation === value)
+              this.visible = true
+          }, 150);
+      }
+    }
   }
-
-  get name() {
-    return this.progress!.stats.name;
-  }
-
-  get value() : number | null {
-    if (this.progress!.stats.step == null || this.progress!.stats.steps == null)
-      return null;
-    return this.progress!.stats.step / this.progress!.stats.steps * 100;
-  }
-}
+});
 </script>
 <style scoped>
 .container {

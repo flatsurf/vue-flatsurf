@@ -20,16 +20,13 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai, { expect } from "chai";
-import chaiEquals from "../chai-equal-to";
+import { expect, describe, it } from "vitest"
 import { mount } from '@vue/test-utils'
 import Layouter from "@/components/Layouter";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import {torus} from "@/../test/geometry/triangulation/FlatTriangulation.test";
 import Layout from "@/layout/Layout";
-
-chai.use(chaiEquals);
 
 describe("Layouter", () => {
   it("computes a layout", async () => {

@@ -32,10 +32,11 @@ import Widget from './Widget.vue';
 import castArray from "lodash-es/castArray";
 
 function viewerProps(route: Route) {
-  return {
+  const props = {
     action: route.query.action || "glue",
     show: castArray(route.query.show || ["outer", "outer-labels", "triangulation"]),
   };
+  return props;
 }
 
 function exportProps(route: Route) {

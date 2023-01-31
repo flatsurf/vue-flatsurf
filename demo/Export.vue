@@ -1,24 +1,3 @@
-<!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
- | Permission is hereby granted, free of charge, to any person obtaining a copy
- | of this software and associated documentation files (the "Software"), to deal
- | in the Software without restriction, including without limitation the rights
- | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- | copies of the Software, and to permit persons to whom the Software is
- | furnished to do so, subject to the following conditions:
- | 
- | The above copyright notice and this permission notice shall be included in all
- | copies or substantial portions of the Software.
- | 
- | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- | SOFTWARE.
- -->
 <template>
   <layouter v-if="triangulation != null" :triangulation="triangulation" :layout="layout" v-slot="{ layout }" @layout="(l) => layout = l">
     <v-row>
@@ -44,7 +23,7 @@
                 <v-icon>mdi-format-align-left</v-icon>
               </v-tab>
             </v-tabs>
-          </v-card-title>
+          </v-card-title> 
           <v-card-text>
             <v-tabs-items v-model="tab">
               <v-tab-item key="0">
@@ -68,106 +47,120 @@
   </layouter>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Ref, Watch } from "vue-property-decorator";
-
-import AsyncComputed from 'vue-async-computed-decorator'
 import Flatsurf from "@/components/flatsurf/Flatsurf.vue";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Layouter from "@/components/Layouter";
+import Viewport from "@/geometry/Viewport";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import Vertical from "@/flatsurf/Vertical";
+import FlowComponent from "@/flatsurf/FlowComponent";
 import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import Viewport from "@/geometry/Viewport";
-import Vertical from "@/flatsurf/Vertical";
+import { defineComponent, PropType, CreateComponentPublicInstance } from "vue";
 
-@Component({
+export default defineComponent({
   components: {
     Flatsurf,
     TriangulationInteraction,
     LabelInteraction,
     Layouter,
   },
-})
-export default class Export extends Vue {
-  @Prop({ required: true, type: Array }) show!: string[];
 
-  tab = 0;
+  name: "Export",
 
-  options = new VisualizationOptions();
-
-  width = 1024;
-  height = 1024;
-
-  ready: string | null = null;
-
-  viewport: Viewport | null = null;
-
-  @Ref()
-  readonly flatsurf!: Flatsurf;
-
-  get layout() : Layout | null {
-    return this.$store.state.layout;
-  }
-
-  set layout(layout: Layout | null) {
-    if (this.layout !== layout)
-      this.$store.commit('layout', { layout });
-  }
-
-  get triangulation() : FlatTriangulation | null {
-    return this.$store.state.triangulation;
-  }
-
-  get vertical() : Vertical | null {
-    return this.$store.state.vertical;
-  }
-
-  get svgCoordinateSystem(): CoordinateSystem | null {
-    if (this.viewport == null)
-      return null;
-    if (this.layout == null)
-      return null;
-
-    this.viewport.focus(this.layout.hull);
-
-    return this.viewport.viewportCoordinateSystem;
-  }
-
-  base64(data: string) {
-    return btoa(unescape(encodeURIComponent(data)));
-  }
-
-  get flowComponents() {
-    if (this.show.includes('flow-components'))
-      return this.$store.state.flowComponents;
-    return [];
-  }
-
-  @AsyncComputed({default: "…"})
-  async svg() {
-    if (this.viewport == null)
-      return "…";
-
-    if (this.layout == null)
-      return "…";
-
-    this.viewport.resize(this.width, this.height);
-    this.viewport.focus(this.layout.hull);
-
-    await this.$nextTick();
-
-    return await this.flatsurf.svg();
-  }
-
-  @Watch("triangulation", { immediate: true })
-  onTriangulationChange() {
-    if (this.triangulation != null) {
-      this.viewport = new Viewport(this.vertical!.coordinateSystem);
+  props: {
+    show: {
+      type: Array as PropType<string[]>,
+      required: true
     }
+  },
+
+  data: () => ({
+    tab: 0,
+    options: new VisualizationOptions(),
+    width: 1024,
+    height: 1024,
+    ready: null,
+    viewport: null as Viewport | null,
+    svg: null as string | null
+  }),
+
+  computed: {
+    layout: {
+      get(): null | Layout {
+       return (this as any).$store.state.layout;
+      },
+      set(layout: Layout): void {
+        if (this.layout !== layout)
+          this.$store.commit("layout", {layout});
+      }
+    },
+
+    triangulation(): null | FlatTriangulation {
+      return this.$store.state.triangulation;
+    },
+
+    vertical(): Vertical {
+      return this.$store.state.vertical;
+    },
+
+    svgCoordinateSystem(): CoordinateSystem | null {
+      if (this.viewport == null)
+        return null;
+      if (this.layout == null)
+        return null;
+
+      this.viewport.focus(this.layout.hull);
+
+      return this.viewport.viewportCoordinateSystem as CoordinateSystem;
+    },
+
+    flowComponents(): FlowComponent[] {
+      if (this.show.includes('flow-components'))
+        return this.$store.state.flowComponents;
+      return [];
+    },
+  },
+
+  watch: {
+    triangulation: {
+      immediate: true,
+
+      handler() {
+        if (this.triangulation != null) {
+          this.viewport = new Viewport(this.vertical!.coordinateSystem);
+        }
+      }
+    }
+  },
+
+  asyncComputed: {
+    svg: {
+      async get() {
+        if (this.viewport == null)
+          return "…";
+
+        if (this.layout == null)
+          return "…";
+
+        this.viewport.resize(this.width, this.height);
+        this.viewport.focus(this.layout.hull);
+
+        await this.$nextTick();
+
+        return await (this.$refs.flatsurf as any).svg();
+      },
+    },
+  },
+
+  methods: {
+    base64(data: string) {
+      return btoa(unescape(encodeURIComponent(data)));
+    },
   }
-}
+});
 </script>
 <style scoped>
 .export { 

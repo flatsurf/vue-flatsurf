@@ -1,174 +1,220 @@
-<!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
- | Permission is hereby granted, free of charge, to any person obtaining a copy
- | of this software and associated documentation files (the "Software"), to deal
- | in the Software without restriction, including without limitation the rights
- | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- | copies of the Software, and to permit persons to whom the Software is
- | furnished to do so, subject to the following conditions:
- | 
- | The above copyright notice and this permission notice shall be included in all
- | copies or substantial portions of the Software.
- | 
- | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- | SOFTWARE.
- -->
 <template>
   <layouter ref="layouter" :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
-    <viewer class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical" :saddle-connections="parsedSaddleConnections" :paths="parsedPaths">
+    <viewer-component class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical" :saddle-connections="parsedSaddleConnections" :paths="parsedPaths">
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
         <label-interaction :layout="layout" :options="options" :outer="showOuterLabels" :numeric="showNumericLabels" />
-        <glue-interaction v-if="action == 'glue'" ref="glue" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
-        <path-interaction v-if="action == 'path'" ref="path" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" :animated="animated" />
+        <glue-interaction-component v-if="action == 'glue'" ref="glue" :relayout="relayout" :svg="svg" :options="options" :focus="focus" :refocus="refocus" :layout="layout" />
+        <path-interaction-component v-if="action == 'path'" ref="path" :layout="layout" :svg="svg" :triangulation="parsedTriangulation" :options="options" :animated="animated" />
       </template>
-    </viewer>
+    </viewer-component>
   </layouter>
 </template>
 <script lang="ts">
-import { Component, Prop, Ref, Vue } from "vue-property-decorator";
-
 import YAML from "yaml";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+
 import FlowComponent from "@/flatsurf/FlowComponent";
 import SaddleConnection from "@/flatsurf/SaddleConnection";
 import Path from "@/flatsurf/Path";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Layouter from "@/components/Layouter";
-import Viewer from "@/components/Viewer.vue";
+import ViewerComponent from "@/components/Viewer.vue";
 import IViewer from "@/components/IViewer";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
-import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
-import PathInteraction from "@/components/interactions/PathInteraction.vue";
+import GlueInteractionComponent from "@/components/interactions/GlueInteraction.vue";
+import PathInteractionComponent from "@/components/interactions/PathInteraction.vue";
 import IPathInteraction from "@/components/interactions/IPathInteraction";
 import IGlueInteraction from "@/components/interactions/IGlueInteraction";
 import Vertical from "@/flatsurf/Vertical";
-import IWidget from "@/components/IWidget";
+import Vue, {PropType, defineComponent} from "vue";
 
-@Component({
+const Widget = defineComponent({
   components: {
     Layouter,
-    Viewer,
-    GlueInteraction,
-    PathInteraction,
+    ViewerComponent,
+    GlueInteractionComponent,
+    PathInteractionComponent,
     TriangulationInteraction,
     LabelInteraction,
   },
-})
-export default class Widget extends Vue implements IWidget {
-  @Prop({ required: true, type: String }) triangulation!: string;
-  @Prop({ required: false, default: () => [], type: Array }) flowComponents!: string[];
-  @Prop({ required: false, default: () => [], type: Array }) saddleConnections!: string[];
-  @Prop({ required: false, default: () => [], type: Array }) paths!: string[];
-  @Prop({ required: false, default: null, type: String }) vertical!: string | null;
-  @Prop({ required: false, default: true, type: Boolean }) showInnerEdges!: boolean;
-  @Prop({ required: false, default: true, type: Boolean }) showOuterHalfEdges!: boolean;
-  @Prop({ required: false, default: true, type: Boolean }) showOuterLabels!: boolean;
-  @Prop({ required: false, default: false, type: Boolean }) showNumericLabels!: boolean;
-  @Prop({ required: false, default: null, type: String }) action!: string | null;
-  @Prop({ required: false, default: false, type: Boolean }) animated!: boolean;
 
-  coordinateSystem = new CoordinateSystem(true);
+  name: "Widget",
 
-  @Ref("viewer")
-  readonly _viewer!: IViewer;
+  props: {
+    triangulation: {
+      type: String as PropType<string>,
+      required: true
+    },
 
-  get viewer() {
-    return (async () => {
-      if (this._viewer === undefined) {
-        await new Promise<void>((resolve) => {
-          this.layouter.$once("layout", () => resolve());
-        });
-        await this.$nextTick();
-      }
-      return this._viewer;
-    })();
-  }
+    flowComponents: {
+      type: Array as PropType<string[]>,
+      required: false,
+      default: () => [],
+    },
 
-  get parsedTriangulation(): FlatTriangulation {
-    return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem);
-  }
+    saddleConnections: {
+      type: Array as PropType<string[]>,
+      required: false,
+      default: () => [],
+    },
 
-  get parsedFlowComponents(): FlowComponent[] {
-    return this.flowComponents.map((component) => FlowComponent.parse(YAML.parse(component), this.coordinateSystem));
-  }
+    paths: {
+      type: Array as PropType<string[]>,
+      required: false,
+      default: () => [],
+    },
 
-  get parsedSaddleConnections(): SaddleConnection[] {
-    return [...this.saddleConnections].map((connection) => SaddleConnection.parse(YAML.parse(connection), this.coordinateSystem));
-  }
+    vertical: {
+      type: String as PropType<string | null>,
+      required: false,
+      default: null,
+    },
 
-  get parsedPaths(): Path[] {
-    return [...this.paths].map((path) => Path.parse(YAML.parse(path), this.coordinateSystem));
-  }
+    showInnerEdges: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: true,
+    },
 
-  get parsedVertical() {
-    if (this.vertical == null)
-      return null;
+    showOuterHalfEdges: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: true,
+    },
 
-    return Vertical.parse(YAML.parse(this.vertical), this.coordinateSystem);
-  }
+    showOuterLabels: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: true,
+    },
 
-  async svg(): Promise<string> {
-    return await (await this.viewer).svg();
-  }
+    showNumericLabels: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: true
+    },
 
-  @Ref()
-  readonly layouter!: Layouter;
+    action: {
+      type: String as PropType<string | null>,
+      required: false,
+      default: null,
+    },
 
-  async layout(when: "now" | "changed") {
-    return await this.layouter.query(when);
-  }
+    animated: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: false,
+    }
+  },
 
-  @Ref("glue")
-  readonly _glueInteraction!: IGlueInteraction;
+  data() {
+    return {
+      coordinateSystem: new CoordinateSystem(true)
+    };
+  },
 
-  get glueInteraction(): Promise<IGlueInteraction> {
-    if (this.action !== "glue")
-      throw Error("Cannot access glue interaction when action is not set to 'glue'.");
+  computed: {
+    viewer(): Promise<IViewer> {
+      return (async () => {
+        if (this.$refs.viewer === undefined) {
+          await new Promise<void>((resolve) => {
+            (this.layouter as unknown as Vue).$once("layout", () => resolve());
+          });
+          await this.$nextTick();
+        }
+        if (this.$refs.viewer === undefined)
+          throw Error("Viewer of this widget has not been initialized even though a layout has been determined");
+        return this.$refs.viewer as unknown as IViewer;
+      })();
+    },
 
-    return (async () => {
+    parsedTriangulation(): FlatTriangulation {
+      // Not sure why this cast is necessary.
+      return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem as CoordinateSystem);
+    },
+
+    parsedFlowComponents(): FlowComponent[] {
+      // Not sure why this cast is necessary.
+      return this.flowComponents.map((component) => FlowComponent.parse(YAML.parse(component), this.coordinateSystem as CoordinateSystem));
+    },
+
+    parsedSaddleConnections(): SaddleConnection[] {
+      // Not sure why this cast is necessary.
+      return [...this.saddleConnections].map((connection) => SaddleConnection.parse(YAML.parse(connection), this.coordinateSystem as CoordinateSystem));
+    },
+
+    parsedPaths(): Path[] {
+      // Not sure why this cast is necessary.
+      return [...this.paths].map((path) => Path.parse(YAML.parse(path), this.coordinateSystem as CoordinateSystem));
+    },
+
+    parsedVertical(): Vertical | null {
+      if (this.vertical == null)
+        return null;
+
+      // Not sure why this cast is necessary.
+      return Vertical.parse(YAML.parse(this.vertical), this.coordinateSystem as CoordinateSystem);
+    },
+
+    layouter(): typeof Layouter {
+      return this.$refs.layouter as unknown as typeof Layouter;
+    },
+  },
+
+  methods: {
+    async svg() {
+      return await (await this.viewer).svg();
+    },
+
+    async layout(when: "now" | "changed") {
+      return await this.layouter.query(when);
+    },
+
+    async glued(when: "now" | "changed") {
+      return await (await this.glueInteraction()).query(when);
+    },
+
+    async glue(glued: {[positive: number]: boolean}) {
+      const layout = await (await this.glueInteraction()).force(glued);
+      (await this.viewer).refocus();
+      return layout;
+    },
+
+    async path(when: "now" | "completed" | "changed") {
+      return await (await this.pathInteraction()).query(when);
+    },
+
+    async glueInteraction(): Promise<IGlueInteraction> {
+      if (this.action !== "glue")
+        throw Error(`Cannot access glue interaction when action is not set to 'glue' but to ${this.action}.`);
+
       await this.viewer;
 
-      return this._glueInteraction;
-    })();
-  }
+      if (this.$refs.glue == null)
+        throw Error("Cannot access glue interactions of this Widget yet.");
 
-  async glued(when: "now" | "changed") {
-    return await (await this.glueInteraction).query(when);
-  }
+      return this.$refs.glue as unknown as IGlueInteraction;
+    },
 
-  async glue(glued: {[positive: number]: boolean}) {
-    const layout = await (await this.glueInteraction).force(glued);
-    (await this.viewer).refocus();
-    return layout;
-  }
+    async pathInteraction(): Promise<IPathInteraction> {
+      if (this.action !== "path")
+        throw Error(`Cannot access path interaction when action is not set to 'path' but to ${this.action}.`);
 
-  @Ref("path")
-  readonly _pathInteraction!: IPathInteraction;
-
-  get pathInteraction(): Promise<IPathInteraction> {
-    if (this.action !== "path")
-      throw Error("Cannot access path interaction when action is not set to 'path'.");
-
-    return (async () => {
       await this.viewer;
 
-      return this._pathInteraction;
-    })();
-  }
+      if (this.$refs.path == null)
+        throw Error("Cannot access path interactions of this Widget yet.");
 
-  async path(when: "now" | "completed" | "changed") {
-    return await (await this.pathInteraction).query(when);
+      return this.$refs.path as unknown as  IPathInteraction;
+    },
+
   }
-}
+});
+
+export default Widget;
 </script>
 <style scoped>
 .surface {

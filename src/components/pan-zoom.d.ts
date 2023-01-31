@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-declare module "@thesoulfresh/pan-zoom" {
+declare module "@thesoulfresh/pan-zoom/lib/index.js" {
   const panzoom: any;
   export default panzoom;
 }

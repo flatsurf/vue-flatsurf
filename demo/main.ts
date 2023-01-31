@@ -31,7 +31,7 @@ import '@mdi/font/css/materialdesignicons.css'
 import routes from "./routes";
 import store from "./store";
 
-import raw from "!!raw-loader!./2-3-4.txt";
+import raw from "./2-3-4.txt?raw";
 
 Vue.config.productionTip = false;
 

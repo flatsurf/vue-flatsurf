@@ -1,3 +1,5 @@
-require('jsdom-global/register')
+import { beforeAll } from "vitest";
 
-global.ResizeObserver = require('resize-observer-polyfill')
+beforeAll(() => {
+    global.ResizeObserver = require('resize-observer-polyfill');
+})

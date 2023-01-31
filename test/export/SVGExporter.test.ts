@@ -20,25 +20,23 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai from "chai";
-import "chai/register-should";
-import chaiEquals from "../../test/chai-equal-to";
+import { describe, it, expect } from "vitest";
+
 import SVGExporter from "@/export/SVGExporter";
 
-chai.use(chaiEquals);
 
 describe("SVG Export", () => {
   it("exports a trivial SVG", () => {
     document.write("<svg></svg>");
     const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"/>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg"/>');
   });
 
   it("drops classes", () => {
     document.write("<svg><text class='class'>text</text></svg>");
     const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
     exporter.dropClasses();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
   });
 
   it("drops browser prefixed styling", () => {
@@ -47,7 +45,7 @@ describe("SVG Export", () => {
     exporter.dropPrefixedStyles();
     exporter.dropInvisible();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" style="pointer-events:auto"><text style="pointer-events:auto">text</text></svg>');
   });
 
   it("drops invisible nodes", () => {
@@ -60,7 +58,7 @@ describe("SVG Export", () => {
     const exporter = new SVGExporter(document.getElementsByTagName("svg")[0]);
     exporter.dropInvisible();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>visibility: visible</text><text>display: inline</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" style="pointer-events:auto"><text style="pointer-events:auto">visibility: visible</text><text style="pointer-events:auto">display: inline</text></svg>');
   });
 
   it("drops redundant styles", () => {
@@ -74,7 +72,7 @@ describe("SVG Export", () => {
     exporter.dropRedundantStyles();
     exporter.dropInvisible();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><g class="texts" style="color:red"><text>red</text><text style="color:#00f">blue</text></g></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" style="pointer-events:auto"><g class="texts" style="color:red"><text>red</text><text style="color:#00f">blue</text></g></svg>');
   });
 
   it("drops custom attributes", () => {
@@ -83,7 +81,7 @@ describe("SVG Export", () => {
     exporter.dropInvisible();
     exporter.dropCustomAttributes();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" style="pointer-events:auto"><text style="pointer-events:auto">text</text></svg>');
   });
 
   it("drops browser styling", () => {
@@ -92,7 +90,7 @@ describe("SVG Export", () => {
     exporter.dropInvisible();
     exporter.dropNonStandardStyles();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" style="pointer-events:auto"><text style="pointer-events:auto">text</text></svg>');
   });
 
   it("drops interactive styling", () => {
@@ -101,7 +99,7 @@ describe("SVG Export", () => {
     exporter.dropInvisible();
     exporter.dropInteractiveStyles();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg"><text>text</text></svg>');
   });
 
   it("rewrites unsupported color specifications", () => {
@@ -110,7 +108,7 @@ describe("SVG Export", () => {
     exporter.dropInvisible();
     exporter.simplifyColors();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text style="stroke:gray;stroke-opacity:.5">text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" style="pointer-events:auto"><text style="stroke:gray;pointer-events:auto;stroke-opacity:.5">text</text></svg>');
   });
 
   it("rewrites colors in presentation attributes", () => {
@@ -120,6 +118,6 @@ describe("SVG Export", () => {
     exporter.simplifyColors();
     exporter.usePresentationAttributes();
     exporter.inlineStyles();
-    exporter.toString().should.equal('<svg xmlns="http://www.w3.org/2000/svg"><text stroke="gray" stroke-opacity=".5">text</text></svg>');
+    expect(exporter.toString()).to.equal('<svg xmlns="http://www.w3.org/2000/svg" pointer-events="auto"><text stroke="gray" stroke-opacity=".5">text</text></svg>');
   });
 });

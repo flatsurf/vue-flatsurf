@@ -1,29 +1,3 @@
-<!--
-
-Renders objects from flatsurf as SVG.
-
--->
-<!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
- | Permission is hereby granted, free of charge, to any person obtaining a copy
- | of this software and associated documentation files (the "Software"), to deal
- | in the Software without restriction, including without limitation the rights
- | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- | copies of the Software, and to permit persons to whom the Software is
- | furnished to do so, subject to the following conditions:
- | 
- | The above copyright notice and this permission notice shall be included in all
- | copies or substantial portions of the Software.
- | 
- | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- | SOFTWARE.
- -->
 <template>
   <svg v-on="$listeners">
     <slot name="background" />
@@ -44,9 +18,9 @@ Renders objects from flatsurf as SVG.
   </svg>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+
 import FlowComponent from "@/flatsurf/FlowComponent";
 import SaddleConnection from "@/flatsurf/SaddleConnection";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
@@ -55,55 +29,93 @@ import VisualizationOptions from "./options/VisualizationOptions";
 import Palette from "@/Palette";
 import Path from "@/flatsurf/Path";
 import SVGExporter from "@/export/SVGExporter";
-
 import FlatTriangulationComponent from "@/components/flatsurf/FlatTriangulation.vue";
+
 import FlowComponentComponent from "@/components/flatsurf/FlowComponent.vue";
 import SaddleConnectionComponent from "@/components/flatsurf/SaddleConnection.vue";
 import PathComponent from "@/components/flatsurf/Path.vue";
+import { PropType, defineComponent } from "vue";
 
-@Component({
+export default defineComponent({
   components: {
     FlatTriangulationComponent,
     FlowComponentComponent,
     SaddleConnectionComponent,
     PathComponent,
-  }
-})
-export default class Flatsurf extends Vue {
-  @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
-  @Prop({ required: true, type: Object }) layout!: Layout;
-  @Prop({ required: false, type: Object, default: null }) viewportCoordinateSystem!: CoordinateSystem | null;
-  @Prop({ required: false, type: Object, default: new VisualizationOptions() }) visualizationOptions!: VisualizationOptions;
-  // TODO: Filter depending on automorphisms, see https://github.com/flatsurf/vue-flatsurf/issues/33
-  @Prop({ required: false, default: () => [], type: Array }) flowComponents!: FlowComponent[];
-  @Prop({ required: false, default: () => [], type: Array }) saddleConnections!: SaddleConnection[];
-  @Prop({ required: false, default: () => [], type: Array }) paths!: Path[];
+  },
 
-  get palette() {
-    return new Palette(this.flowComponents.length);
-  }
+  name: "Flatsurf",
 
-  get svgCoordinateSystem() {
-    return this.viewportCoordinateSystem || this.triangulation.coordinateSystem;
-  }
+  props: {
+    triangulation: {
+      type: Object as PropType<FlatTriangulation>,
+      required: true
+    },
 
-  async svg() {
-    await this.$nextTick();
+    layout: {
+      type: Object as PropType<Layout>,
+      required: true
+    },
 
-    const exporter = new SVGExporter(this.$el);
-    exporter.simplifyColors();
-    exporter.dropNonStandardStyles();
-    exporter.dropNonInkscapeStyles();
-    exporter.dropTrivialStyles();
-    exporter.dropRedundantStyles();
-    exporter.dropClasses();
-    exporter.dropPrefixedStyles();
-    exporter.dropInvisible();
-    exporter.dropInteractiveStyles();
-    exporter.dropCustomAttributes();
-    exporter.usePresentationAttributes();
-    exporter.inlineStyles();
-    return exporter.toString();
+    viewportCoordinateSystem: {
+      type: Object as PropType<CoordinateSystem | null>,
+      required: true,
+    },
+
+    visualizationOptions: {
+      type: Object as PropType<VisualizationOptions>,
+      required: true,
+    },
+
+    // TODO: Filter depending on automorphisms, see https://github.com/flatsurf/vue-flatsurf/issues/33
+    flowComponents: {
+      type: Array as PropType<FlowComponent[]>,
+      required: false,
+      default: () => [],
+    },
+
+    saddleConnections: {
+      type: Array as PropType<SaddleConnection[]>,
+      required: false,
+      default: () => [],
+    },
+
+    paths: {
+      type: Array as PropType<Path[]>,
+      required: false,
+      default: () => [],
+    }
+  },
+
+  computed: {
+    palette(): Palette {
+      return new Palette(this.flowComponents.length);
+    },
+
+    svgCoordinateSystem(): CoordinateSystem {
+      return this.viewportCoordinateSystem || this.triangulation.coordinateSystem;
+    }
+  },
+
+  methods: {
+    async svg() {
+      await this.$nextTick();
+
+      const exporter = new SVGExporter(this.$el);
+      exporter.simplifyColors();
+      exporter.dropNonStandardStyles();
+      exporter.dropNonInkscapeStyles();
+      exporter.dropTrivialStyles();
+      exporter.dropRedundantStyles();
+      exporter.dropClasses();
+      exporter.dropPrefixedStyles();
+      exporter.dropInvisible();
+      exporter.dropInteractiveStyles();
+      exporter.dropCustomAttributes();
+      exporter.usePresentationAttributes();
+      exporter.inlineStyles();
+      return exporter.toString();
+    }
   }
-}
+});
 </script>

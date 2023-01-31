@@ -40,7 +40,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
     }
   }
 
-  private ensure(halfEdge: Edge | HalfEdge) {
+  public ensure(halfEdge: Edge | HalfEdge) {
     if (halfEdge instanceof Edge) {
       const edge = halfEdge;
       if (this.edges[edge.positive] === undefined) {
@@ -125,7 +125,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
     }
   }
 
-  private halfEdges: {
+  public halfEdges: {
     [halfEdge: number]: {
       indicator: number | null,
       selected: boolean,
@@ -135,7 +135,7 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
     },
   } = {};
 
-  private edges: {
+  public edges: {
     [positive: number]: {
       indicator: number | null,
       selected: boolean,

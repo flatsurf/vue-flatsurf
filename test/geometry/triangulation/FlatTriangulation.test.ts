@@ -20,15 +20,15 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai from "chai";
-import "chai/register-should";
-import chaiEquals from "../../chai-equal-to";
+import { chai, describe, it, expect } from "vitest";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import Vector from "@/geometry/Vector";
 import CoordinateSystem from '@/geometry/CoordinateSystem';
 
-chai.use(chaiEquals);
+import equal from "../../chai-equal-to";
+
+chai.use(equal);
 
 export const torus = {
   vertices: [[3, 2, -1, -3, -2, 1]],
@@ -71,18 +71,18 @@ describe("Flat Triangulation", () => {
     const coordinateSystem = new CoordinateSystem(true);
     const surface = FlatTriangulation.parse(torus, coordinateSystem);
 
-    surface.vertices.cycles.should.eql([[3, 2, -1, -3, -2, 1]]);
-    surface.faces.cycles.should.eql([[ -2, 3, -1 ], [ 1, 2, -3 ]]);
-    surface.halfEdges.should.eql([3, -1, 2, -3, -2, 1]);
+    expect(surface.vertices.cycles).to.deep.equal([[3, 2, -1, -3, -2, 1]]);
+    expect(surface.faces.cycles).to.deep.equal([[ -2, 3, -1 ], [ 1, 2, -3 ]]);
+    expect(surface.halfEdges).to.deep.equal([3, -1, 2, -3, -2, 1]);
 
-    surface.vector(1).should.equalTo(new Vector(coordinateSystem, 1, 0));
-    surface.vector(-1).should.equalTo(new Vector(coordinateSystem, -1, 0));
+    expect(surface.vector(1)).to.equalTo(new Vector(coordinateSystem, 1, 0));
+    expect(surface.vector(-1)).to.equalTo(new Vector(coordinateSystem, -1, 0));
   });
 
   it("can be parsed from string output", () => {
     const coordinateSystem = new CoordinateSystem(true);
     const surface = FlatTriangulation.parse(quadrilateral.triangulation, coordinateSystem);
 
-    surface.vertices.cycles.should.eql([[1, 8, -7, 9, -3, 10, -9, 11, -2, 12, -11, 7], [-1, -8, 6, -5, 3, -10, 5, -4, 2, -12, 4, -6]]);
+    expect(surface.vertices.cycles).to.deep.equal([[1, 8, -7, 9, -3, 10, -9, 11, -2, 12, -11, 7], [-1, -8, 6, -5, 3, -10, 5, -4, 2, -12, 4, -6]]);
   });
 });

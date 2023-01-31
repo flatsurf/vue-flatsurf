@@ -20,8 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai from "chai";
-import "chai/register-should";
+import { describe, it, chai, expect } from "vitest";
 import chaiEquals from "../../chai-equal-to";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
@@ -52,16 +51,16 @@ describe("Layout Triangulation", () => {
 
     it("lays out all half edges", () => {
       for (const he of torus.halfEdges) {
-        layout.layout(he).should.not.be.null;
+        expect(layout.layout(he)).not.to.be.null;
       }
     });
 
     it("has exactly one pair of half edges identified in the planar layout", () => {
-      layout.layout(1).inner.should.be.false;
-      layout.layout(2).inner.should.be.false;
+      expect(layout.layout(1).inner).to.be.false;
+      expect(layout.layout(2).inner).to.be.false;
       // Namely the diagonal edge is identified since it minimizes the
       // bounding  box of the layout.
-      layout.layout(3).inner.should.be.true;
+      expect(layout.layout(3).inner).to.be.true;
     });
   });
 
@@ -78,9 +77,9 @@ describe("Layout Triangulation", () => {
     });
 
     it("has exactly one pair of half edges identified in the planar layout", () => {
-      layout.layout(1).inner.should.be.true;
-      layout.layout(2).inner.should.be.false;
-      layout.layout(3).inner.should.be.false;
+      expect(layout.layout(1).inner).to.be.true;
+      expect(layout.layout(2).inner).to.be.false;
+      expect(layout.layout(3).inner).to.be.false;
     });
   });
 
@@ -94,9 +93,9 @@ describe("Layout Triangulation", () => {
     });
 
     it("has no pair of half edges identified in the planar layout", () => {
-      layout.layout(1).inner.should.be.false;
-      layout.layout(2).inner.should.be.false;
-      layout.layout(3).inner.should.be.false;
+      expect(layout.layout(1).inner).to.be.false;
+      expect(layout.layout(2).inner).to.be.false;
+      expect(layout.layout(3).inner).to.be.false;
     });
   });
 });
@@ -124,7 +123,7 @@ describe("Layout of a Disconnected Surface", () => {
 
     it("lays out all half edges", () => {
       for (const he of disconnected.halfEdges) {
-        layout.layout(he).should.not.be.null;
+        expect(layout.layout(he)).not.to.be.null;
       }
     });
   });

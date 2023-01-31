@@ -60,7 +60,7 @@ const store: StoreOptions<typeof state> = {
           flowComponents,
           automorphisms,
         });
-      } catch (e) {
+      } catch (e: any) {
         commit('error', {message: e.message});
       }
     },

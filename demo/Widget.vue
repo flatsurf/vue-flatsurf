@@ -1,24 +1,3 @@
-<!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
- | Permission is hereby granted, free of charge, to any person obtaining a copy
- | of this software and associated documentation files (the "Software"), to deal
- | in the Software without restriction, including without limitation the rights
- | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- | copies of the Software, and to permit persons to whom the Software is
- | furnished to do so, subject to the following conditions:
- | 
- | The above copyright notice and this permission notice shall be included in all
- | copies or substantial portions of the Software.
- | 
- | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- | SOFTWARE.
- -->
 <template>
     <v-row>
       <v-col class="col-md-4 col-12">
@@ -124,124 +103,127 @@
     </v-row>
 </template>
 <script lang="ts">
-import { Component, Ref, Vue, Watch } from "vue-property-decorator";
-
 import YAML from "yaml";
+
 import WidgetComponent from "@/components/Widget.vue";
 import type { FlatTriangulationSchema } from "@/flatsurf/FlatTriangulation";
 import type { FlowComponentSchema } from "@/flatsurf/FlowComponent";
 import type { VerticalSchema } from "@/flatsurf/Vertical";
+import { defineComponent } from "vue";
 
-@Component({
+export default defineComponent({
   components: {
     WidgetComponent,
   },
-})
-export default class Widget extends Vue {
-  showInnerEdges = true;
-  showOuterHalfEdges = true;
 
-  showOuterLabels = true;
-  showNumericLabels = false;
+  name: "Widget",
 
-  showFlowComponents = false;
+  data: () => ({
+    showInnerEdges: true,
+    showOuterHalfEdges: true,
+    showOuterLabels: true,
+    showNumericLabels: false,
+    showFlowComponents: false,
+    showAnimations: true,
+    applyVertical: true,
 
-  showAnimations = true;
+    actions: [
+      {text: "None", value: null},
+      {text: "Change Layout", value: "glue"},
+      {text: "Draw Path", value: "path"},
+    ],
 
-  applyVertical = true;
+    action: "glue",
+    info: "(none)",
+    queries: ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"],
+    query: 'Path',
+    parameters: "{1: true, 2: false}"
+  }),
 
-  actions = [
-    {text: "None", value: null},
-    {text: "Change Layout", value: "glue"},
-    {text: "Draw Path", value: "path"},
-  ]
+  computed: {
+    yaml(): any {
+      return YAML.parse(this.$store.state.raw);
+    },
 
-  action = "glue";
+    triangulation(): string {
+      const schema: FlatTriangulationSchema = {
+        vertices: this.yaml.vertices,
+        vectors: this.yaml.vectors,
+      };
+      return YAML.stringify(schema);
+    },
 
-  info = "(none)";
+    flowComponents(): string[] {
+      if (!this.showFlowComponents)
+        return [];
 
-  queries = ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"];
+      const schema: FlowComponentSchema[] = this.yaml.components || [];
 
-  query = 'Path'
+      return schema.map((component) => YAML.stringify(component));
+    },
 
-  parameters = "{1: true, 2: false}"
+    vertical(): string | null {
+      if (this.yaml.vertical == null)
+        return null;
 
-  get yaml() {
-    return YAML.parse(this.$store.state.raw);
-  }
+      if (!this.applyVertical)
+        return null;
 
-  get triangulation() {
-    const schema: FlatTriangulationSchema = {
-      vertices: this.yaml.vertices,
-      vectors: this.yaml.vectors,
-    };
-    return YAML.stringify(schema);
-  }
+      const schema: VerticalSchema = this.yaml.vertical;
 
-  get flowComponents() {
-    if (!this.showFlowComponents)
-      return [];
+      return YAML.stringify(schema);
+    },
+  },
 
-    const schema: FlowComponentSchema[] = this.yaml.components || [];
+  watch: {
+    query: {
+      immediate: true,
 
-    return schema.map((component) => YAML.stringify(component));
-  }
+      handler() {
+        this.info = "(none)";
+      }
+    }
+  },
 
-  get vertical() {
-    if (this.yaml.vertical == null)
-      return null;
+  methods: {
+    async performQuery() {
+      this.info = "…";
 
-    if (!this.applyVertical)
-      return null;
+      const query = (() => {
+        const widget = this.$refs.widget as any;
 
-    const schema: VerticalSchema = this.yaml.vertical;
+        if (this.query === "SVG")
+          return widget.svg();
+        if (this.query === 'Path')
+          return widget.path("now");
+        if (this.query === 'Complete Path')
+          return widget.path("completed");
+        if (this.query === 'Path Change')
+          return widget.path("changed");
+        if (this.query === 'Layout')
+          return widget.layout("now");
+        if (this.query === "Layout Change")
+          return widget.layout("changed");
+        if (this.query === "Glue")
+          return widget.glued("now");
+        if (this.query === "Glue Change")
+          return widget.glued("changed");
+        if (this.query === "Force Gluing")
+          return (async () => {
+            const glued = JSON.parse(this.parameters);
+            return await widget.glue(glued);
+          })();
+      })();
 
-    return YAML.stringify(schema);
-  }
-
-  @Watch("query", {immediate: true})
-  onQueryChanged() {
-    this.info = "(none)";
-  }
-
-  async performQuery() {
-    this.info = "…";
-
-    const query = (() => {
-      if (this.query === "SVG")
-        return this.widget.svg();
-      if (this.query === 'Path')
-        return this.widget.path("now");
-      if (this.query === 'Complete Path')
-        return this.widget.path("completed");
-      if (this.query === 'Path Change')
-        return this.widget.path("changed");
-      if (this.query === 'Layout')
-        return this.widget.layout("now");
-      if (this.query === "Layout Change")
-        return this.widget.layout("changed");
-      if (this.query === "Glue")
-        return this.widget.glued("now");
-      if (this.query === "Glue Change")
-        return this.widget.glued("changed");
-      if (this.query === "Force Gluing")
-        return (async () => {
-          const glued = JSON.parse(this.parameters);
-          return await this.widget.glue(glued);
-        })();
-    })();
-
-    try {
-      const result = await query;
-      this.info = JSON.stringify(result);
-    } catch(e) {
-      this.info = e.message;
+      try {
+        const result = await query;
+        this.info = JSON.stringify(result);
+      } catch(e: any) {
+        this.info = e.message;
+      }
     }
   }
-
-  @Ref()
-  readonly widget!: WidgetComponent;
-}
+});
 </script>
 <style scoped>
 .tiny {

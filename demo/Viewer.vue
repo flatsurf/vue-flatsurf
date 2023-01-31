@@ -37,17 +37,18 @@ Visualizes a Surface.
   </layouter>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import ViewerComponent from "@/components/Viewer.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
-import Layouter from "@/components/Layouter";
 import Layout from "@/layout/Layout";
+import Layouter from "@/components/Layouter";
+import FlowComponent from "@/flatsurf/FlowComponent";
+import {defineComponent, PropType} from "vue";
 
-@Component({
+export default defineComponent({
+  name: "Viewer",
   components: {
     ViewerComponent,
     GlueInteraction,
@@ -55,22 +56,30 @@ import Layout from "@/layout/Layout";
     TriangulationInteraction,
     LabelInteraction,
     Layouter,
+  },
+  props: {
+    action: {
+      required: true,
+      type: String as PropType<String>,
+    },
+    show: {
+      required: true,
+      type: Array as PropType<string[]>,
+    }
+  },
+  computed: {
+    flowComponents(): FlowComponent[] {
+      if (this.show.includes('flow-components'))
+      return this.$store.state.flowComponents;
+      return [];
+    }
+  },
+  methods: {
+    layoutChanged(layout: Layout) {
+      this.$store.commit('layout', { layout });
+    }
   }
 })
-export default class Viewer extends Vue {
-  @Prop({ required: true, type: String }) action!: string;
-  @Prop({ required: true, type: Array }) show!: string[];
-
-  get flowComponents() {
-    if (this.show.includes('flow-components'))
-      return this.$store.state.flowComponents;
-    return [];
-  }
-
-  layoutChanged(layout: Layout) {
-    this.$store.commit('layout', { layout });
-  }
-}
 </script>
 <style scoped>
 .surface {

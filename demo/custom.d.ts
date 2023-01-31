@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-declare module "*.txt" {
+declare module "*.txt?raw" {
   const content: any;
   export default content;
 }

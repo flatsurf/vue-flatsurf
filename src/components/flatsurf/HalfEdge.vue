@@ -1,24 +1,3 @@
-<!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
- | 
- | Permission is hereby granted, free of charge, to any person obtaining a copy
- | of this software and associated documentation files (the "Software"), to deal
- | in the Software without restriction, including without limitation the rights
- | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- | copies of the Software, and to permit persons to whom the Software is
- | furnished to do so, subject to the following conditions:
- | 
- | The above copyright notice and this permission notice shall be included in all
- | copies or substantial portions of the Software.
- | 
- | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- | SOFTWARE.
- -->
 <template>
   <g class="HalfEdge">
     <g v-if="options.label" class="label">
@@ -31,9 +10,8 @@
   </g>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import Layout from "@/layout/Layout";
+
 import Segment from "@/geometry/Segment";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import SegmentComponent from "@/components/svg/Segment.vue";
@@ -41,40 +19,65 @@ import HalfEdge from "@/flatsurf/HalfEdge";
 import SegmentLabel from "@/components/svg/SegmentLabel.vue";
 import Arrow from "@/components/svg/Arrow.vue";
 import IHalfEdgeOptions from "@/components/flatsurf/options/IHalfEdgeOptions";
-import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import SegmentIcon from "@/components/svg/SegmentIcon.vue";
+import { defineComponent, PropType } from "vue";
 
-@Component({
+export default defineComponent({
   components: { Arrow, SegmentComponent, SegmentLabel, SegmentIcon },
-})
-export default class HalfEdgeComponent extends Vue {
-  @Prop({required: true, type: Object}) layout!: Layout;
-  @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: false, type: Boolean, default: false}) sourceIndicator!: boolean;
-  @Prop({required: false, type: Object, default: () => new VisualizationOptions().get(1) }) options!: IHalfEdgeOptions; 
+  name: "HalfEdgeComponent",
 
-  get segment() {
-    return this.layout.layout(this.halfEdge).segment;
-  }
+  props: {
+    layout: {
+      type: Object as PropType<Layout>,
+      required: true
+    },
 
-  indicatorPosition(halfEdge: HalfEdge) {
-    const segment = this.layout.layout(halfEdge).segment;
-    let indicator = halfEdge === this.halfEdge ? this.options.indicator! : 1-this.options.indicator!;
-    if (indicator != null) {
-		  const end = segment.at(indicator);
-		  const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
+    halfEdge: {
+      type: Number as PropType<HalfEdge>,
+      required: true
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    },
+
+    sourceIndicator: {
+      type: Boolean as PropType<boolean>,
+      required: true,
+    },
+
+    options: {
+      type: Object as PropType<IHalfEdgeOptions>,
+      required: true,
+    }
+  },
+
+  computed: {
+    segment(): Segment {
+      return this.layout.layout(this.halfEdge).segment;
+    },
+
+    source(): Segment {
+      const segment = this.segment;
+          const end = segment.at(0);
+          const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
       return new Segment(start, end);
     }
-	}
+  },
 
-  get source() {
-    const segment = this.segment;
-		const end = segment.at(0);
-		const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
-    return new Segment(start, end);
+  methods: {
+    indicatorPosition(halfEdge: HalfEdge) {
+      const segment = this.layout.layout(halfEdge).segment;
+      let indicator = halfEdge === this.halfEdge ? this.options.indicator! : 1-this.options.indicator!;
+      if (indicator != null) {
+            const end = segment.at(indicator);
+            const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
+        return new Segment(start, end);
+      }
+      }
   }
-}
+});
 </script>
 <style lang="scss">
 .HalfEdge {
