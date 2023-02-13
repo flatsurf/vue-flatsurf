@@ -28,6 +28,7 @@ import * as directives from "vuetify/directives";
 import { createWebHashHistory, createRouter} from 'vue-router'
 import { createStore } from 'vuex';
 import '@mdi/font/css/materialdesignicons.css'
+import "vuetify/styles";
 
 import routes from "./routes";
 import store from "./store";
@@ -43,9 +44,9 @@ app.use(createRouter({
   routes,
 }));
 app.use(createVuetify({
-  components: { ...components },
+  components,
   directives,
-}));
+}))
 app.use(createStore(store));
 
 app.mount('#app');

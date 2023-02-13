@@ -1,5 +1,5 @@
 <template>
-  <v-bottom-navigation color="primary" :value="$route.path" @update:modelValue="onChange" fixed app>
+  <v-bottom-navigation :value="$route.path" @update:modelValue="onChange">
     <v-btn value="/edit">
       <span>Surface</span>
       <v-badge :model-value="error != null" color="error" icon="mdi-error" overlap>
