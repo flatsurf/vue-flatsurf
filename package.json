@@ -3,13 +3,13 @@
   "version": "0.10.1",
   "description": "",
   "scripts": {
-    "serve": "vite",
+    "serve": "vite demo",
     "build": "cross-env NODE_ENV=production rollup --config build/rollup.config.js",
     "build:es": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format es",
     "build:es:dev": "cross-env NODE_ENV=development rollup --config build/rollup.config.js --format es",
     "build:ssr": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format cjs",
     "build:unpkg": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format iife",
-    "test": "yarn mochapack --recursive --require test/jsdom.mock.js --webpack-config node_modules/@vue/cli-service/webpack.config.js 'test/**/*.test.ts'"
+    "test": "yarn vitest"
   },
   "main": "dist/vue-flatsurf.ssr.js",
   "module": "dist/vue-flatsurf.esm.js",
