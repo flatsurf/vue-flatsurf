@@ -71,7 +71,10 @@ const routes = [
       default: Widget,
     },
   },
-  { path: '/pathMatch(.*)', redirect: '/view' },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/view'
+  },
 ] as RouteRecordRaw[]
 
 export default routes;
