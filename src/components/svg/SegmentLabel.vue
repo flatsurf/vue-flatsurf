@@ -38,9 +38,10 @@ export default defineComponent({
 </script>
 <style lang="scss" scoped>
 text {
-	font-size: 75%;
-  text-anchor: end;
-	font-weight: 700;
-  user-select: none;
+    font-size: small;
+    text-anchor: end;
+    font-weight: 600;
+    user-select: none;
+    font-family: monospace;
 }
 </style>
