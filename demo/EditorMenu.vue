@@ -1,20 +1,12 @@
 <template>
   <v-navigation-drawer permanent app>
-    <v-list nav dense>
-      <v-list-item>
-        <v-list-item-content>
-          <v-list-item-title>
-            PREDEFINED SURFACES
-          </v-list-item-title>
-        </v-list-item-content>
+    <v-list :selected="[selected]" @click:select="({id}) => selected = id" nav dense>
+      <v-list-subheader>
+        PREDEFINED SURFACES
+      </v-list-subheader>
+      <v-list-item v-for="name of Object.keys(predefined)" :key="name" :value="name">
+        <v-list-item-title v-text="name"></v-list-item-title>
       </v-list-item>
-      <v-list-item-group color="primary" v-model="selected">
-        <v-list-item v-for="name of Object.keys(predefined)" :key="name" :value="name" :disabled="selected == name">
-          <v-list-item-content>
-            <v-list-item-title v-text="name"></v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list-item-group>
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -67,3 +59,8 @@ export default defineComponent({
   }
 });
 </script>
+<style scoped>
+* {
+  user-select: none;
+}
+</style>
