@@ -96,7 +96,7 @@
               <v-text-field class="parameters" label="Gluing" v-model="parameters" />
             </p>
             <p class="tiny" v-text="info" />
-            <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Refresh</v-btn></v-container>
+            <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Query</v-btn></v-container>
           </v-card-text>
         </v-card>
       </v-col>
