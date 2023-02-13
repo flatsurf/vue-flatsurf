@@ -42,6 +42,6 @@
     "dist"
   ],
   "vueCompilerOptions": {
-    "target": 2.7,
+    "target": 3,
   }
 }

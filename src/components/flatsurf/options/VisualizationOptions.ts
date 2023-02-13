@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import Vue from "vue";
-
 import HalfEdge from "@/flatsurf/HalfEdge";
 import Edge from "@/flatsurf/Edge";
 import IHalfEdgeOptions from "./IHalfEdgeOptions";
@@ -44,23 +42,23 @@ export default class VisualizationOptions implements IFlatTriangulationOptions {
     if (halfEdge instanceof Edge) {
       const edge = halfEdge;
       if (this.edges[edge.positive] === undefined) {
-        Vue.set(this.edges, edge.positive, {
+        this.edges[edge.positive] = {
           indicator: null,
           selected: false,
           visible: true,
           label: null,
           icon: null,
-        } as IHalfEdgeOptions);
+        } as IHalfEdgeOptions;
       }
     } else {
       if (this.halfEdges[halfEdge] === undefined) {
-        Vue.set(this.halfEdges, halfEdge, {
+        this.halfEdges[halfEdge] = {
           indicator: null,
           selected: false,
           visible: false,
           label: null,
           icon: null,
-        } as IHalfEdgeOptions);
+        } as IHalfEdgeOptions;
       }
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <layouter ref="layouter" :triangulation="parsedTriangulation" v-slot="{ layout, relayout }">
+  <layouter ref="layouter" :triangulation="parsedTriangulation" @layout="onLayout" v-slot="{ layout, relayout }">
     <viewer-component class="surface" ref="viewer" :triangulation="parsedTriangulation" :flow-components="parsedFlowComponents" :layout="layout" :vertical="parsedVertical" :saddle-connections="parsedSaddleConnections" :paths="parsedPaths">
       <template v-slot:interaction="{ focus, options, refocus, svg }">
         <triangulation-interaction :layout="layout" :options="options" :outer="showOuterHalfEdges" :inner="showInnerEdges" />
@@ -29,7 +29,45 @@ import PathInteractionComponent from "@/components/interactions/PathInteraction.
 import IPathInteraction from "@/components/interactions/IPathInteraction";
 import IGlueInteraction from "@/components/interactions/IGlueInteraction";
 import Vertical from "@/flatsurf/Vertical";
-import Vue, {PropType, defineComponent} from "vue";
+import {PropType, defineComponent} from "vue";
+
+class PromisedCache<T> {
+  private current!: Promise<T>;
+  private setCurrent!: ((value: T) => void) | null;
+
+  constructor() {
+    this.invalidate();
+  }
+
+  get value(): Promise<T> {
+    return this.current;
+  }
+
+  invalidate() {
+    const oldSetCurrent = this.setCurrent;
+
+    this.current = new Promise<T>((resolve) => {
+      const setCurrent = (value: T) => {
+        if (oldSetCurrent)
+          oldSetCurrent(value);
+
+        resolve(value);
+        
+        if (this.setCurrent === setCurrent) {
+          this.setCurrent = null;
+        }
+      };
+      this.setCurrent = setCurrent;
+    });
+  }
+
+  reset(value: T) {
+    if (this.setCurrent == null)
+      throw Error("cannot reset cache again");
+
+    this.setCurrent(value);
+  }
+}
 
 const Widget = defineComponent({
   components: {
@@ -112,25 +150,12 @@ const Widget = defineComponent({
 
   data() {
     return {
-      coordinateSystem: new CoordinateSystem(true)
+      coordinateSystem: CoordinateSystem.make(true, "Flatsurf Coordinate System"),
+      viewer: new PromisedCache<IViewer>(),
     };
   },
 
   computed: {
-    viewer(): Promise<IViewer> {
-      return (async () => {
-        if (this.$refs.viewer === undefined) {
-          await new Promise<void>((resolve) => {
-            (this.layouter as unknown as Vue).$once("layout", () => resolve());
-          });
-          await this.$nextTick();
-        }
-        if (this.$refs.viewer === undefined)
-          throw Error("Viewer of this widget has not been initialized even though a layout has been determined");
-        return this.$refs.viewer as unknown as IViewer;
-      })();
-    },
-
     parsedTriangulation(): FlatTriangulation {
       // Not sure why this cast is necessary.
       return FlatTriangulation.parse(YAML.parse(this.triangulation), this.coordinateSystem as CoordinateSystem);
@@ -166,7 +191,7 @@ const Widget = defineComponent({
 
   methods: {
     async svg() {
-      return await (await this.viewer).svg();
+      return await (await this.viewer.value).svg();
     },
 
     async layout(when: "now" | "changed") {
@@ -179,7 +204,7 @@ const Widget = defineComponent({
 
     async glue(glued: {[positive: number]: boolean}) {
       const layout = await (await this.glueInteraction()).force(glued);
-      (await this.viewer).refocus();
+      (await this.viewer.value).refocus();
       return layout;
     },
 
@@ -191,7 +216,7 @@ const Widget = defineComponent({
       if (this.action !== "glue")
         throw Error(`Cannot access glue interaction when action is not set to 'glue' but to ${this.action}.`);
 
-      await this.viewer;
+      await this.viewer.value;
 
       if (this.$refs.glue == null)
         throw Error("Cannot access glue interactions of this Widget yet.");
@@ -203,7 +228,7 @@ const Widget = defineComponent({
       if (this.action !== "path")
         throw Error(`Cannot access path interaction when action is not set to 'path' but to ${this.action}.`);
 
-      await this.viewer;
+      await this.viewer.value;
 
       if (this.$refs.path == null)
         throw Error("Cannot access path interactions of this Widget yet.");
@@ -211,6 +236,11 @@ const Widget = defineComponent({
       return this.$refs.path as unknown as  IPathInteraction;
     },
 
+    async onLayout() {
+      await this.$nextTick();
+      if (this.$refs.viewer != null)
+        this.viewer.reset(this.$refs.viewer as IViewer);
+    },
   }
 });
 

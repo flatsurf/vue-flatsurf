@@ -11,29 +11,29 @@ import Box from "@/geometry/Box";
 import Vector from "@/geometry/Vector";
 import Polygon from "@/geometry/Polygon";
 import panzoom from "@thesoulfresh/pan-zoom/lib/index.js";
-import Vue, { PropType } from "vue";
+import { defineComponent, PropType, shallowRef } from "vue";
 
-export default Vue.extend({
+export default defineComponent({
   name: "PanZoom",
 
   props: {
     coordinateSystem: {
-      type: CoordinateSystem as PropType<CoordinateSystem>,
+      type: CoordinateSystem as unknown as PropType<Readonly<CoordinateSystem>>,
       required: true
     },
 
-    value: {
+    modelValue: {
       type: Object as PropType<Box | Polygon | null>,
       required: true,
     }
   },
 
-  data(){
+  data() {
     return {
-      observer: new ResizeObserver(() => {
+      observer: shallowRef(new ResizeObserver(() => {
         // TypeScript support does not deduce the correct type of this here.
         (this as any).resize();
-      }),
+      })),
       unpanzoom: () => {},
       pan: false,
       viewport: null as Viewport | null,
@@ -48,12 +48,12 @@ export default Vue.extend({
   },
 
   watch: {
-    value(focus: Box | Polygon | null) {
+    modelValue(focus: Box | Polygon | null) {
       this.refocus(focus);
     },
 
     coordinateSystem() {
-      const focus = this.value == null ? null : this.coordinateSystem.embed(this.value);
+      const focus = this.modelValue == null ? null : this.coordinateSystem.embed(this.modelValue);
       this.cleanup();
       this.initialize();
       this.refocus(focus);
@@ -64,10 +64,10 @@ export default Vue.extend({
     this.unpanzoom = panzoom(this.$el, this.panzoom);
     this.observer.observe(this.container);
     this.initialize();
-    this.refocus(this.value);
+    this.refocus(this.modelValue);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.unpanzoom();
     this.observer.unobserve(this.container);
     this.cleanup();
@@ -97,7 +97,7 @@ export default Vue.extend({
         console.assert(JSON.stringify(focus) !== JSON.stringify(this.viewport.viewport), "Changing focus to %s did not modify viewport.", JSON.stringify(focus))
       }
 
-      if (this.value == null || changed()) {
+      if (this.modelValue == null || changed()) {
         this.$emit('input', this.viewport.viewport);
       }
     },

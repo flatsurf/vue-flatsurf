@@ -77,16 +77,18 @@ export default defineComponent({
     }
   },
 
-  data: () => ({
-    // The path constructed so far, given by the points on the path.
-    points: [] as PathPoint[],
+  data() {
+    return {
+      // The path constructed so far, given by the points on the path.
+      points: [] as PathPoint[],
 
-    // The point to be added to the path.
-    // For the purpose of previewing.
-    next: null as PathPoint | null,
+      // The point to be added to the path.
+      // For the purpose of previewing.
+      next: null as PathPoint | null,
 
-    editable: true
-  }),
+      editable: true
+    }
+  },
 
   computed: {
     // Return the segment to be added to the path.
@@ -357,11 +359,11 @@ export default defineComponent({
     async query(when: "now" | "completed" | "changed") {
       if (when === "completed") {
         while (this.editable === true)
-          await wait(this as unknown as Vue, "editable");
+          await wait(this as any, "editable");
       } else if (when === "changed") {
         if (this.editable === false)
           this.editable = true;
-        await wait(this as unknown as Vue, ["editable", "path"]);
+        await wait(this as any, ["editable", "path"]);
       }
       return this.points;
     }

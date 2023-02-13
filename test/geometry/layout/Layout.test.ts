@@ -32,7 +32,7 @@ import Edge from "@/flatsurf/Edge";
 chai.use(chaiEquals);
 
 describe("Layout Triangulation", () => {
-  const coordinateSystem = new CoordinateSystem(true);
+  const coordinateSystem = new CoordinateSystem(true, "Flatsurf Coordinate System");
   const torus = FlatTriangulation.parse({
     vertices: [[3, 2, -1, -3, -2, 1]],
     vectors: {
@@ -101,7 +101,7 @@ describe("Layout Triangulation", () => {
 });
 
 describe("Layout of a Disconnected Surface", () => {
-  const coordinateSystem = new CoordinateSystem(true);
+  const coordinateSystem = CoordinateSystem.make(true, "Flatsurf Coordinate System");
   const disconnected = FlatTriangulation.parse({
     vertices: [[1, -3, 2, -1, 3, -2], [4, -5, 6, -4, 5, -6]],
     vectors: {

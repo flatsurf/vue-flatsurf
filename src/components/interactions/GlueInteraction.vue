@@ -63,19 +63,21 @@ export default defineComponent({
     }
   },
 
-  data: () => ({
-    glued: {} as GlueSelection,
-    events: [] as Array<{
-    kind: "HOVER",
-    id: number,
-    halfEdge: HalfEdge,
-    at: number
-  } | {
-    kind: "GLUE",
-    id: number,
-    edge: Edge
-  }>
-  }),
+  data() {
+    return {
+      glued: {} as GlueSelection,
+      events: [] as Array<{
+      kind: "HOVER",
+      id: number,
+      halfEdge: HalfEdge,
+      at: number
+    } | {
+      kind: "GLUE",
+      id: number,
+      edge: Edge
+    }>
+    }
+  },
 
   computed: {
     halfEdges(): HalfEdge[] {

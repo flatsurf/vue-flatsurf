@@ -1,5 +1,6 @@
 <template>
   <div>
+  <!--
     <v-speed-dial v-model="showActions" top left fixed direction="bottom">
       <template v-slot:activator>
         <v-btn :color="showActions ? 'secondary' : 'primary'" fab small>
@@ -26,6 +27,7 @@
         </v-btn>
       </div>
     </v-speed-dial>
+    -->
   </div>
 </template>
 <script lang="ts">

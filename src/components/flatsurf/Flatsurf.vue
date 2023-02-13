@@ -1,5 +1,5 @@
 <template>
-  <svg v-on="$listeners">
+  <svg v-bind="$attrs">
     <slot name="background" />
     <slot name="triangulation">
       <flat-triangulation-component v-if="layout != null" :layout="layout" :svg="svgCoordinateSystem" :options="visualizationOptions">

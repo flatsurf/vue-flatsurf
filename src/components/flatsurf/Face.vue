@@ -6,9 +6,9 @@ import Point from "@/geometry/Point";
 
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Ngon from "@/components/svg/Ngon.vue";
-import Vue, { PropType } from "vue";
+import { defineComponent, PropType } from "vue";
 
-export default Vue.extend({
+export default defineComponent({
   components: { Ngon },
   name: "Face",
 

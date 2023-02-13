@@ -21,6 +21,8 @@ export default defineComponent({
   },
   name: "Layouter",
 
+  emits: ["layout"],
+
   props: {
     triangulation: {
       type: Object as PropType<FlatTriangulation>,
@@ -32,58 +34,57 @@ export default defineComponent({
       required: false,
       default: () => [],
     },
-
-    layout: {
-      type: Object as PropType<Layout | null>,
-      required: false,
-      default: null,
-    }
   },
 
   data() {
     return {
-      options: new LayoutOptions(),
-      effectiveLayout: null as Layout | null,
+      previous: null as Layout | null,
+      current: null as Layout | null,
       pendingRelayout: new CancellationToken()
     };
   },
 
-  watch: {
-    triangulation: {
-      immediate: true,
-
-      handler() {
-        this.effectiveLayout = this.layout;
-        this.relayout();
-      }
-    }
+  mounted() {
+    this.relayout();
   },
 
-  render(this: any) {
-    if (this.effectiveLayout != null && this.$scopedSlots.default != null) {
-      return this.$scopedSlots.default({
-        layout: this.effectiveLayout,
-        relayout: this.relayout,
-      });
+  watch: {
+    triangulation() {
+      throw Error("triangulation for layout must not change; make sure to use a :key to recreate the layouter when the surface changes");
+    },
+    automorphisms() {
+      throw Error("automorphisms for layout must not change; make sure to use a :key to recreate the layouter when the surface changes");
+    },
+  },
+
+  render() {
+    if (this.previous || this.current) {
+      if (this.$slots.default)
+        return this.$slots.default({
+          layout: this.current || this.previous,
+          relayout: this.relayout,
+          ready: this.current != null,
+        });
     }
   },
 
   methods: {
     async relayout(layoutOptions?: LayoutOptions): Promise<Layout> {
-      if (layoutOptions === undefined) {
-        if (this.effectiveLayout != null)
-          return this.effectiveLayout as Layout;
+      if (layoutOptions === undefined)
         layoutOptions = new LayoutOptions(() => null, this.automorphisms);
-      }
-
-      this.options = layoutOptions;
 
       this.pendingRelayout.abort();
+
+      if (this.current != null)
+        this.previous = this.current;
+
+      this.current = null;
+
       await (this as any).run(async (cancellation: CancellationToken, progress: Progress) => {
         this.pendingRelayout = cancellation;
         try {
-          this.effectiveLayout = await Layout.layout(this.triangulation, this.options as LayoutOptions, cancellation, progress);
-          this.$emit("layout", this.effectiveLayout);
+          this.current = await Layout.layout(this.triangulation, layoutOptions!, cancellation, progress);
+          this.$emit("layout", this.current);
         } catch (e) {
           if (e instanceof OperationAborted)
             return;
@@ -91,13 +92,13 @@ export default defineComponent({
         }
       });
 
-      return this.effectiveLayout! as Layout;
+      return this.current! as Layout;
     },
 
     async query(when: "now" | "changed") {
       if (when === "changed")
         await wait(this as any, "effectiveLayout");
-      return this.effectiveLayout;
+      return this.current;
     }
   }
 });

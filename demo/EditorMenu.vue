@@ -35,20 +35,22 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "EditorMenu",
 
-  data: () => ({
-    predefined: {
-      "Torus": Torus,
-      "Triangle (1, 1, 1)": Triangle_1_1_1,
-      "Triangle (1, 1, 3) with Marked Points": Triangle_1_1_3,
-      "Triangle (1, 1, 3) w/o Marked Points": Triangle_1_1_3_Without_Marked_Point,
-      "Triangle (1, 2, 2) with Marked Points": Triangle_1_2_2,
-      "Triangle (1, 2, 2) w/o Marked Points": Triangle_1_2_2_Without_Marked_Point,
-      "Triangle (1, 2, 5) with Marked Points": Triangle_1_2_5,
-      "Triangle (2, 3, 4)": Triangle_2_3_4,
-      "Disconnected Surface": Disconnected,
-      "Quadrilateral (1, 2, 2, 1) as a Raw Flatsurf String": Quadrilateral_1_2_2_1,
-    } as {[name: string]: string}
-  }),
+  data() {
+    return {
+      predefined: {
+        "Torus": Torus,
+        "Triangle (1, 1, 1)": Triangle_1_1_1,
+        "Triangle (1, 1, 3) with Marked Points": Triangle_1_1_3,
+        "Triangle (1, 1, 3) w/o Marked Points": Triangle_1_1_3_Without_Marked_Point,
+        "Triangle (1, 2, 2) with Marked Points": Triangle_1_2_2,
+        "Triangle (1, 2, 2) w/o Marked Points": Triangle_1_2_2_Without_Marked_Point,
+        "Triangle (1, 2, 5) with Marked Points": Triangle_1_2_5,
+        "Triangle (2, 3, 4)": Triangle_2_3_4,
+        "Disconnected Surface": Disconnected,
+        "Quadrilateral (1, 2, 2, 1) as a Raw Flatsurf String": Quadrilateral_1_2_2_1,
+      } as {[name: string]: string}
+    }
+  },
 
   computed: {
     selected: {

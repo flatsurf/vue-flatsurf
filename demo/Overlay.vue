@@ -26,12 +26,14 @@ export default defineComponent({
   props: {
     cancellation: {
       type: CancellationToken as PropType<CancellationToken | null>,
-      required: true
+      required: false,
+      default: null
     },
 
     progress: {
       type: Progress as PropType<Progress | null>,
-      required: true
+      required: false,
+      default: null
     }
   },
 

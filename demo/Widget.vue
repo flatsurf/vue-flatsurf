@@ -118,27 +118,29 @@ export default defineComponent({
 
   name: "Widget",
 
-  data: () => ({
-    showInnerEdges: true,
-    showOuterHalfEdges: true,
-    showOuterLabels: true,
-    showNumericLabels: false,
-    showFlowComponents: false,
-    showAnimations: true,
-    applyVertical: true,
+  data() {
+    return {
+      showInnerEdges: true,
+      showOuterHalfEdges: true,
+      showOuterLabels: true,
+      showNumericLabels: false,
+      showFlowComponents: false,
+      showAnimations: true,
+      applyVertical: true,
 
-    actions: [
-      {text: "None", value: null},
-      {text: "Change Layout", value: "glue"},
-      {text: "Draw Path", value: "path"},
-    ],
+      actions: [
+        {text: "None", value: null},
+        {text: "Change Layout", value: "glue"},
+        {text: "Draw Path", value: "path"},
+      ],
 
-    action: "glue",
-    info: "(none)",
-    queries: ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"],
-    query: 'Path',
-    parameters: "{1: true, 2: false}"
-  }),
+      action: "glue",
+      info: "(none)",
+      queries: ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"],
+      query: 'Path',
+      parameters: "{1: true, 2: false}"
+    };
+  },
 
   computed: {
     yaml(): any {

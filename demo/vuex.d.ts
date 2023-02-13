@@ -21,12 +21,9 @@
  * *****************************************************************************/
 
 import { Store } from 'vuex'
+import { type State } from "./store";
 
 declare module '@vue/runtime-core' {
-  interface State {
-    raw: string,
-  }
-
   interface ComponentCustomProperties {
     $store: Store<State>
   }

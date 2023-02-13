@@ -1,8 +1,8 @@
 <template>
-  <v-bottom-navigation color="primary" :value="$route.path" @change="(path) => $router.push({ path, query: $route.query })" fixed app>
+  <v-bottom-navigation color="primary" :value="$route.path" @update:modelValue="onChange" fixed app>
     <v-btn value="/edit">
       <span>Surface</span>
-      <v-badge :value="error != null" color="error" icon="mdi-error" overlap>
+      <v-badge :model-value="error != null" color="error" icon="mdi-error" overlap>
       <v-icon>mdi-layers</v-icon>
       </v-badge>
     </v-btn>
@@ -29,6 +29,12 @@ export default defineComponent({
   computed: {
     error() {
       return this.$store.state.error;
+    }
+  },
+
+  methods: {
+    onChange(path: string) {
+      this.$router.push({ path, query: this.$route.query });
     }
   }
 });

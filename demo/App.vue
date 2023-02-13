@@ -20,7 +20,7 @@ import OverlayComponent from "./Overlay.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import BottomNavigation from "./BottomNavigation.vue";
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   components: {
@@ -39,6 +39,21 @@ export default defineComponent({
       overlay: null as CancellationToken | null,
       progress: null as Progress | null
     };
+  },
+
+  props: {
+    surface: {
+      type: String as PropType<string>,
+    }
+  },
+
+  watch: {
+    surface: {
+      immediate: true,
+      handler(raw) {
+        this.$store.dispatch("reset", { raw });
+      }
+    },
   },
 
   provide: {

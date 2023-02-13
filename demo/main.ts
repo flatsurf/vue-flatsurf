@@ -20,12 +20,13 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import Vue, { VNode } from 'vue';
+import { createApp } from 'vue';
 import App from './App.vue';
-import Vuetify from 'vuetify/lib';
-import VueRouter from 'vue-router'
-import Vuex from 'vuex';
-import AsyncComputed from "vue-async-computed";
+import { createVuetify } from "vuetify";
+import * as components from "vuetify/components";
+import * as directives from "vuetify/directives";
+import { createWebHashHistory, createRouter} from 'vue-router'
+import { createStore } from 'vuex';
 import '@mdi/font/css/materialdesignicons.css'
 
 import routes from "./routes";
@@ -33,19 +34,18 @@ import store from "./store";
 
 import raw from "./2-3-4.txt?raw";
 
-Vue.config.productionTip = false;
+const app = createApp(App, {
+  surface: raw
+});
 
-Vue.use(Vuetify);
-Vue.use(VueRouter);
-Vue.use(Vuex);
-Vue.use(AsyncComputed);
+app.use(createRouter({
+  history: createWebHashHistory(),
+  routes,
+}));
+app.use(createVuetify({
+  components: { ...components },
+  directives,
+}));
+app.use(createStore(store));
 
-new Vue({
-    render: (h): VNode => h(App),
-    vuetify: new Vuetify({}),
-    router: new VueRouter({ routes }),
-    store: new Vuex.Store(store),
-    created() {
-      this.$store.dispatch("reset", { raw });
-    }
-}).$mount('#app');
+app.mount('#app');

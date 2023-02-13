@@ -25,7 +25,7 @@ Visualizes a Surface.
  | SOFTWARE.
  -->
 <template>
-  <layouter v-if="$store.state.triangulation != null" :triangulation="$store.state.triangulation" :layout="$store.state.layout" v-slot="{ layout, relayout }" @layout="layoutChanged">
+  <layouter v-if="$store.state.triangulation != null" :triangulation="$store.state.triangulation" v-slot="{ layout, relayout }" @layout="layoutChanged">
     <viewer-component class="surface" :triangulation="$store.state.triangulation" :flow-components="flowComponents" :layout="layout" :vertical="$store.state.vertical">
       <template v-slot:interaction="{ svg, triangulation, options, refocus, focus }">
         <triangulation-interaction :layout="layout" :options="options" :outer="show.includes('outer')" :inner="show.includes('triangulation')" />

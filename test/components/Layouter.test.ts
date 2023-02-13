@@ -21,23 +21,30 @@
  * *****************************************************************************/
 
 import { expect, describe, it } from "vitest"
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import Layouter from "@/components/Layouter";
+import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import {torus} from "@/../test/geometry/triangulation/FlatTriangulation.test";
-import Layout from "@/layout/Layout";
 
 describe("Layouter", () => {
   it("computes a layout", async () => {
-    const layouter = mount(Layouter, {
-      propsData: {
-        triangulation: FlatTriangulation.parse(torus, new CoordinateSystem(true)),
-      }
-    });
-    const layout: Layout = await new Promise((resolve) => {
-      layouter.vm.$on("layout", (layout: Layout) => resolve(layout))
-    });
+    const layout: Layout = await new Promise((resolve) =>
+      mount({
+        template: "<layouter :triangulation='triangulation' @layout='onLayout' />",
+        components: {Layouter},
+        data() {
+          return {
+            triangulation: FlatTriangulation.parse(torus, CoordinateSystem.make(true, "Flatsurf Coordinate System")),
+            onLayout: (layout: Layout) => {
+              resolve(layout)
+            }
+          };
+        },
+      })
+    );
+    
     expect(layout.triangulation.vertices.cycles).to.eql(torus.vertices);
   });
 });

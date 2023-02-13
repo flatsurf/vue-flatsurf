@@ -30,12 +30,12 @@ import Vector from "./Vector";
 
 export default class Viewport {
   public constructor(ideal?: CoordinateSystem, width: number = 640, height: number = 640) {
-    this.idealCoordinateSystem = ideal || new CoordinateSystem(true);
+    this.idealCoordinateSystem = ideal || CoordinateSystem.make(true, "Ideal Viewport Coordinate System");
     if (!this.idealCoordinateSystem.positive)
       throw new Error("ideal coordinate system must be positive");
     if (width === 0 || height === 0)
       throw new Error("cannot initialize viewport to be an empty box");
-    this.viewportCoordinateSystem = new CoordinateSystem(false);
+    this.viewportCoordinateSystem = CoordinateSystem.make(false, "Viewport Coordinate System");
     this.dimensions = { width, height };
     this.visible = new Box(this.viewportCoordinateSystem, [0, 0], [width, height]);
     this.focused = this.visible;
@@ -67,12 +67,12 @@ export default class Viewport {
     // We now need to embed the "ideal" coordinate system into the actual
     // "viewport" coordinate system so that the "visible" box fills the (0,
     // 0), (width, height) box.
-    this.token = Object.freeze(this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
+    this.token = this.idealCoordinateSystem.embedInto(this.viewportCoordinateSystem, new Flatten.Matrix(
       this.width / this.visible.width, 0,
       0, -this.height / this.visible.height,
       -this.visible.low.x * this.width / this.visible.width,
       this.visible.high.y * this.height / this.visible.height,
-    ), this.token));
+    ), this.token);
   }
 
   public zoom(factor: number, center?: Point) {
@@ -121,14 +121,14 @@ export default class Viewport {
   private dimensions: { width: number, height: number };
   // The underlying ideal coordinate system that is stable under resizing the
   // viewport, translating it and such.
-  public readonly idealCoordinateSystem: CoordinateSystem;
+  public readonly idealCoordinateSystem: Readonly<CoordinateSystem>;
   // Coordinates on screen, i.e., inside the viewport starting at (0, 0) in
   // the top-left corner.
-  public readonly viewportCoordinateSystem: CoordinateSystem;
+  public readonly viewportCoordinateSystem: Readonly<CoordinateSystem>;
   // The currently focused rectangle, centered in the viewport.
   private focused: Box;
   // The currently visible rectangle.
   private visible: Box;
 
-  private token?: Embedding | null;
+  private token?: Readonly<Embedding> | null;
 };

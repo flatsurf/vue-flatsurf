@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import Vue from "vue";
+import { reactive, unref, toRaw } from "vue";
 
 import Flatten from "@flatten-js/core";
 
@@ -64,11 +64,17 @@ export function inverse(A: Flatten.Matrix) {
 }
 
 export default class CoordinateSystem {
-  public constructor(positive: boolean) {
+  private constructor(positive: boolean, name: string) {
     this.positive = positive;
+    this.name = name;
+  }
+
+  public static make(positive: boolean, name: string): Readonly<CoordinateSystem> {
+    return Object.freeze(new CoordinateSystem(positive, name));
   }
 
   public readonly positive: boolean;
+  public readonly name: string;
 
   // Register an embedding from this coordinate system into `into`.
   // The returned embedding is a token that can be used to `reset()` the
@@ -76,6 +82,8 @@ export default class CoordinateSystem {
   public embedInto(into: CoordinateSystem, token?: Embedding): Embedding;
   public embedInto(into: CoordinateSystem, embedding: Flatten.Matrix, token?: Embedding): Embedding;
   public embedInto(into: CoordinateSystem, embedding?: Embedding | Flatten.Matrix, token?: Embedding): Embedding {
+    token = unref(token);
+
     if (embedding !== undefined) {
       if ("embedding" in embedding) {
         console.assert(token === undefined);
@@ -104,8 +112,9 @@ export default class CoordinateSystem {
     } else {
       if (token === undefined)
         console.warn("Expected a token when resetting embedding of coordinate systems but no token found.");
-      else if (token !== existing.embedding)
-        console.warn("Expected correct token when resetting embedding of coordinate systems but the token was not the one last returned when the embedding was established.");
+      else if (token !== existing.embedding) {
+        throw Error("Expected correct token when resetting embedding of coordinate systems but the token was not the one last returned when the embedding was established.");
+      }
     }
 
     if (existing == null) {
@@ -118,7 +127,7 @@ export default class CoordinateSystem {
 
     CoordinateSystem.update(existing!, embedding as Flatten.Matrix);
 
-    return existing.embedding;
+    return Object.freeze(existing.embedding);
   }
 
   public reset(token: Embedding) {
@@ -187,9 +196,9 @@ export default class CoordinateSystem {
       CoordinateSystem.registered.set(this, new Map());
     console.assert(!CoordinateSystem.registered.get(this)!.has(into));
     CoordinateSystem.registered.get(this)!.set(into, {
-      embedding: Vue.observable({
+      embedding: {
         embedding: Object.freeze(embedding),
-      }),
+      },
       dependents: [],
     });
   }
@@ -210,7 +219,7 @@ export default class CoordinateSystem {
     if (registered.embedding.embedding === null)
       throw Error("Cannot invalidate embedding if it is already invalidated.");
 
-    registered.embedding.embedding = null;
+    registered.embedding = {...registered.embedding, embedding: null };
 
     for (const {domain, codomain} of registered.dependents) {
       if (!CoordinateSystem.discovered.has(domain))
@@ -260,7 +269,7 @@ export default class CoordinateSystem {
             }
             dependency.dependents.push({ domain: this, codomain: into }); 
           }
-          const discovered = Vue.observable({
+          const discovered = reactive({
             embedding: Object.freeze(map)
           });
 
@@ -314,7 +323,7 @@ export default class CoordinateSystem {
       const embedding = search(this);
 
       if (embedding === null)
-        throw Error("No embedding could be constructed between these coordinate systems.");
+        throw Error(`No embedding could be constructed between ${this.name} and ${into.name}.`);
 
       console.assert(embedding.embedding !== null);
 
@@ -326,4 +335,3 @@ export default class CoordinateSystem {
     return discovered.embedding!;
   }
 }
-

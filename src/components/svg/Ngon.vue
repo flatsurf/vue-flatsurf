@@ -5,9 +5,9 @@
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Point from "@/geometry/Point";
 
-import Vue, { PropType } from "vue";
+import { defineComponent, PropType } from "vue";
 
-export default Vue.extend({
+export default defineComponent({
   name: "Ngon",
 
   props: {

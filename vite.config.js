@@ -1,23 +1,12 @@
 // vite.config.js
 import path from "path";
-import vue from '@vitejs/plugin-vue2'
-import Components from "unplugin-vue-components/vite";
-import { VuetifyResolver } from 'unplugin-vue-components/resolvers';
+import vue from '@vitejs/plugin-vue'
 
 const projectRoot = __dirname;
 
 export default {
   plugins: [
     vue(),
-    Components({
-      directives: false,
-      dts: true,
-      resolvers: [
-        VuetifyResolver(),
-      ],
-      // Do not auto-import anything but vuetify.
-      dirs: [],
-    }),
   ],
   resolve: {
     alias: {

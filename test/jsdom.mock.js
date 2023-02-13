@@ -1,5 +1,3 @@
-import { beforeAll } from "vitest";
+import { vi } from "vitest";
 
-beforeAll(() => {
-    global.ResizeObserver = require('resize-observer-polyfill');
-})
+vi.stubGlobal('ResizeObserver', require('resize-observer-polyfill'));

@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import type { Route } from "vue-router";
+import type { RouteRecordRaw, RouteLocation } from "vue-router";
 
 import Viewer from './Viewer.vue';
 import ViewerMenu from './ViewerMenu.vue';
@@ -31,7 +31,7 @@ import Widget from './Widget.vue';
 
 import castArray from "lodash-es/castArray";
 
-function viewerProps(route: Route) {
+function viewerProps(route: RouteLocation) {
   const props = {
     action: route.query.action || "glue",
     show: castArray(route.query.show || ["outer", "outer-labels", "triangulation"]),
@@ -39,7 +39,7 @@ function viewerProps(route: Route) {
   return props;
 }
 
-function exportProps(route: Route) {
+function exportProps(route: RouteLocation) {
   return {
     action: "view",
     show: castArray(route.query.show || ["outer", "outer-labels"]),
@@ -47,7 +47,6 @@ function exportProps(route: Route) {
 }
 
 const routes = [
-  { path: '/', redirect: '/view' },
   { path: '/view', components: {
       default: Viewer,
       menu: ViewerMenu,
@@ -72,7 +71,7 @@ const routes = [
       default: Widget,
     },
   },
-  { path: '*', redirect: '/view' },
-]
+  { path: '/pathMatch(.*)', redirect: '/view' },
+] as RouteRecordRaw[]
 
 export default routes;
