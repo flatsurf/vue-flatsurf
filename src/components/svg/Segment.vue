@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -23,47 +23,50 @@
   <line ref="line" class="segment" :class="{ animated }" :style="{'--length': length}" :x1="coords[0]" :y1="coords[1]" :x2="coords[2]" :y2="coords[3]" />
 </template>
 <script lang="ts">
-import { Component, Ref, Prop, Vue, Watch } from "vue-property-decorator";
-
 import Segmnt from "@/geometry/Segment";
+
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import { PropType, defineComponent } from "vue";
 
-@Component
-export default class Segment extends Vue {
-  @Prop({ required: true, type: Object }) segment!: Segmnt;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: false, type: Boolean, default: false}) animated!: boolean;
+export default defineComponent({
+  name: "Segment",
 
-  @Ref()
-  line!: SVGLineElement;
+  props: {
+    segment: {
+      type: Object as PropType<Segmnt>,
+      required: true
+    },
 
-  readonly onAnimationEnd = () => this.$emit("animationend");
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    },
 
-  @Watch("animated")
-  onAnimated() {
-    if (this.animated)
-      this.line.addEventListener("animationend", this.onAnimationEnd);
-    else
-      this.line.removeEventListener("animationend", this.onAnimationEnd);
-  }
+    animated: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: false
+    }
+  },
+
+  computed: {
+    // For performance reasons we compute all coordinates at once since this
+    // gets called a lot.
+    coords(): [number, number, number, number] {
+      const embedded = this.svg.embed(this.segment);
+      return [embedded.start.x, embedded.start.y, embedded.end.x, embedded.end.y];
+    },
+
+    length(): number {
+      const embedded = this.svg.embed(this.segment);
+      return embedded.length;
+    },
+  },
 
   mounted() {
-    this.onAnimated();
-  }
-
-  // For performance reasons we compute all coordinates at once since this
-  // gets called a lot.
-  get coords() {
-    const embedded = this.svg.embed(this.segment);
-    return [embedded.start.x, embedded.start.y, embedded.end.x, embedded.end.y];
-  }
-
-  get length() {
-    const embedded = this.svg.embed(this.segment);
-    return embedded.length;
-  }
-
-}
+    (this.$refs.line as Element).addEventListener("animationend", () => this.$emit('animationend'));
+  },
+});
 </script>
 <style lang="scss" scoped>
 .animated {

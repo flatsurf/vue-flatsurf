@@ -33,7 +33,7 @@ export default class Vertical {
 
   private constructor(vector: Vector) {
     this.vector = vector;
-    this.rotated = new CoordinateSystem(true);
+    this.rotated = CoordinateSystem.make(true, "Vertical Coordinate System");
     const angle = new Vector(this.vector.parent, 0, 1).angleTo(this.vector);
     this.rotated.embedInto(this.vector.parent, new Flatten.Matrix().rotate(-angle));
   }

@@ -1,3 +1,4 @@
-/dist
+dist
 /node_modules
 /rever
+/yarn-error.log

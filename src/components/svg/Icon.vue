@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,46 @@
   <path class="icon" :d="icon" :transform="transform" />
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import Point from "@/geometry/Point";
+
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class Segment extends Vue {
-  @Prop({ required: true, type: Object }) point!: Point;
-  @Prop({ required: true, type: String }) icon!: string;
-  @Prop({ required: true, type: Object }) svg!: CoordinateSystem;
+export default defineComponent({
+  name: "Segment",
 
-  // For performance reasons we compute all coordinates at once since this
-  // gets called a lot.
-  get coords() {
-    const embedded = this.svg.embed(this.point);
-    return [embedded.x, embedded.y];
+  props: {
+    point: {
+      type: Object as PropType<Point>,
+      required: true
+    },
+
+    icon: {
+      type: String as PropType<string>,
+      required: true
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    }
+  },
+
+  computed: {
+    // For performance reasons we compute all coordinates at once since this
+    // gets called a lot.
+    coords(): [number, number] {
+      const embedded = this.svg.embed(this.point);
+      return [embedded.x, embedded.y];
+    },
+
+    transform(): string {
+      const width = 20;
+      const height = 20;
+      return `translate(${this.coords[0] - width / 2} ${this.coords[1] - height / 2})`;
+    }
   }
-
-  get transform() {
-    const width = 20;
-    const height = 20;
-    return `translate(${this.coords[0] - width / 2} ${this.coords[1] - height / 2})`;
-  }
-}
+});
 </script>
 <style lang="scss" scoped>
 .icon {

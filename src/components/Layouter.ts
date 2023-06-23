@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,77 +20,107 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import { Component, Inject, Prop, Vue, Watch } from "vue-property-decorator";
-
 import wait from "@/wait";
 
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
+
 import Layout from "@/layout/Layout";
 import CancellationToken, {OperationAborted} from "@/CancellationToken";
 import Progress from "@/Progress";
 import LayoutOptions from "@/layout/LayoutOptions";
 import Automorphism from "@/flatsurf/Automorphism";
+import { PropType, defineComponent } from "vue";
 
 async function runSilently(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
   await callback(new CancellationToken(), new Progress());
 }
 
-@Component
-export default class Layouter extends Vue {
-  @Prop({ required: true, type: Object }) triangulation!: FlatTriangulation;
-  @Prop({ required: false, type: Array, default: () => [] }) automorphisms!: Automorphism[];
-  @Prop({ required: false, type: Object, default: null }) layout!: Layout | null;
+export default defineComponent({
+  inject: {
+    run: {
+      default: () => runSilently,
+    }
+  },
+  name: "Layouter",
 
-  options: LayoutOptions = new LayoutOptions();
-  effectiveLayout: Layout | null = null;
+  emits: ["layout"],
 
-  @Inject({ from: 'run', default: () => runSilently })
-  run!: (callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) => Promise<void>;
+  props: {
+    triangulation: {
+      type: Object as PropType<FlatTriangulation>,
+      required: true,
+    },
+
+    automorphisms: {
+      type: Array as PropType<Automorphism[]>,
+      required: false,
+      default: () => [],
+    },
+  },
+
+  data() {
+    return {
+      previous: null as Layout | null,
+      current: null as Layout | null,
+      pendingRelayout: new CancellationToken()
+    };
+  },
+
+  mounted() {
+    this.relayout();
+  },
+
+  watch: {
+    triangulation() {
+      throw Error("triangulation for layout must not change; make sure to use a :key to recreate the layouter when the surface changes");
+    },
+    automorphisms() {
+      throw Error("automorphisms for layout must not change; make sure to use a :key to recreate the layouter when the surface changes");
+    },
+  },
 
   render() {
-    if (this.effectiveLayout != null && this.$scopedSlots.default != null) {
-      return this.$scopedSlots.default({
-        layout: this.effectiveLayout,
-        relayout: this.relayout,
+    if (this.previous || this.current) {
+      if (this.$slots.default)
+        return this.$slots.default({
+          layout: this.current || this.previous,
+          relayout: this.relayout,
+          ready: this.current != null,
+        });
+    }
+  },
+
+  methods: {
+    async relayout(layoutOptions?: LayoutOptions): Promise<Layout> {
+      if (layoutOptions === undefined)
+        layoutOptions = new LayoutOptions(() => null, this.automorphisms);
+
+      this.pendingRelayout.abort();
+
+      if (this.current != null)
+        this.previous = this.current;
+
+      this.current = null;
+
+      await (this as any).run(async (cancellation: CancellationToken, progress: Progress) => {
+        this.pendingRelayout = cancellation;
+        try {
+          this.current = await Layout.layout(this.triangulation, layoutOptions!, cancellation, progress);
+          this.$emit("layout", this.current);
+        } catch (e) {
+          if (e instanceof OperationAborted)
+            return;
+          throw e;
+        }
       });
+
+      return this.current! as Layout;
+    },
+
+    async query(when: "now" | "changed") {
+      if (when === "changed")
+        await wait(this as any, "effectiveLayout");
+      return this.current;
     }
   }
-
-  private pendingRelayout = new CancellationToken();
-
-  async relayout(layoutOptions?: LayoutOptions): Promise<Layout> {
-    if (layoutOptions === undefined) {
-      if (this.effectiveLayout != null)
-        return this.effectiveLayout;
-      layoutOptions = new LayoutOptions(() => null, this.automorphisms);
-    }
-
-    this.options = layoutOptions;
-
-    this.pendingRelayout.abort();
-    await this.run(async (cancellation, progress) => {
-      this.pendingRelayout = cancellation;
-      try {
-        this.effectiveLayout = await Layout.layout(this.triangulation, this.options, cancellation, progress);
-      } catch (e) {
-        if (e instanceof OperationAborted) return;
-        throw e;
-      }
-    });
-
-    this.$emit("layout", this.effectiveLayout);
-    return this.effectiveLayout!;
-  }
-
-  @Watch("triangulation", { immediate: true })
-  onSurfaceChanged() {
-    this.effectiveLayout = this.layout;
-    this.relayout();
-  }
-
-  public async query(when: "now" | "changed") {
-    if (when === "changed")
-      await wait(this, "effectiveLayout");
-    return this.effectiveLayout;
-  }
-}
+});

@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -24,22 +24,39 @@
   <circle class="point" :cx="coords[0]" :cy="coords[1]" :r="radius || 30" />
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import Pont from "@/geometry/Point";
+
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class Point extends Vue {
-  @Prop({ required: true, type: Object }) point!: Pont;
-  @Prop({required: false, type: Number, default: null}) radius!: number | null;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
+export default defineComponent({
+  name: "Point",
 
-  // For performance reasons we compute all coordinates at once since this
-  // gets called a lot.
-  get coords() {
-    const embedded = this.svg.embed(this.point);
-    return [embedded.x, embedded.y];
+  props: {
+    point: {
+      type: Object as PropType<Pont>,
+      required: true
+    },
+
+    radius: {
+      type: Number as PropType<number | null>,
+      required: true,
+      default: () => ({})
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    }
+  },
+
+  computed: {
+    // For performance reasons we compute all coordinates at once since this
+    // gets called a lot.
+    coords(): [number, number] {
+      const embedded = this.svg.embed(this.point);
+      return [embedded.x, embedded.y];
+    }
   }
-}
+});
 </script>

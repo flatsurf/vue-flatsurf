@@ -1,3 +1,3 @@
-require('jsdom-global/register')
+import { vi } from "vitest";
 
-global.ResizeObserver = require('resize-observer-polyfill')
+vi.stubGlobal('ResizeObserver', require('resize-observer-polyfill'));

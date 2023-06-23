@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2023 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,25 +20,21 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import chai from "chai";
-import "chai/register-should";
-import chaiEquals from "../../chai-equal-to";
-
 import Permutation from "@/flatsurf/Permutation";
 
-chai.use(chaiEquals);
+import { describe, it, expect } from "vitest";
 
 describe("Permutation of Half Edges", () => {
   it("can be created from cycles", () => {
     const vertices = Permutation.fromCycles([ [3, 2, -1, -3, -2, 1] ]);
-    vertices.cycles.should.have.lengthOf(1);
+    expect(vertices.cycles).to.have.lengthOf(1);
 
-    vertices.image(3).should.equal(2);
-    vertices.preimage(3).should.equal(1);
+    expect(vertices.image(3)).to.equal(2);
+    expect(vertices.preimage(3)).to.equal(1);
   });
 
   it("detects illegal inputs", () => {
-    (() => { Permutation.fromCycles([ [1, 2, 1, 3] ]) }).should.throw();
-    (() => { Permutation.fromCycles([ [1], [2], [1, 2] ]) }).should.throw();
+    expect(() => { Permutation.fromCycles([ [1, 2, 1, 3] ]) }).to.throw();
+    expect(() => { Permutation.fromCycles([ [1], [2], [1, 2] ]) }).to.throw();
   });
 });

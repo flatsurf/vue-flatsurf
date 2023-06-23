@@ -1,5 +1,4 @@
-import Vue, { PluginFunction, VueConstructor } from 'vue';
-
+import { PluginFunction, VueConstructor } from 'vue';
 
 interface InstallFunction extends PluginFunction<any> {
   installed?: boolean;

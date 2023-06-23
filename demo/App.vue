@@ -1,10 +1,8 @@
 <!--
-
 A demo application that lets the user play with a YAML serialized surface.
-
 -->
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -24,60 +22,65 @@ A demo application that lets the user play with a YAML serialized surface.
  | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  | SOFTWARE.
  -->
-<template>
+ <template>
   <v-app>
     <v-main>
       <v-container class="container" fluid>
         <router-view />
       </v-container>
-      <overlay :cancellation="overlay" :progress="progress" />
+      <router-view name="menu" />
+      <overlay-component :cancellation="overlay" :progress="progress" />
     </v-main>
-    <router-view name="menu" />
     <bottom-navigation />
   </v-app>
 </template>
-<script lang="ts">
-import { Component, Provide, Vue } from "vue-property-decorator";
-
+<script setup lang="ts">
 import PanZoom from "@/components/PanZoom.vue";
+
 import Viewer from "@/components/Viewer.vue";
 import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
-import Overlay from "./Overlay.vue";
+import OverlayComponent from "./Overlay.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import BottomNavigation from "./BottomNavigation.vue";
+import { provide, watch, defineComponent, PropType, shallowRef } from "vue";
+import type { Ref } from "vue";
+import { useStore } from "vuex";
 
-@Component({
-  components: {
-    BottomNavigation,
-    Overlay,
-    PanZoom,
-    Viewer,
-    GlueInteraction,
-    PathInteraction
+const overlay = shallowRef(null) as Ref<CancellationToken | null>;
+const progress = shallowRef(null) as Ref<Progress | null>;
+
+const props = defineProps({
+  surface: {
+    type: String as PropType<string>,
   }
-})
-export default class App extends Vue {
-  overlay = null as CancellationToken | null;
-  progress = null as Progress | null;
+});
 
-  @Provide()
-  async run(callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>) {
+const store = useStore();
+
+watch(() => props.surface, (raw: string) => {
+    store.dispatch("reset", { raw });
+}, { immediate: true });
+
+provide("run", async (
+    callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>
+  ) => {
     // Any previous run is supposedly cancelled already so we can safely throw
     // away its cancellation and progress tokens.
     const cancellation = new CancellationToken();
-    this.overlay = cancellation;
-    this.progress = new Progress();
+    overlay.value = cancellation;
+    progress.value = new Progress();
     try {
-      await callback(this.overlay, this.progress);
+      await callback(overlay.value as CancellationToken, progress.value as Progress);
     } finally {
-      if (this.overlay === cancellation)
+      if (overlay.value === cancellation) {
         // We came here because this process completed. Remove the overlay.
-        this.overlay = null;
+        overlay.value = null;
+      }
     }
   }
-}
+)
 </script>
 <style scoped>
 .container {

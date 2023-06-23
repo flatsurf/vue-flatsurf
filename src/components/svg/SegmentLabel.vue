@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -25,31 +25,44 @@
 	</g>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
 import Segment from "@/geometry/Segment";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class HalfEdgeLabel extends Vue {
-	@Prop({required: true, type: Object}) at!: Segment;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
+export default defineComponent({
+    name: "HalfEdgeLabel",
 
-	get position() {
-		const midpoint = this.at.middle;
-		let normal = this.svg.embed(this.at.tangentInStart.rotate90CCW()).normalize();
-		return this.svg.embed(midpoint).translate(normal.multiply(12));
-	}
+    props: {
+        at: {
+            type: Object as PropType<Segment>,
+            required: true
+        },
 
-	get transformation() {
-		return `translate(${this.position.x} ${this.position.y}) translate(6 4)`;
-	}
-}
+        svg: {
+            type: Object as PropType<CoordinateSystem>,
+            required: true
+        }
+    },
+
+    computed: {
+        position(): {x: number, y: number} {
+            const midpoint = this.at.middle;
+            let normal = this.svg.embed(this.at.tangentInStart.rotate90CCW()).normalize();
+            return this.svg.embed(midpoint).translate(normal.multiply(12));
+        },
+
+        transformation(): string {
+            return `translate(${this.position.x} ${this.position.y}) translate(6 4)`;
+        }
+    }
+});
 </script>
 <style lang="scss" scoped>
 text {
-	font-size: 75%;
-  text-anchor: end;
-	font-weight: 700;
-  user-select: none;
+    font-size: small;
+    text-anchor: end;
+    font-weight: 600;
+    user-select: none;
+    font-family: monospace;
 }
 </style>

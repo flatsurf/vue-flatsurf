@@ -1,10 +1,8 @@
 <!--
-
   Displays a path on a surface.
-
 -->
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  |
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -39,11 +37,10 @@
   </g>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import flatten from "lodash-es/flatten";
 
 import PointComponent from "@/components/svg/Point.vue";
+
 import SegmentComponent from "@/components/svg/Segment.vue";
 import Segment from "@/geometry/Segment";
 import SaddleConnection from "@/flatsurf/SaddleConnection";
@@ -53,83 +50,110 @@ import Layout from "@/layout/Layout";
 import Line from "@/geometry/Line";
 import Vector from "@/geometry/Vector";
 import Point from "@/geometry/Point";
+import { PropType, defineComponent } from "vue";
 
-@Component({
+export default defineComponent({
   components: { PointComponent, SegmentComponent },
-})
-export default class PathComponent extends Vue {
-  @Prop({required: true}) path!: PathData | Array<Segment | SaddleConnection>;
-  @Prop({required: true}) layout!: Layout;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: false, type: Boolean, default: true }) animated!: boolean;
+  name: "PathComponent",
 
-  get segments(): Segment[] {
-    let connections = (this.path instanceof Array) ? this.path : this.path.connections;
-    return flatten(connections.map((connection) => {
-      if (connection instanceof Segment)
-        return [connection];
-      else
-        return this.toSegments(connection);
-    }));
-  }
+  props: {
+    path: {
+      type: [PathData, Array] as PropType<PathData | Array<Segment | SaddleConnection>>,
+      required: true
+    },
 
-  get controlPoints(): Point[] {
-    if (this.segments.length === 0)
-      return [];
+    layout: {
+      type: Object as PropType<Layout>,
+      required: true
+    },
 
-    const points = [this.segments[0].start];
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    },
 
-    for (const segment of this.segments) {
-      points.push(segment.end);
+    animated: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: false,
     }
+  },
 
-    return points;
-  }
+  data() {
+    return {
+      animation: 0,
+    }
+  },
 
-  animation = 0;
+  computed: {
+    segments(): Segment[] {
+      let connections = (this.path instanceof Array) ? this.path : this.path.connections;
+      return flatten(connections.map((connection) => {
+        if (connection instanceof Segment)
+          return [connection];
+        else
+          return this.toSegments(connection);
+      }));
+    },
 
-  onAnimationEnd() {
-    const next = (this.animation + 1) % this.segments.length;
-    this.animation = next;
-  }
+    controlPoints(): Point[] {
+      if (this.segments.length === 0)
+        return [];
 
-  toSegments(connection: SaddleConnection): Segment[] {
-    const segments = [];
+      const points = [this.segments[0].start];
 
-    const vector = connection.vector;
-    const crossings = [...connection.crossings];
-
-    let start = this.layout.layout(connection.source).segment.start;
-    const end = crossings.length > 0 ? this.layout.layout(connection.target).segment.start : this.layout.layout(connection.source).segment.end;
-
-    // TODO: Use at() instead of halfEdge() to construct the point of intersection. See https://github.com/flatsurf/vue-flatsurf/issues/35.
-    while(crossings.length) {
-		  const crossing = crossings.shift()!;
-      if (this.layout.layout(crossing.halfEdge).inner)
-        continue;
-
-      // Since we are crossing an outer half edge, we compute the intersection
-      // of the saddle connection ray with it and add it to segments.
-      const line = new Line(start, start.translate(vector));
-      const crossingEdge = this.layout.layout(crossing.halfEdge).segment;
-      const crossingLine = new Line(crossingEdge.start, crossingEdge.end);
-      const intersection = line.intersect(crossingLine);
-      if (intersection === null) {
-        throw Error("saddle connection must intersect every crossing");
+      for (const segment of this.segments) {
+        points.push(segment.end);
       }
-      segments.push(new Segment(start, intersection));
-		  
-      // Now, we move the intersection point to the corresponding half-edge
-      // and repeat.
-      const alongHalfEdge = new Vector(intersection.parent, this.layout.layout(crossing.halfEdge).segment.start, intersection as Point);
-      start = this.layout.layout(-crossing.halfEdge).segment.end.translate(alongHalfEdge);
-    }
 
-    segments.push(new Segment(start, end));
-    
-    return segments;
+      return points;
+    }
+  },
+
+  methods: {
+    onAnimationEnd() {
+      const next = (this.animation + 1) % this.segments.length;
+      this.animation = next;
+    },
+
+    toSegments(connection: SaddleConnection) {
+      const segments = [];
+
+      const vector = connection.vector;
+      const crossings = [...connection.crossings];
+
+      let start = this.layout.layout(connection.source).segment.start;
+      const end = crossings.length > 0 ? this.layout.layout(connection.target).segment.start : this.layout.layout(connection.source).segment.end;
+
+      // TODO: Use at() instead of halfEdge() to construct the point of intersection. See https://github.com/flatsurf/vue-flatsurf/issues/35.
+      while(crossings.length) {
+            const crossing = crossings.shift()!;
+        if (this.layout.layout(crossing.halfEdge).inner)
+          continue;
+
+        // Since we are crossing an outer half edge, we compute the intersection
+        // of the saddle connection ray with it and add it to segments.
+        const line = new Line(start, start.translate(vector));
+        const crossingEdge = this.layout.layout(crossing.halfEdge).segment;
+        const crossingLine = new Line(crossingEdge.start, crossingEdge.end);
+        const intersection = line.intersect(crossingLine);
+        if (intersection === null) {
+          throw Error("saddle connection must intersect every crossing");
+        }
+        segments.push(new Segment(start, intersection));
+            
+        // Now, we move the intersection point to the corresponding half-edge
+        // and repeat.
+        const alongHalfEdge = new Vector(intersection.parent, this.layout.layout(crossing.halfEdge).segment.start, intersection as Point);
+        start = this.layout.layout(-crossing.halfEdge).segment.end.translate(alongHalfEdge);
+      }
+
+      segments.push(new Segment(start, end));
+      
+      return segments;
+    }
   }
-}
+});
 </script>
 <style lang="scss">
 .Path {

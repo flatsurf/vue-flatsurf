@@ -427,8 +427,6 @@ export default class CellLayout {
 
       const unpackedSegment = unpackedCell.layout[unpackedHalfEdge].segment;
       const packedSegment = packedCell.layout[packedHalfEdge].segment.reverse();
-      console.log(packedSegment.tangentInStart.angleTo(unpackedSegment.tangentInStart));
-      console.log(`${unpackedHalfEdge} ${packedHalfEdge}`)
 
       // Move the cell such that the half edges touch in one point (typically, they will completely overlap then.)
       unpackedCell.translate(unpackedHalfEdge,

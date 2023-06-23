@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import type { Route } from "vue-router";
+import type { RouteRecordRaw, RouteLocation } from "vue-router";
 
 import Viewer from './Viewer.vue';
 import ViewerMenu from './ViewerMenu.vue';
@@ -31,14 +31,15 @@ import Widget from './Widget.vue';
 
 import castArray from "lodash-es/castArray";
 
-function viewerProps(route: Route) {
-  return {
+function viewerProps(route: RouteLocation) {
+  const props = {
     action: route.query.action || "glue",
     show: castArray(route.query.show || ["outer", "outer-labels", "triangulation"]),
   };
+  return props;
 }
 
-function exportProps(route: Route) {
+function exportProps(route: RouteLocation) {
   return {
     action: "view",
     show: castArray(route.query.show || ["outer", "outer-labels"]),
@@ -46,7 +47,6 @@ function exportProps(route: Route) {
 }
 
 const routes = [
-  { path: '/', redirect: '/view' },
   { path: '/view', components: {
       default: Viewer,
       menu: ViewerMenu,
@@ -71,7 +71,10 @@ const routes = [
       default: Widget,
     },
   },
-  { path: '*', redirect: '/view' },
-]
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/view'
+  },
+] as RouteRecordRaw[]
 
 export default routes;

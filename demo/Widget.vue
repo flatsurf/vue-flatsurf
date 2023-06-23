@@ -117,131 +117,136 @@
               <v-text-field class="parameters" label="Gluing" v-model="parameters" />
             </p>
             <p class="tiny" v-text="info" />
-            <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Refresh</v-btn></v-container>
+            <v-container class="text-right"><v-btn :loading="info === '…'" @click="performQuery">Query</v-btn></v-container>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 </template>
 <script lang="ts">
-import { Component, Ref, Vue, Watch } from "vue-property-decorator";
-
 import YAML from "yaml";
+
 import WidgetComponent from "@/components/Widget.vue";
 import type { FlatTriangulationSchema } from "@/flatsurf/FlatTriangulation";
 import type { FlowComponentSchema } from "@/flatsurf/FlowComponent";
 import type { VerticalSchema } from "@/flatsurf/Vertical";
+import { defineComponent } from "vue";
 
-@Component({
+export default defineComponent({
   components: {
     WidgetComponent,
   },
-})
-export default class Widget extends Vue {
-  showInnerEdges = true;
-  showOuterHalfEdges = true;
 
-  showOuterLabels = true;
-  showNumericLabels = false;
+  name: "Widget",
 
-  showFlowComponents = false;
+  data() {
+    return {
+      showInnerEdges: true,
+      showOuterHalfEdges: true,
+      showOuterLabels: true,
+      showNumericLabels: false,
+      showFlowComponents: false,
+      showAnimations: true,
+      applyVertical: true,
 
-  showAnimations = true;
+      actions: [
+        {text: "None", value: null},
+        {text: "Change Layout", value: "glue"},
+        {text: "Draw Path", value: "path"},
+      ],
 
-  applyVertical = true;
-
-  actions = [
-    {text: "None", value: null},
-    {text: "Change Layout", value: "glue"},
-    {text: "Draw Path", value: "path"},
-  ]
-
-  action = "glue";
-
-  info = "(none)";
-
-  queries = ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"];
-
-  query = 'Path'
-
-  parameters = "{1: true, 2: false}"
-
-  get yaml() {
-    return YAML.parse(this.$store.state.raw);
-  }
-
-  get triangulation() {
-    const schema: FlatTriangulationSchema = {
-      vertices: this.yaml.vertices,
-      vectors: this.yaml.vectors,
+      action: "glue",
+      info: "(none)",
+      queries: ["SVG", "Path", "Complete Path", "Path Change", "Layout", "Layout Change", "Glue", "Glue Change", "Force Gluing"],
+      query: 'Path',
+      parameters: "{1: true, 2: false}"
     };
-    return YAML.stringify(schema);
-  }
+  },
 
-  get flowComponents() {
-    if (!this.showFlowComponents)
-      return [];
+  computed: {
+    yaml(): any {
+      return YAML.parse(this.$store.state.raw);
+    },
 
-    const schema: FlowComponentSchema[] = this.yaml.components || [];
+    triangulation(): string {
+      const schema: FlatTriangulationSchema = {
+        vertices: this.yaml.vertices,
+        vectors: this.yaml.vectors,
+      };
+      return YAML.stringify(schema);
+    },
 
-    return schema.map((component) => YAML.stringify(component));
-  }
+    flowComponents(): string[] {
+      if (!this.showFlowComponents)
+        return [];
 
-  get vertical() {
-    if (this.yaml.vertical == null)
-      return null;
+      const schema: FlowComponentSchema[] = this.yaml.components || [];
 
-    if (!this.applyVertical)
-      return null;
+      return schema.map((component) => YAML.stringify(component));
+    },
 
-    const schema: VerticalSchema = this.yaml.vertical;
+    vertical(): string | null {
+      if (this.yaml.vertical == null)
+        return null;
 
-    return YAML.stringify(schema);
-  }
+      if (!this.applyVertical)
+        return null;
 
-  @Watch("query", {immediate: true})
-  onQueryChanged() {
-    this.info = "(none)";
-  }
+      const schema: VerticalSchema = this.yaml.vertical;
 
-  async performQuery() {
-    this.info = "…";
+      return YAML.stringify(schema);
+    },
+  },
 
-    const query = (() => {
-      if (this.query === "SVG")
-        return this.widget.svg();
-      if (this.query === 'Path')
-        return this.widget.path("now");
-      if (this.query === 'Complete Path')
-        return this.widget.path("completed");
-      if (this.query === 'Path Change')
-        return this.widget.path("changed");
-      if (this.query === 'Layout')
-        return this.widget.layout("now");
-      if (this.query === "Layout Change")
-        return this.widget.layout("changed");
-      if (this.query === "Glue")
-        return this.widget.glued("now");
-      if (this.query === "Glue Change")
-        return this.widget.glued("changed");
-      if (this.query === "Force Gluing")
-        return (async () => {
-          const glued = JSON.parse(this.parameters);
-          return await this.widget.glue(glued);
-        })();
-    })();
+  watch: {
+    query: {
+      immediate: true,
 
-    try {
-      const result = await query;
-      this.info = JSON.stringify(result);
-    } catch(e) {
-      this.info = e.message;
+      handler() {
+        this.info = "(none)";
+      }
+    }
+  },
+
+  methods: {
+    async performQuery() {
+      this.info = "…";
+
+      const query = (() => {
+        const widget = this.$refs.widget as any;
+
+        if (this.query === "SVG")
+          return widget.svg();
+        if (this.query === 'Path')
+          return widget.path("now");
+        if (this.query === 'Complete Path')
+          return widget.path("completed");
+        if (this.query === 'Path Change')
+          return widget.path("changed");
+        if (this.query === 'Layout')
+          return widget.layout("now");
+        if (this.query === "Layout Change")
+          return widget.layout("changed");
+        if (this.query === "Glue")
+          return widget.glued("now");
+        if (this.query === "Glue Change")
+          return widget.glued("changed");
+        if (this.query === "Force Gluing")
+          return (async () => {
+            const glued = JSON.parse(this.parameters);
+            return await widget.glue(glued);
+          })();
+      })();
+
+      try {
+        const result = await query;
+        this.info = JSON.stringify(result);
+      } catch(e: any) {
+        this.info = e.message;
+      }
     }
   }
-
-  @Ref()
-  readonly widget!: WidgetComponent;
-}
+});
 </script>
 <style scoped>
 .tiny {

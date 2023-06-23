@@ -38,8 +38,10 @@ const state = {
   flowComponents: null as null | FlowComponent[],
   automorphisms: null as null | Automorphism[],
   layout: null as null | Layout,
-  coordinateSystem: new CoordinateSystem(true),
+  coordinateSystem: CoordinateSystem.make(true, "Flatsurf Coordinate System"),
 };
+
+export type State = typeof state;
 
 const store: StoreOptions<typeof state> = {
   state,
@@ -60,7 +62,7 @@ const store: StoreOptions<typeof state> = {
           flowComponents,
           automorphisms,
         });
-      } catch (e) {
+      } catch (e: any) {
         commit('error', {message: e.message});
       }
     },
@@ -80,10 +82,10 @@ const store: StoreOptions<typeof state> = {
       automorphisms: Automorphism[],
     }) {
       state.raw = payload.raw;
-      state.triangulation = payload.triangulation;
-      state.vertical = payload.vertical;
-      state.flowComponents = payload.flowComponents;
-      state.automorphisms = payload.automorphisms;
+      state.triangulation = Object.freeze(payload.triangulation);
+      state.vertical = Object.freeze(payload.vertical);
+      state.flowComponents = Object.freeze(payload.flowComponents);
+      state.automorphisms = Object.freeze(payload.automorphisms);
       state.layout = null;
       state.error = null;
     },

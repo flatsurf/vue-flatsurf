@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -26,40 +26,53 @@
 	</g>
 </template>
 <script lang="ts">
-import { Prop, Vue, Component } from "vue-property-decorator";
 import Segment from "@/geometry/Segment";
 import Vector from "@/geometry/Vector";
+import Point from "@/geometry/Point";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class Arrow extends Vue {
-	@Prop({required: true, type: Object}) segment!: Segment;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
+export default defineComponent({
+  name: "Arrow",
 
-  get x1() {
-    return this.svg.embed(this.segment.start).x;
-  }
+  props: {
+    segment: {
+      type: Object as PropType<Segment>,
+      required: true
+    },
 
-  get y1() {
-    return this.svg.embed(this.segment.start).y;
-  }
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    }
+  },
 
-  get endWithoutHead() {
-    return this.svg.embed(this.segment.end).translate(this.svg.embed(this.segment.tangentInEnd).normalize().multiply(12));
-  }
+  computed: {
+    x1(): number {
+      return this.svg.embed(this.segment.start).x;
+    },
 
-  get x2() {
-    return this.svg.embed(this.endWithoutHead).x;
-  }
+    y1(): number {
+      return this.svg.embed(this.segment.start).y;
+    },
 
-  get y2() {
-    return this.svg.embed(this.endWithoutHead).y;
-  }
+    endWithoutHead(): Point {
+      return this.svg.embed(this.segment.end).translate(this.svg.embed(this.segment.tangentInEnd).normalize().multiply(12));
+    },
 
-	get atEnd() {
+    x2(): number {
+      return this.svg.embed(this.endWithoutHead).x;
+    },
+
+    y2(): number {
+      return this.svg.embed(this.endWithoutHead).y;
+    },
+
+    atEnd(): string {
     return `translate(${this.x2} ${this.y2}) rotate(${-this.svg.embed(this.segment).tangentInStart.angleTo(new Vector(this.svg.embed(this.segment).parent, 1, 0))*360 / (2*Math.PI)} 0 0)`;
 	}
-}
+  }
+});
 </script>
 <style scoped>
 path {

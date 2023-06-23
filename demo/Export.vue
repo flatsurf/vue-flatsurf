@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,14 @@
  | SOFTWARE.
  -->
 <template>
-  <layouter v-if="triangulation != null" :triangulation="triangulation" :layout="layout" v-slot="{ layout }" @layout="(l) => layout = l">
+  <layouter v-if="triangulation != null" :triangulation="triangulation" v-slot="{ layout }" @layout="onLayout">
     <v-row>
       <v-col class="col-md-4 col-12">
         <v-card>
           <v-card-text>
-            <v-subheader>Width</v-subheader>
+            <v-card-subtitle>Width</v-card-subtitle>
             <v-slider v-model="width" :min="32" :max="8192" thumb-label="always" />
-            <v-subheader>Height</v-subheader>
+            <v-card-subtitle>Height</v-card-subtitle>
             <v-slider v-model="height" :min="32" :max="8192" thumb-label="always" />
           </v-card-text>
         </v-card>
@@ -36,7 +36,6 @@
         <v-card v-if="layout != null && viewport != null">
           <v-card-title>
             <v-tabs v-model="tab" fixed-tabs >
-              <v-tabs-slider></v-tabs-slider>
               <v-tab class="primary--text" >
                 <v-icon>mdi-image</v-icon>
               </v-tab>
@@ -44,20 +43,21 @@
                 <v-icon>mdi-format-align-left</v-icon>
               </v-tab>
             </v-tabs>
-          </v-card-title>
+          </v-card-title> 
           <v-card-text>
-            <v-tabs-items v-model="tab">
-              <v-tab-item key="0">
+            <v-window v-model="tab">
+              <v-window-item value="0">
                 <v-card>
                   <v-img class="mx-auto" :src="`data:image/svg+xml;base64,${base64(svg)}`" :max-width="width" :max-height="height" />
                 </v-card>
-              </v-tab-item>
-              <v-tab-item key="1">
+              </v-window-item>
+              <v-window-item value="1">
                 <v-card flat>
                   <v-card-text class="export" v-text="svg"></v-card-text>
                 </v-card>
-              </v-tab-item>
-            </v-tabs-items>
+              </v-window-item>
+            </v-window>
+            <!-- render triangulation offscreen -->
             <triangulation-interaction :layout="layout" :options="options" :outer="show.includes('outer')" :inner="show.includes('triangulation')" />
             <label-interaction :layout="layout" :options="options" :outer="show.includes('outer-labels')" :numeric="show.includes('numeric-labels')" />
             <flatsurf class="render" ref="flatsurf" :triangulation="triangulation" :flow-components="flowComponents" :layout="layout" :viewportCoordinateSystem="viewport.viewportCoordinateSystem" :visualizationOptions="options" style="display: block" :style="{ 'width': `${width}px`, 'height': `${height}px` }" />
@@ -67,107 +67,91 @@
     </v-row>
   </layouter>
 </template>
-<script lang="ts">
-import { Component, Prop, Vue, Ref, Watch } from "vue-property-decorator";
-
-import AsyncComputed from 'vue-async-computed-decorator'
+<script setup lang="ts">
 import Flatsurf from "@/components/flatsurf/Flatsurf.vue";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Layouter from "@/components/Layouter";
+import Viewport from "@/geometry/Viewport";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import Vertical from "@/flatsurf/Vertical";
+import FlowComponent from "@/flatsurf/FlowComponent";
 import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import Viewport from "@/geometry/Viewport";
-import Vertical from "@/flatsurf/Vertical";
+import { computed, PropType, ref, watch, nextTick } from "vue";
+import type { Ref } from "vue";
+import { useStore } from "vuex";
+import { computedAsync } from "@vueuse/core";
 
-@Component({
-  components: {
-    Flatsurf,
-    TriangulationInteraction,
-    LabelInteraction,
-    Layouter,
-  },
+const props = defineProps({
+  show: {
+    type: Array as PropType<string[]>,
+    required: true
+  }
 })
-export default class Export extends Vue {
-  @Prop({ required: true, type: Array }) show!: string[];
 
-  tab = 0;
+const tab = ref(0);
+const options = ref(new VisualizationOptions());
+const width = ref(1024);
+const height = ref(1024);
+const viewport = ref(null) as Ref<Viewport | null>;
 
-  options = new VisualizationOptions();
+const flatsurf = ref();
 
-  width = 1024;
-  height = 1024;
+const store = useStore();
 
-  ready: string | null = null;
+const triangulation = computed(() => {
+  return store.state.triangulation as null | FlatTriangulation;
+});
 
-  viewport: Viewport | null = null;
+const vertical = computed(() => {
+  return store.state.vertical as Vertical | null
+});
 
-  @Ref()
-  readonly flatsurf!: Flatsurf;
+const svgCoordinateSystem = computed(() => {
+  if (viewport == null)
+    return null;
 
-  get layout() : Layout | null {
-    return this.$store.state.layout;
+  return viewport.value!.viewportCoordinateSystem as CoordinateSystem;
+});
+
+const flowComponents = computed(() => {
+  if (props.show.includes('flow-components'))
+    return store.state.flowComponents || [] as FlowComponent[]
+  return [];
+});
+
+
+watch(triangulation, () => {
+  if (triangulation != null) {
+    viewport.value = new Viewport(vertical.value!.coordinateSystem);
   }
+}, { immediate: true });
 
-  set layout(layout: Layout | null) {
-    if (this.layout !== layout)
-      this.$store.commit('layout', { layout });
-  }
 
-  get triangulation() : FlatTriangulation | null {
-    return this.$store.state.triangulation;
-  }
-
-  get vertical() : Vertical | null {
-    return this.$store.state.vertical;
-  }
-
-  get svgCoordinateSystem(): CoordinateSystem | null {
-    if (this.viewport == null)
-      return null;
-    if (this.layout == null)
-      return null;
-
-    this.viewport.focus(this.layout.hull);
-
-    return this.viewport.viewportCoordinateSystem;
-  }
-
-  base64(data: string) {
-    return btoa(unescape(encodeURIComponent(data)));
-  }
-
-  get flowComponents() {
-    if (this.show.includes('flow-components'))
-      return this.$store.state.flowComponents;
-    return [];
-  }
-
-  @AsyncComputed({default: "…"})
-  async svg() {
-    if (this.viewport == null)
+const svg = computedAsync(
+  async () => {
+    if (viewport.value == null)
       return "…";
 
-    if (this.layout == null)
-      return "…";
+    viewport.value!.resize(width.value, height.value);
 
-    this.viewport.resize(this.width, this.height);
-    this.viewport.focus(this.layout.hull);
+    await nextTick();
 
-    await this.$nextTick();
+    return await (flatsurf.value as any).svg();
+  },
+);
 
-    return await this.flatsurf.svg();
-  }
+function base64(data: string) {
+  return btoa(unescape(encodeURIComponent(data)));
+};
 
-  @Watch("triangulation", { immediate: true })
-  onTriangulationChange() {
-    if (this.triangulation != null) {
-      this.viewport = new Viewport(this.vertical!.coordinateSystem);
-    }
-  }
-}
+function onLayout(layout: Layout) {
+  if (viewport == null)
+    throw Error("viewport must have been created when layout is computed");
+  viewport.value!.focus(layout.hull);
+};
 </script>
 <style scoped>
 .export { 

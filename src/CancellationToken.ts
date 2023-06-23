@@ -25,19 +25,27 @@ export class OperationAborted extends Error {}
 export default class CancellationToken {
   public cancellationRequested() {
     return new Promise<boolean>((resolve, reject) => {
-      if (this.aborted) reject(new OperationAborted());
-      setTimeout(() => resolve(this.cancelled), 0);
+      if (this._aborted) reject(new OperationAborted());
+      setTimeout(() => resolve(this._cancelled), 0);
     });
   }
 
   public cancel() {
-    this.cancelled = true;
+    this._cancelled = true;
   }
 
   public abort() {
-    this.aborted = true;
+    this._aborted = true;
   }
 
-  private cancelled = false;
-  private aborted = false;
+  private _cancelled = false;
+  private _aborted = false;
+
+  public get cancelled() {
+    return this._cancelled;
+  }
+
+  public get aborted() {
+    return this._aborted;
+  }
 }

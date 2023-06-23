@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,38 @@
   <icon :icon="icon" :point="center" :svg="svg" />
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import Segment from "@/geometry/Segment";
+
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Icon from "@/components/svg/Icon.vue";
+import Point from "@/geometry/Point";
+import { PropType, defineComponent } from "vue";
 
-@Component({
+export default defineComponent({
   components: { Icon },
-})
-export default class SegmentIcon extends Vue {
-  @Prop({ required: true, type: Object }) segment!: Segment;
-  @Prop({ required: true, type: String }) icon!: string;
-  @Prop({ required: true, type: Object }) svg!: CoordinateSystem;
+  name: "SegmentIcon",
 
-  get center() {
-    return this.segment.middle;
+  props: {
+    segment: {
+      type: Object as PropType<Segment>,
+      required: true
+    },
+
+    icon: {
+      type: String as PropType<string>,
+      required: true
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    }
+  },
+
+  computed: {
+    center(): Point {
+      return this.segment.middle;
+    }
   }
-}
+});
 </script>

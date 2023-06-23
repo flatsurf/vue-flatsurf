@@ -20,8 +20,6 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import Vue from "vue";
-
 import castArray from "lodash-es/castArray";
 
 // Watch all expressions on vm and return once one of them changes.

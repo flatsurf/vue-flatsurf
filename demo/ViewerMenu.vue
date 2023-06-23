@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -20,76 +20,93 @@
  | SOFTWARE.
  -->
 <template>
-  <div>
-    <v-speed-dial v-model="showActions" top left fixed direction="bottom">
-      <template v-slot:activator>
-        <v-btn :color="showActions ? 'secondary' : 'primary'" fab small>
-          <v-icon v-if="showActions">mdi-close</v-icon>
-          <v-icon v-else>{{ actions[action] }}</v-icon>
-        </v-btn>
-      </template>
-      <div v-for="[action, icon] of Object.entries(actions)" :key="action" >
-        <v-btn @click="goto(action)" color="primary" small fab>
-          <v-icon>{{ icon }}</v-icon>
-        </v-btn>
-      </div>
-    </v-speed-dial>
-    <v-speed-dial v-model="showParts" top right fixed direction="bottom">
-      <template v-slot:activator>
-        <v-btn :color="showParts ? 'secondary' : 'primary'" fab small>
-          <v-icon v-if="showParts">mdi-close</v-icon>
-          <v-icon v-else>mdi-eye</v-icon>
-        </v-btn>
-      </template>
-      <div v-for="[part, icon] of Object.entries(parts)" :key="part" >
-        <v-btn @click="goto(undefined, part)" :color="show.includes(part) ? 'primary' : 'secondary'" small fab>
-          <v-icon>{{ icon }}</v-icon>
-        </v-btn>
-      </div>
-    </v-speed-dial>
+  <div class="menu">
+    <v-container>
+      <v-row v-for="[action, icon] of Object.entries(actions)" :key="action" >
+        <div class="ma-1">
+          <v-btn @click="goto(action)" :icon="icon" color="primary" size="small" elevation="8"/>
+        </div>
+      </v-row>
+    </v-container>
+  </div>
+  <div class="menu">
+    <v-container>
+      <v-row v-for="[part, icon] of Object.entries(parts)" :key="part" justify="end">
+        <div class="ma-1">
+          <v-btn @click="goto(undefined, part)" :color="show.includes(part) ? 'primary' : 'secondary'" small fab elevation="8" :icon="icon" size="small"/>
+        </div>
+      </v-row>
+    </v-container>
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class ViewerMenu extends Vue {
-  showActions = false;
-  showParts = false;
+export default defineComponent({
+  name: "ViewerMenu",
 
-  @Prop({ required: true, type: String }) action!: string;
-  @Prop({ required: true, type: Array }) show!: string[];
+  props: {
+    action: {
+      type: String as PropType<"glue" | "path" | "view">,
+      required: true
+    },
 
-  actions = {
-    'glue': 'mdi-link-variant',
-    'path': 'mdi-map-marker-path',
-    'view': 'mdi-hand-back-right-outline',
-  }
-
-  parts = {
-    'outer': 'mdi-border-all-variant',
-    'triangulation': 'mdi-triforce',
-    'flow-components': 'mdi-waves-arrow-up',
-    'numeric-labels': 'mdi-numeric',
-    'outer-labels': 'mdi-alphabetical',
-  }
-
-  goto(action?: string, part?: string) {
-    let show = [...this.show];
-    if (part != null) {
-      if (show.includes(part))
-        show = show.filter((p) => p != part);
-      else
-        show.push(part);
+    show: {
+      type: Array as PropType<string[]>,
+      required: true
     }
-      
-    this.$router.replace({
-      path: this.$route.path,
-      query: {
-        ...this.$route.query,
-        action: action || this.action,
-        show
-      }})
+  },
+
+  data() {
+    return {
+      showActions: true,
+      showParts: false,
+
+      actions: {
+        'glue': 'mdi-link-variant',
+        'path': 'mdi-map-marker-path',
+        'view': 'mdi-hand-back-right-outline',
+      },
+
+      parts: {
+        'outer': 'mdi-border-all-variant',
+        'triangulation': 'mdi-triforce',
+        'flow-components': 'mdi-waves-arrow-up',
+        'numeric-labels': 'mdi-numeric',
+        'outer-labels': 'mdi-alphabetical',
+      }
+    };
+  },
+
+  methods: {
+    goto(action?: string, part?: string) {
+      let show = [...this.show];
+      if (part != null) {
+        if (show.includes(part))
+          show = show.filter((p) => p != part);
+        else
+          show.push(part);
+      }
+        
+      this.$router.replace({
+        path: this.$route.path,
+        query: {
+          ...this.$route.query,
+          action: action || this.action,
+          show
+        }})
+    }
   }
-}
+});
 </script>
+<style scoped>
+.menu {
+  position: absolute;
+  top: 0px;
+  padding: 1ex;
+}
+
+.menu ~ .menu {
+  right: 0px;
+}
+</style>

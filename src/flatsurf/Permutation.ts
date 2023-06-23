@@ -46,9 +46,9 @@ export default class Permutation<T> {
     this.inverse = {};
 
     for (let entry of mapping) {
-      if (entry[0] in this.mapping)
+      if ((entry[0] as any) in this.mapping)
         throw Error(`${entry} specified more than once in mapping domain`);
-      if (entry[1] in this.inverse)
+      if ((entry[1] as any) in this.inverse)
         throw Error(`${entry} specified more than once in mapping codomain`);
       this.mapping[String(entry[0])] = entry[1];
       this.inverse[String(entry[1])] = entry[0];

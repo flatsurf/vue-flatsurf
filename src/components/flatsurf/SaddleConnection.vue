@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,41 @@
 </template>
 <script lang="ts">
 import Layout from '@/layout/Layout';
-import { Vue, Component, Prop } from "vue-property-decorator";
 import SaddleConnectionData from "@/flatsurf/SaddleConnection";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import PathComponent from "@/components/flatsurf/Path.vue";
+import { defineComponent, PropType } from "vue";
 
-@Component({
+export default defineComponent({
   components: {
     PathComponent,
+  },
+
+  name: "SaddleConnection",
+
+  props: {
+    connection: {
+      type: Object as PropType<SaddleConnectionData>,
+      required: true
+    },
+
+    layout: {
+      type: Object as PropType<Layout>,
+      required: true
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    },
+
+    animated: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: false
+    }
   }
-})
-export default class SaddleConnection extends Vue {
-  @Prop({ required: true }) connection!: SaddleConnectionData;
-  @Prop({ required: true }) layout!: Layout;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-  @Prop({required: false, default: false, type: Boolean}) animated!: boolean;
-}
+});
 </script>
 <style>
 .SaddleConnection {

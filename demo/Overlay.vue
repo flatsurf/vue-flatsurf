@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  | SOFTWARE.
  -->
 <template>
-  <v-overlay class="loading-overlay" :opacity=".2" v-if="cancellation != null && visible" :z-index="0">
+  <v-overlay class="align-center justify-center" :opacity=".2" :model-value="visible" :z-index="0">
     <v-container>
       <v-row>
         <v-col>
@@ -30,52 +30,75 @@
       </v-row>
       <v-row>
         <v-col>
-          <v-btn color="error" dark :disabled="cancellation.cancelled" @click="() => cancellation.cancel()">Cancel</v-btn>
+          <v-btn color="error" dark :disabled="cancellation ? cancellation.cancelled : true" @click="() => cancellation!.cancel()">Cancel</v-btn>
         </v-col>
       </v-row>
     </v-container>
   </v-overlay>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import CancellationToken from "../src/CancellationToken";
-import Progress from "../src/Progress";
+import CancellationToken from "@/CancellationToken";
+import Progress from "@/Progress";
+import { defineComponent, PropType } from "vue";
 
-@Component
-export default class Overlay extends Vue {
-  @Prop({required: true}) cancellation!: CancellationToken | null;
-  @Prop({required: true}) progress!: Progress | null;
+export default defineComponent({
+  name: "Overlay",
 
-  visible = false;
+  props: {
+    cancellation: {
+      type: CancellationToken as PropType<CancellationToken | null>,
+      required: false,
+      default: null
+    },
 
-  @Watch("cancellation", {immediate: true})
-  onCancellation(value: CancellationToken) {
-    if (value == null)
-      this.visible = false;
-    else
-      setTimeout(() => {
-        if (this.cancellation === value)
-          this.visible = true
-      }, 150);
+    progress: {
+      type: Progress as PropType<Progress | null>,
+      required: false,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      visible: false
+    };
+  },
+
+  computed: {
+    name(): string {
+      return this.progress!.stats.name;
+    },
+
+    value(): number | null {
+      if (this.progress!.stats.step == null || this.progress!.stats.steps == null)
+        return null;
+      return this.progress!.stats.step / this.progress!.stats.steps * 100;
+    },
+  },
+
+  watch: {
+    cancellation: {
+      immediate: true,
+
+      handler(value: CancellationToken) {
+        if (value == null)
+          this.visible = false;
+        else
+          setTimeout(() => {
+            if (this.cancellation === value)
+              this.visible = true
+          }, 150);
+      }
+    }
   }
-
-  get name() {
-    return this.progress!.stats.name;
-  }
-
-  get value() : number | null {
-    if (this.progress!.stats.step == null || this.progress!.stats.steps == null)
-      return null;
-    return this.progress!.stats.step / this.progress!.stats.steps * 100;
-  }
-}
+});
 </script>
 <style scoped>
 .container {
   text-align: center;
 }
 
-.container::v-deep .v-progress-circular__overlay {
+.container:deep(.v-progress-circular__overlay) {
   transition: all 0.1s ease-in-out;
 }
 </style>

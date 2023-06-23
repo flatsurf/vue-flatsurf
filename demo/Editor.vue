@@ -1,10 +1,8 @@
 <!--
-
 Edit raw YAML data defining a surface.
-
 -->
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -25,33 +23,31 @@ Edit raw YAML data defining a surface.
  | SOFTWARE.
  -->
 <template>
-    <!--
-    <v-toolbar dark cards :color="error ? 'red' : 'green'">
-      <v-btn icon dark @click="editor = false"><v-icon>mdi-arrow-left</v-icon></v-btn>
-      <v-card-title>Flat Triangulation Data</v-card-title>
-    </v-toolbar>
-    -->
     <v-card>
-      <v-textarea class="editor" label="Surface Description (YAML)" :error-messages="error" v-model="raw" filled :rows="raw.split('\n').length" />
+      <v-textarea class="editor" label="Surface Description (YAML)" :error-messages="message" v-model="raw" filled :rows="raw.split('\n').length" />
     </v-card>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class Editor extends Vue {
-  get error() {
-    return this.$store.state.error;
-  }
+export default defineComponent({
+  name: "Editor",
 
-  get raw() {
-    return this.$store.state.raw;
-  }
+  computed: {
+    message() {
+      return this.$store.state.error || '';
+    },
 
-  set raw(raw: string) {
-    this.$store.dispatch("reset", {raw});
+    raw: {
+      get() {
+        return this.$store.state.raw;
+      },
+      set(raw: string) {
+        this.$store.dispatch('reset', { raw });
+      },
+    }
   }
-}
+});
 </script>
 <style scoped>
 .editor {

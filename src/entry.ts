@@ -61,6 +61,7 @@ if ('false' === process.env.ES_BUILD) {
     (GlobalVue as typeof _Vue).use(plugin);
   }
 }
+
 // Default export is library as a whole, registered via Vue.use()
 export default plugin;
 

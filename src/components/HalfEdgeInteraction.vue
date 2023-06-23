@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +25,41 @@
   </g>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import HalfEdge from "@/flatsurf/HalfEdge";
+
 import Layout from "@/layout/Layout";
 import SegmentComponent from "./svg/Segment.vue";
 import CoordinateSystem from "@/geometry/CoordinateSystem";
+import Segment from "@/geometry/Segment";
+import { defineComponent, PropType } from "vue";
 
-@Component({
+export default defineComponent({
   components: { SegmentComponent },
-})
-export default class HalFEdgeInteraction extends Vue {
-  @Prop({required: true, type: Object}) layout!: Layout;
-  @Prop({required: true, type: Number}) halfEdge!: HalfEdge;
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
+  name: "HalFEdgeInteraction",
 
-  get segment() {
-    return this.layout.layout(this.halfEdge).segment;
+  props: {
+    layout: {
+      type: Object as PropType<Layout>,
+      required: true
+    },
+
+    halfEdge: {
+      type: Number as PropType<HalfEdge>,
+      required: true
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    }
+  },
+
+  computed: {
+    segment(): Segment {
+      return this.layout.layout(this.halfEdge).segment;
+    }
   }
-}
+});
 </script>
 <style lang="scss" scoped>
 .interaction * {

@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,28 @@
   <ngon :vertices="vertices" :svg="svg" />
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
 import Point from "@/geometry/Point";
+
 import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Ngon from "@/components/svg/Ngon.vue";
+import { defineComponent, PropType } from "vue";
 
-@Component({
-  components: { Ngon }
-})
-export default class Face extends Vue {
-  @Prop({ required: true, type: Array }) vertices!: Point[];
-  @Prop({required: true, type: Object}) svg!: CoordinateSystem;
-}
+export default defineComponent({
+  components: { Ngon },
+  name: "Face",
+
+  props: {
+    vertices: {
+      type: Array as PropType<Point[]>,
+      required: true
+    },
+
+    svg: {
+      type: Object as PropType<CoordinateSystem>,
+      required: true
+    }
+  }
+});
 </script>
 <style lang="scss" scoped>
 polygon {

@@ -1,5 +1,5 @@
 <!--
- | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
  | of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,10 @@
  | SOFTWARE.
  -->
 <template>
-  <v-bottom-navigation color="primary" :value="$route.path" @change="(path) => $router.push({ path, query: $route.query })" fixed app>
+  <v-bottom-navigation :value="$route.path" @update:modelValue="onChange">
     <v-btn value="/edit">
       <span>Surface</span>
-      <v-badge :value="error != null" color="error" icon="mdi-error" overlap>
+      <v-badge :model-value="error != null" color="error" icon="mdi-error" overlap>
       <v-icon>mdi-layers</v-icon>
       </v-badge>
     </v-btn>
@@ -42,12 +42,21 @@
   </v-bottom-navigation>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class BottomNavigation extends Vue {
-  get error() {
-    return this.$store.state.error;
+export default defineComponent({
+  name: "BottomNavigation",
+
+  computed: {
+    error() {
+      return this.$store.state.error;
+    }
+  },
+
+  methods: {
+    onChange(path: string) {
+      this.$router.push({ path, query: this.$route.query });
+    }
   }
-}
+});
 </script>
