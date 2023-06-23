@@ -1,5 +1,5 @@
 <template>
-  <v-overlay class="loading-overlay" :opacity=".2" v-if="cancellation != null && visible" :z-index="0">
+  <v-overlay class="align-center justify-center" :opacity=".2" :model-value="visible" :z-index="0">
     <v-container>
       <v-row>
         <v-col>
@@ -9,7 +9,7 @@
       </v-row>
       <v-row>
         <v-col>
-          <v-btn color="error" dark :disabled="cancellation.cancelled" @click="() => cancellation.cancel()">Cancel</v-btn>
+          <v-btn color="error" dark :disabled="cancellation ? cancellation.cancelled : true" @click="() => cancellation!.cancel()">Cancel</v-btn>
         </v-col>
       </v-row>
     </v-container>
@@ -52,7 +52,7 @@ export default defineComponent({
       if (this.progress!.stats.step == null || this.progress!.stats.steps == null)
         return null;
       return this.progress!.stats.step / this.progress!.stats.steps * 100;
-    }
+    },
   },
 
   watch: {
@@ -77,7 +77,7 @@ export default defineComponent({
   text-align: center;
 }
 
-.container::v-deep .v-progress-circular__overlay {
+.container:deep(.v-progress-circular__overlay) {
   transition: all 0.1s ease-in-out;
 }
 </style>

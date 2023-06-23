@@ -1,4 +1,28 @@
-<template>
+<!--
+A demo application that lets the user play with a YAML serialized surface.
+-->
+<!--
+ | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
+ | 
+ | Permission is hereby granted, free of charge, to any person obtaining a copy
+ | of this software and associated documentation files (the "Software"), to deal
+ | in the Software without restriction, including without limitation the rights
+ | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ | copies of the Software, and to permit persons to whom the Software is
+ | furnished to do so, subject to the following conditions:
+ | 
+ | The above copyright notice and this permission notice shall be included in all
+ | copies or substantial portions of the Software.
+ | 
+ | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ | AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ | LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ | OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ | SOFTWARE.
+ -->
+ <template>
   <v-app>
     <v-main>
       <v-container class="container" fluid>
@@ -10,7 +34,7 @@
     <bottom-navigation />
   </v-app>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import PanZoom from "@/components/PanZoom.vue";
 
 import Viewer from "@/components/Viewer.vue";
@@ -20,61 +44,43 @@ import OverlayComponent from "./Overlay.vue";
 import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
 import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import BottomNavigation from "./BottomNavigation.vue";
-import { defineComponent, PropType } from "vue";
+import { provide, watch, defineComponent, PropType, shallowRef } from "vue";
+import type { Ref } from "vue";
+import { useStore } from "vuex";
 
-export default defineComponent({
-  components: {
-    BottomNavigation,
-    OverlayComponent,
-    PanZoom,
-    Viewer,
-    GlueInteraction,
-    PathInteraction
-  },
+const overlay = shallowRef(null) as Ref<CancellationToken | null>;
+const progress = shallowRef(null) as Ref<Progress | null>;
 
-  name: "App",
+const props = defineProps({
+  surface: {
+    type: String as PropType<string>,
+  }
+});
 
-  data(){
-    return {
-      overlay: null as CancellationToken | null,
-      progress: null as Progress | null
-    };
-  },
+const store = useStore();
 
-  props: {
-    surface: {
-      type: String as PropType<string>,
-    }
-  },
+watch(() => props.surface, (raw: string) => {
+    store.dispatch("reset", { raw });
+}, { immediate: true });
 
-  watch: {
-    surface: {
-      immediate: true,
-      handler(raw) {
-        this.$store.dispatch("reset", { raw });
-      }
-    },
-  },
-
-  provide: {
-    async run(
-      callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>
-    ) {
-      // Any previous run is supposedly cancelled already so we can safely throw
-      // away its cancellation and progress tokens.
-      const cancellation = new CancellationToken();
-      this.overlay = cancellation;
-      this.progress = new Progress();
-      try {
-        await callback(this.overlay as CancellationToken, this.progress as Progress);
-      } finally {
-        if (this.overlay === cancellation)
-          // We came here because this process completed. Remove the overlay.
-          this.overlay = null;
+provide("run", async (
+    callback: (cancellation: CancellationToken, progress: Progress) => Promise<void>
+  ) => {
+    // Any previous run is supposedly cancelled already so we can safely throw
+    // away its cancellation and progress tokens.
+    const cancellation = new CancellationToken();
+    overlay.value = cancellation;
+    progress.value = new Progress();
+    try {
+      await callback(overlay.value as CancellationToken, progress.value as Progress);
+    } finally {
+      if (overlay.value === cancellation) {
+        // We came here because this process completed. Remove the overlay.
+        overlay.value = null;
       }
     }
   }
-});
+)
 </script>
 <style scoped>
 .container {

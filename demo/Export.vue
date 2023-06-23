@@ -58,7 +58,7 @@ import Vertical from "@/flatsurf/Vertical";
 import FlowComponent from "@/flatsurf/FlowComponent";
 import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import { computed, defineProps, PropType, ref, watch, nextTick } from "vue";
+import { computed, PropType, ref, watch, nextTick } from "vue";
 import type { Ref } from "vue";
 import { useStore } from "vuex";
 import { computedAsync } from "@vueuse/core";
