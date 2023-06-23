@@ -4,9 +4,9 @@
       <v-container class="container" fluid>
         <router-view />
       </v-container>
+      <router-view name="menu" />
       <overlay-component :cancellation="overlay" :progress="progress" />
     </v-main>
-    <router-view name="menu" />
     <bottom-navigation />
   </v-app>
 </template>

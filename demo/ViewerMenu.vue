@@ -1,33 +1,21 @@
 <template>
-  <div>
-  <!--
-    <v-speed-dial v-model="showActions" top left fixed direction="bottom">
-      <template v-slot:activator>
-        <v-btn :color="showActions ? 'secondary' : 'primary'" fab small>
-          <v-icon v-if="showActions">mdi-close</v-icon>
-          <v-icon v-else>{{ actions[action] }}</v-icon>
-        </v-btn>
-      </template>
-      <div v-for="[action, icon] of Object.entries(actions)" :key="action" >
-        <v-btn @click="goto(action)" color="primary" small fab>
-          <v-icon>{{ icon }}</v-icon>
-        </v-btn>
-      </div>
-    </v-speed-dial>
-    <v-speed-dial v-model="showParts" top right fixed direction="bottom">
-      <template v-slot:activator>
-        <v-btn :color="showParts ? 'secondary' : 'primary'" fab small>
-          <v-icon v-if="showParts">mdi-close</v-icon>
-          <v-icon v-else>mdi-eye</v-icon>
-        </v-btn>
-      </template>
-      <div v-for="[part, icon] of Object.entries(parts)" :key="part" >
-        <v-btn @click="goto(undefined, part)" :color="show.includes(part) ? 'primary' : 'secondary'" small fab>
-          <v-icon>{{ icon }}</v-icon>
-        </v-btn>
-      </div>
-    </v-speed-dial>
-    -->
+  <div class="menu">
+    <v-container>
+      <v-row v-for="[action, icon] of Object.entries(actions)" :key="action" >
+        <div class="ma-1">
+          <v-btn @click="goto(action)" :icon="icon" color="primary" size="small" elevation="8"/>
+        </div>
+      </v-row>
+    </v-container>
+  </div>
+  <div class="menu">
+    <v-container>
+      <v-row v-for="[part, icon] of Object.entries(parts)" :key="part" justify="end">
+        <div class="ma-1">
+          <v-btn @click="goto(undefined, part)" :color="show.includes(part) ? 'primary' : 'secondary'" small fab elevation="8" :icon="icon" size="small"/>
+        </div>
+      </v-row>
+    </v-container>
   </div>
 </template>
 <script lang="ts">
@@ -50,7 +38,7 @@ export default defineComponent({
 
   data() {
     return {
-      showActions: false,
+      showActions: true,
       showParts: false,
 
       actions: {
@@ -90,3 +78,14 @@ export default defineComponent({
   }
 });
 </script>
+<style scoped>
+.menu {
+  position: absolute;
+  top: 0px;
+  padding: 1ex;
+}
+
+.menu ~ .menu {
+  right: 0px;
+}
+</style>
