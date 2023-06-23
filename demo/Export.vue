@@ -4,21 +4,17 @@
       <v-col class="col-md-4 col-12">
         <v-card>
           <v-card-text>
-            <!-- TODO
-            <v-subheader>Width</v-subheader>
+            <v-card-subtitle>Width</v-card-subtitle>
             <v-slider v-model="width" :min="32" :max="8192" thumb-label="always" />
-            <v-subheader>Height</v-subheader>
+            <v-card-subtitle>Height</v-card-subtitle>
             <v-slider v-model="height" :min="32" :max="8192" thumb-label="always" />
-            -->
           </v-card-text>
         </v-card>
       </v-col>
       <v-col class="col-md-8 col-12">
         <v-card v-if="layout != null && viewport != null">
-          <!-- TODO
           <v-card-title>
             <v-tabs v-model="tab" fixed-tabs >
-              <v-tabs-slider></v-tabs-slider>
               <v-tab class="primary--text" >
                 <v-icon>mdi-image</v-icon>
               </v-tab>
@@ -27,22 +23,20 @@
               </v-tab>
             </v-tabs>
           </v-card-title> 
-        -->
           <v-card-text>
-            <!-- TODO
-            <v-tabs-items v-model="tab">
-              <v-tab-item key="0">
+            <v-window v-model="tab">
+              <v-window-item value="0">
                 <v-card>
                   <v-img class="mx-auto" :src="`data:image/svg+xml;base64,${base64(svg)}`" :max-width="width" :max-height="height" />
                 </v-card>
-              </v-tab-item>
-              <v-tab-item key="1">
+              </v-window-item>
+              <v-window-item value="1">
                 <v-card flat>
                   <v-card-text class="export" v-text="svg"></v-card-text>
                 </v-card>
-              </v-tab-item>
-            </v-tabs-items>
-          -->
+              </v-window-item>
+            </v-window>
+            <!-- render triangulation offscreen -->
             <triangulation-interaction :layout="layout" :options="options" :outer="show.includes('outer')" :inner="show.includes('triangulation')" />
             <label-interaction :layout="layout" :options="options" :outer="show.includes('outer-labels')" :numeric="show.includes('numeric-labels')" />
             <flatsurf class="render" ref="flatsurf" :triangulation="triangulation" :flow-components="flowComponents" :layout="layout" :viewportCoordinateSystem="viewport.viewportCoordinateSystem" :visualizationOptions="options" style="display: block" :style="{ 'width': `${width}px`, 'height': `${height}px` }" />
@@ -52,7 +46,7 @@
     </v-row>
   </layouter>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import Flatsurf from "@/components/flatsurf/Flatsurf.vue";
 import TriangulationInteraction from "@/components/interactions/TriangulationInteraction";
 import LabelInteraction from "@/components/interactions/LabelInteraction";
@@ -64,96 +58,79 @@ import Vertical from "@/flatsurf/Vertical";
 import FlowComponent from "@/flatsurf/FlowComponent";
 import Layout from "@/layout/Layout";
 import FlatTriangulation from "@/flatsurf/FlatTriangulation";
-import { defineComponent, PropType } from "vue";
+import { computed, defineProps, PropType, ref, watch, nextTick } from "vue";
+import type { Ref } from "vue";
+import { useStore } from "vuex";
+import { computedAsync } from "@vueuse/core";
 
-export default defineComponent({
-  components: {
-    Flatsurf,
-    TriangulationInteraction,
-    LabelInteraction,
-    Layouter,
-  },
-
-  name: "Export",
-
-  props: {
-    show: {
-      type: Array as PropType<string[]>,
-      required: true
-    }
-  },
-
-  data() {
-    return {
-      tab: 0,
-      options: new VisualizationOptions(),
-      width: 1024,
-      height: 1024,
-      viewport: null as Viewport | null,
-      svg: null as string | null
-    }
-  },
-
-  computed: {
-    triangulation(): null | FlatTriangulation {
-      return this.$store.state.triangulation;
-    },
-
-    vertical(): Vertical | null {
-      return this.$store.state.vertical;
-    },
-
-    svgCoordinateSystem(): CoordinateSystem | null {
-      if (this.viewport == null)
-        return null;
-
-      return this.viewport.viewportCoordinateSystem as CoordinateSystem;
-    },
-
-    flowComponents(): FlowComponent[] {
-      if (this.show.includes('flow-components'))
-        return this.$store.state.flowComponents || [];
-      return [];
-    },
-  },
-
-  watch: {
-    triangulation: {
-      immediate: true,
-
-      handler() {
-        if (this.triangulation != null) {
-          this.viewport = new Viewport(this.vertical!.coordinateSystem);
-        }
-      }
-    }
-  },
-
-  asyncComputed: {
-    // TODO: Use VueUse.computedAsync instead.
-    async svg(): Promise<string> {
-      if (this.viewport == null)
-        return "…";
-
-      this.viewport.resize(this.width, this.height);
-
-      await this.$nextTick();
-
-      return await (this.$refs.flatsurf as any).svg();
-    },
-  },
-
-  methods: {
-    base64(data: string) {
-      return btoa(unescape(encodeURIComponent(data)));
-    },
-    onLayout(layout: Layout) {
-      if (this.viewport == null)
-        throw Error("viewport must have been created when layout is computed");
-      this.viewport.focus(layout.hull);
-    },
+const props = defineProps({
+  show: {
+    type: Array as PropType<string[]>,
+    required: true
   }
+})
+
+const tab = ref(0);
+const options = ref(new VisualizationOptions());
+const width = ref(1024);
+const height = ref(1024);
+const viewport = ref(null) as Ref<Viewport | null>;
+
+const flatsurf = ref();
+
+const store = useStore();
+
+const triangulation = computed(() => {
+  return store.state.triangulation as null | FlatTriangulation;
 });
+
+const vertical = computed(() => {
+  return store.state.vertical as Vertical | null
+});
+
+const svgCoordinateSystem = computed(() => {
+  if (viewport == null)
+    return null;
+
+  return viewport.value!.viewportCoordinateSystem as CoordinateSystem;
+});
+
+const flowComponents = computed(() => {
+  if (props.show.includes('flow-components'))
+    return store.state.flowComponents || [] as FlowComponent[]
+  return [];
+});
+
+
+watch(triangulation, () => {
+  if (triangulation != null) {
+    viewport.value = new Viewport(vertical.value!.coordinateSystem);
+  }
+}, { immediate: true });
+
+
+const svg = computedAsync(
+  async () => {
+    if (viewport.value == null)
+      return "…";
+
+    viewport.value!.resize(width.value, height.value);
+
+    await nextTick();
+
+    return await (flatsurf.value as any).svg();
+  },
+);
+
+function base64(data: string) {
+  return btoa(unescape(encodeURIComponent(data)));
+};
+
+function onLayout(layout: Layout) {
+  if (viewport == null)
+    throw Error("viewport must have been created when layout is computed");
+  viewport.value!.focus(layout.hull);
+};
 </script>
 <style scoped>
 .export { 
