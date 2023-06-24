@@ -19,7 +19,7 @@ This package provides interactive visualization for many of the objects in the [
 Install from NPM
 ----------------
 
-This package is available on [NPM](npmjs.com/). To use `vue-flatsurf` in your project, install it with `yarn add --dev vue-flatsurf` or the corresponding NPM command.
+This package is available on [NPM](https://npmjs.com/package/vue-flatsurf). To use `vue-flatsurf` in your project, install it with `yarn add --dev vue-flatsurf` or the corresponding NPM command.
 
 Run Demo Application
 --------------------
