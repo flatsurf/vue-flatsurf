@@ -4,6 +4,23 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.11.0
+====================
+
+**Added:**
+
+* Added parsing of surfaces as printed by libflatsurf's `operator<<`.
+
+**Changed:**
+
+* Changed from a Vue 2 library to a Vue 3 library.
+
+**Fixed:**
+
+* Fixed GitHub workflow to use standard concurrency control.
+
+
+
 v0.10.1
 ====================
 
