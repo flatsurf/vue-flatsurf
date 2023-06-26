@@ -4,6 +4,15 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.11.1
+====================
+
+**Fixed:**
+
+* Fixed links to dist files in packages.json.
+
+
+
 v0.11.0
 ====================
 
