@@ -4,6 +4,15 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.11.2
+====================
+
+**Fixed:**
+
+* Fixed entry point to work from vue3-sfc-loader.
+
+
+
 v0.11.1
 ====================
 
