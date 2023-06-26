@@ -1,5 +1,6 @@
 {
   "name": "vue-flatsurf",
+  "type": "module",
   "version": "0.11.0",
   "description": "Visualization for flatsurf",
   "scripts": {
@@ -7,15 +8,19 @@
     "build": "vite build",
     "test": "vitest"
   },
-  "main": "dist/vue-flatsurf.ssr.js",
-  "module": "dist/vue-flatsurf.esm.js",
-  "browser": "dist/vue-flatsurf.esm.js",
-  "unpkg": "dist/vue-flatsurf.min.js",
+  "main": "dist/vue-flatsurf.umd.cjs",
+  "module": "dist/vue-flatsurf.js",
   "files": [
     "dist/*",
     "vue-flatsurf.d.ts",
     "src/**/*.vue"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/vue-flatsurf.js",
+      "require": "./dist/vue-flatsurf.umd.cjs"
+    }
+  },
   "dependencies": {
     "@flatten-js/core": "^1.2.24",
     "@mdi/js": "^6.4.95",
@@ -43,6 +48,7 @@
     "sinon": "^11.1.1",
     "typescript": "^4.9.4",
     "vite": "^4.0.4",
+    "vite-plugin-css-injected-by-js": "^3.1.1",
     "vitest": "^0.28.3",
     "vue": "^3.2.47",
     "vue-router": "4",

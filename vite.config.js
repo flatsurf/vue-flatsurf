@@ -1,11 +1,13 @@
 import path, { resolve } from "path";
-import vue from '@vitejs/plugin-vue'
+import vue from '@vitejs/plugin-vue';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 const projectRoot = __dirname;
 
 export default {
   plugins: [
     vue(),
+    cssInjectedByJsPlugin(),
   ],
   resolve: {
     alias: {
