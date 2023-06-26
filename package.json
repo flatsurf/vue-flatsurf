@@ -8,7 +8,7 @@
     "build": "vite build",
     "test": "vitest"
   },
-  "main": "dist/vue-flatsurf.umd.cjs",
+  "main": "dist/vue-flatsurf.umd.js",
   "module": "dist/vue-flatsurf.js",
   "files": [
     "dist/*",

@@ -23,11 +23,20 @@ export default {
     setupFiles: "./test/jsdom.mock.js",
   },
   build: {
+    target: "es2015",
     lib: {
       entry: resolve(__dirname, 'src/entry.ts'),
-      name: 'vue-flatsurf',
-      fileName: 'vue-flatsurf',
+      name: 'VueFlatsurf',
+      formats: ['es', 'umd'],
+      fileName: (format) => {
+        if (format == "umd")
+          // Force file name not to end in .cjs which confuses vue3-sfc.
+          return "vue-flatsurf.umd.js";
+        if (format == "es")
+          return "vue-flatsurf.js";
+      },
     },
+    minify: false,
     rollupOptions: {
       external: ['vue'],
       output: {
