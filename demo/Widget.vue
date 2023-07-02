@@ -153,9 +153,9 @@ export default defineComponent({
       applyVertical: true,
 
       actions: [
-        {text: "None", value: null},
-        {text: "Change Layout", value: "glue"},
-        {text: "Draw Path", value: "path"},
+        {title: "None", value: null},
+        {title: "Change Layout", value: "glue"},
+        {title: "Draw Path", value: "path"},
       ],
 
       action: "glue",
