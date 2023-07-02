@@ -1,4 +1,8 @@
 <!--
+  Overlay of an edge that renders an invisible but clickable area to modify how
+  the edge is glued.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -251,7 +255,7 @@ export default defineComponent({
 
     async query(when: "now" | "changed") {
       if (when === "changed")
-        await wait(this as unknown as Vue, "glued");
+        await wait(this, "glued");
       return this.glued;
     },
 

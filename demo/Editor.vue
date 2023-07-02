@@ -1,5 +1,5 @@
 <!--
-Edit raw YAML data defining a surface.
+  Edit raw YAML data defining a surface.
 -->
 <!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>

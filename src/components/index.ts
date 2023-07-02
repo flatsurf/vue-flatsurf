@@ -22,6 +22,6 @@
 
 /* eslint-disable import/prefer-default-export */
 export { default as FlatTriangulation } from '@/components/flatsurf/FlatTriangulation.vue';
-export { default as PanZoom } from '@/components/PanZoom.vue';
+export { default as PanZoomable } from '@/components/PanZoomable.vue';
 export { default as Viewer } from '@/components/Viewer.vue';
 export { default as Widget } from '@/components/Widget.vue';

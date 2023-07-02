@@ -1,4 +1,7 @@
 <!--
+  A menu to select one of several predefined surfaces.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,7 +24,7 @@
  -->
 <template>
   <v-navigation-drawer permanent app>
-    <v-list :selected="[selected]" @click:select="({id}) => selected = id" nav dense>
+    <v-list :selected="[selected]" @click:select="({id}) => selected = id as string" nav dense>
       <v-list-subheader>
         PREDEFINED SURFACES
       </v-list-subheader>

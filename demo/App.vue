@@ -1,5 +1,5 @@
 <!--
-A demo application that lets the user play with a YAML serialized surface.
+  A demo application that lets the user play with a YAML serialized surface.
 -->
 <!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
@@ -35,16 +35,11 @@ A demo application that lets the user play with a YAML serialized surface.
   </v-app>
 </template>
 <script setup lang="ts">
-import PanZoom from "@/components/PanZoom.vue";
-
-import Viewer from "@/components/Viewer.vue";
 import CancellationToken from "@/CancellationToken";
 import Progress from "@/Progress";
 import OverlayComponent from "./Overlay.vue";
-import GlueInteraction from "@/components/interactions/GlueInteraction.vue";
-import PathInteraction from "@/components/interactions/PathInteraction.vue";
 import BottomNavigation from "./BottomNavigation.vue";
-import { provide, watch, defineComponent, PropType, shallowRef } from "vue";
+import { provide, watch, shallowRef } from "vue";
 import type { Ref } from "vue";
 import { useStore } from "vuex";
 
@@ -53,7 +48,8 @@ const progress = shallowRef(null) as Ref<Progress | null>;
 
 const props = defineProps({
   surface: {
-    type: String as PropType<string>,
+    type: String,
+    required: true,
   }
 });
 

@@ -36,7 +36,7 @@ describe("Layouter", () => {
         components: {Layouter},
         data() {
           return {
-            triangulation: FlatTriangulation.parse(torus, CoordinateSystem.make(true, "Flatsurf Coordinate System")),
+            triangulation: FlatTriangulation.parse(torus, new CoordinateSystem(true, "Flatsurf Coordinate System")),
             onLayout: (layout: Layout) => {
               resolve(layout)
             }

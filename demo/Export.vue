@@ -1,4 +1,7 @@
 <!--
+  Displays a rendering of a surfaces in SVG.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -74,7 +77,6 @@ import LabelInteraction from "@/components/interactions/LabelInteraction";
 import VisualizationOptions from "@/components/flatsurf/options/VisualizationOptions";
 import Layouter from "@/components/Layouter";
 import Viewport from "@/geometry/Viewport";
-import CoordinateSystem from "@/geometry/CoordinateSystem";
 import Vertical from "@/flatsurf/Vertical";
 import FlowComponent from "@/flatsurf/FlowComponent";
 import Layout from "@/layout/Layout";
@@ -109,13 +111,6 @@ const vertical = computed(() => {
   return store.state.vertical as Vertical | null
 });
 
-const svgCoordinateSystem = computed(() => {
-  if (viewport == null)
-    return null;
-
-  return viewport.value!.viewportCoordinateSystem as CoordinateSystem;
-});
-
 const flowComponents = computed(() => {
   if (props.show.includes('flow-components'))
     return store.state.flowComponents || [] as FlowComponent[]
@@ -144,7 +139,7 @@ const svg = computedAsync(
 );
 
 function base64(data: string) {
-  return btoa(unescape(encodeURIComponent(data)));
+  return btoa(data);
 };
 
 function onLayout(layout: Layout) {

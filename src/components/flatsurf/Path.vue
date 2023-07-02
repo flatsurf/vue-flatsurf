@@ -1,5 +1,5 @@
 <!--
-  Displays a path on a surface.
+  Displays a path on a surface as SVG.
 -->
 <!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>

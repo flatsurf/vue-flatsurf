@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import { reactive, unref, toRaw } from "vue";
+import { ref } from "vue";
 
 import Flatten from "@flatten-js/core";
 
@@ -33,25 +33,8 @@ import Line from "./Line";
 
 export type Coordinate = number;
 
-// A registered or discovered embedding between two coordinate systems.
-export type Embedding = {
-  // The embedding as an invertible matrix; null if the embedding is not valid
-  // anymore.
-  embedding: Readonly<Flatten.Matrix> | null,
-}
-
-// Internal structure to keep track of explicitl registered embeddings between
-// coordinate systems.
-type RegisteredEmbedding = {
-  embedding: Embedding;
-  dependents: Array<{
-    domain: CoordinateSystem,
-    codomain: CoordinateSystem,
-  }>;
-}
-
 // Return the inverse of the invertible matrix A.
-// Naturally, this is not very stable numerically. Probably we shuold solve
+// Naturally, this is not very stable numerically. Probably we should solve
 // linear equations instead of holding on to an explicit inverse.
 export function inverse(A: Flatten.Matrix) {
   const [a00, a01, a02, a10, a11, a12, a20, a21, a22] = [A.a, A.c, A.tx, A.b, A.d, A.ty, 0, 0, 1];
@@ -63,107 +46,72 @@ export function inverse(A: Flatten.Matrix) {
   return new Flatten.Matrix(affine[0], affine[3], affine[1], affine[4], affine[2], affine[5]);
 }
 
+type CoordinateSystemIdentifier = number;
+
+/*
+ * A coordinate system.
+ * Coordinate systems are stateless (apart from being positive like in
+ * Mathematics or negative like in computer screens.)
+ * They are just identifiers that are brought in relation to each other by
+ * embeddings between systems. But these embeddings are not part of the
+ * coordinate system.
+ */
 export default class CoordinateSystem {
-  private constructor(positive: boolean, name: string) {
+  public constructor(positive: boolean, name: string) {
     this.positive = positive;
     this.name = name;
-  }
+    this.id = CoordinateSystem.nextId++;
 
-  public static make(positive: boolean, name: string): Readonly<CoordinateSystem> {
-    return Object.freeze(new CoordinateSystem(positive, name));
+    CoordinateSystemRegistry.register(this);
   }
 
   public readonly positive: boolean;
   public readonly name: string;
+  // This id is used internally to keep track of the relation of this system to
+  // other coordinate systems. We do not use the entire coordinate system
+  // object for this purpose because Vue.js tends to wrap it Reactive and then
+  // we cannot compare systems with === anymore.
+  public readonly id: CoordinateSystemIdentifier;
 
-  // Register an embedding from this coordinate system into `into`.
-  // The returned embedding is a token that can be used to `reset()` the
-  // embedding later or `embedInto()` differently.
-  public embedInto(into: CoordinateSystem, token?: Embedding): Embedding;
-  public embedInto(into: CoordinateSystem, embedding: Flatten.Matrix, token?: Embedding): Embedding;
-  public embedInto(into: CoordinateSystem, embedding?: Embedding | Flatten.Matrix, token?: Embedding): Embedding {
-    token = unref(token);
+  private static nextId: number = 1;
 
-    if (embedding !== undefined) {
-      if ("embedding" in embedding) {
-        console.assert(token === undefined);
-        token = embedding;
-        embedding = undefined;
-      }
-    }
-
+  // Register (or modify) an embedding from this coordinate system into `into`.
+  public embedInto(into: CoordinateSystem, embedding?: Flatten.Matrix): void {
     if (embedding === undefined) {
-      console.assert(token === undefined);
       embedding = new Flatten.Matrix();
       if (this.positive !== into.positive)
         embedding = new Flatten.Matrix(1, 0, 0, -1);
-      return this.embedInto(into, embedding, token);
+      return this.embedInto(into, embedding);
     }
 
-    console.assert(embedding instanceof Flatten.Matrix);
-    if (embedding.tx == null || embedding.ty == null || !(embedding.a * embedding.d - embedding.b * embedding.c))
-      throw Error(`Embedding matrix is not invertible: ${JSON.stringify(embedding)}`);
-
-    let existing = this.lookup(into);
-
-    if (existing == null) {
-      if (token !== undefined)
-        console.warn("No token expected when resetting embedding of coordinate systems. No embedding between these coordinate systems could be found.");
-    } else {
-      if (token === undefined)
-        console.warn("Expected a token when resetting embedding of coordinate systems but no token found.");
-      else if (token !== existing.embedding) {
-        throw Error("Expected correct token when resetting embedding of coordinate systems but the token was not the one last returned when the embedding was established.");
-      }
-    }
-
-    if (existing == null) {
-      this.insert(into, embedding);
-      existing = this.lookup(into)!;
-    }
-
-    console.assert(existing != null);
-    console.assert(existing.embedding.embedding != null, "Invalidated embedding found in registered embeddings.");
-
-    CoordinateSystem.update(existing!, embedding as Flatten.Matrix);
-
-    return Object.freeze(existing.embedding);
+    return CoordinateSystemRegistry.registerEmbedding(this, into, embedding);
   }
 
-  public reset(token: Embedding) {
-    const from = CoordinateSystem.registered.get(this);
-    if (from === undefined)
-      throw Error("Cannot reset embedding of this coordinate systems as none is registered anymore.");
-    for (const codomain of from.keys()) {
-      const registered = from.get(codomain)!;
-      if (registered.embedding == token) {
-        CoordinateSystem.invalidate(registered);
-        from.delete(codomain);
-        if (from.size === 0)
-          CoordinateSystem.registered.delete(this);
-        return;
-      }
-    }
-
-    throw Error("Cannot reset embedding. No embedding registered for this token.");
+  // Forget the existing embedding of this coordinate system into `into`.
+  public unembedInto(into: CoordinateSystem): void {
+    return RegisteredCoordinateSystemEmbeddings.forgetEmbedding(this.id, into.id);
   }
 
+  // Return the argument as an object in this coordinate system.
   public embed(point: Point): Point;
   public embed(vector: Vector): Vector;
   public embed(segment: Segment): Segment;
   public embed(line: Line): Line;
   public embed(polygon: Box | Polygon): Polygon;
   public embed(value: Box | Point | Vector | Segment | Line | Polygon) : Point | Vector | Segment | Line | Polygon {
-    const discovered = this === value.parent ? new Flatten.Matrix() : value.parent.discover(this);
-
-    console.assert(discovered.tx != null && discovered.ty != null && discovered.a * discovered.d - discovered.b * discovered.c, "Discovered an embedding that is not invertible.", discovered);
-
     if (value instanceof Box) {
       const polygon = new Flatten.Polygon();
       polygon.addFace(value.toPoints().map((point) => this.embed(point).value));
       return new Polygon(this, polygon);
     } else if (value instanceof Point) {
-      return new Point(this, value.value.transform(discovered));
+      const transformation = CoordinateSystemRegistry.discoverEmbedding(value.parent, this, true);
+
+      if (transformation == null)
+        throw Error("no embedding between these coordinate systems");
+
+      console.assert(transformation.tx != null && transformation.ty != null && transformation.a * transformation.d - transformation.b * transformation.c, "Discovered an embedding that is not invertible.", transformation);
+
+      return new Point(this, value.value.transform(transformation));
     } else if (value instanceof Vector) {
       const point = this.embed(new Point(value.parent, value.x, value.y));
       const origin = this.embed(new Point(value.parent, 0, 0));
@@ -178,160 +126,369 @@ export default class CoordinateSystem {
 
     throw Error(`cannot embed this type of object into coordinate system yet`);
   }
+}
 
-  // The registered embeddings between coordinate systems.
-  // Maps domain → codomain → embedding.
-  private static registered: Map<CoordinateSystem, Map<CoordinateSystem, RegisteredEmbedding>> = new Map();
-
-  // The discovered embeddings between coordinate systems.
-  // Maps domain → codomain → embedding.
-  private static discovered: Map<CoordinateSystem, Map<CoordinateSystem, Embedding>> = new Map();
-
-  private lookup(into: CoordinateSystem): RegisteredEmbedding | null {
-    return CoordinateSystem.registered.get(this)?.get(into) || null;
+// Base class for embeddings between coordinate systems.
+class AbstractEmbedding {
+  public constructor(embedding: Flatten.Matrix) {
+    this.embedding = embedding;
   }
 
-  private insert(into: CoordinateSystem, embedding: Flatten.Matrix) {
-    if (!CoordinateSystem.registered.has(this))
-      CoordinateSystem.registered.set(this, new Map());
-    console.assert(!CoordinateSystem.registered.get(this)!.has(into));
-    CoordinateSystem.registered.get(this)!.set(into, {
-      embedding: {
-        embedding: Object.freeze(embedding),
-      },
-      dependents: [],
-    });
+  public touch(): void {
+    this.touchable.value;
   }
 
-  private static update(registered: RegisteredEmbedding, embedding: Flatten.Matrix) {
-    if (registered.embedding.embedding === null)
-      throw Error("Cannot update existing embedding if it is already invalidated.");
+  public invalidate() {
+    this.touchable.value++;
+  }
 
-    if (registered.embedding.embedding.equalTo(embedding))
+  public embedding: Flatten.Matrix;
+  private touchable = ref(0);
+};
+
+// An explicitly registered embedding that has been created through embedInto.
+class RegisteredEmbedding extends AbstractEmbedding {
+  public update(embedding: Flatten.Matrix) {
+    this.invalidate();
+    this.embedding = embedding;
+  }
+};
+
+// A discovered embedding such as the composition of registered embeddings or
+// their inverses.
+class DiscoveredEmbedding extends AbstractEmbedding {
+};
+
+// A singleton registry of all known coordinate systems.
+// CoordinateSystem should only interact with this object and not with the
+// other registries.
+class CoordinateSystemRegistry {
+  // Make a coordinate systems known to the registry (and make sure we clean
+  // things up when all references to that coordinate system are gone.)
+  public static register(coordinateSystem: CoordinateSystem) {
+    this.registry.register(coordinateSystem, coordinateSystem.id);
+  }
+
+  // Explicitly register a new embedding or update an existing (registered)
+  // embedding between coordinate systems.
+  public static registerEmbedding(from: CoordinateSystem, into: CoordinateSystem, embedding: Flatten.Matrix) {
+    console.assert(embedding instanceof Flatten.Matrix);
+
+    if (embedding.tx == null || embedding.ty == null || !(embedding.a * embedding.d - embedding.b * embedding.c))
+      throw Error(`Embedding matrix is not invertible: ${JSON.stringify(embedding)}`);
+
+    if (RegisteredCoordinateSystemEmbeddings.get(from.id, into.id, false) != null)
+      RegisteredCoordinateSystemEmbeddings.updateEmbedding(from.id, into.id, embedding);
+    else {
+      console.assert(this.discoverEmbedding(from, into, false) == null);
+
+      RegisteredCoordinateSystemEmbeddings.registerEmbedding(from.id, into.id, embedding);
+    }
+  }
+
+  // Return a transformation between ``from`` and ``into`` or ``null`` if the systems are unrelated.
+  // The transformation is constructed by following registered embeddings,
+  // their inverses and compositions thereof.
+  // When ``reactive`` is set, we touch a Vue reactive variable so that changes
+  // to that transformation lead to this code path being reevaluated.
+  public static discoverEmbedding(from: CoordinateSystem, into: CoordinateSystem, reactive: boolean): Flatten.Matrix | null {
+    if (from.id == into.id)
+      return new Flatten.Matrix(1, 0, 0, 1);
+
+    let embedding = RegisteredCoordinateSystemEmbeddings.get(from.id, into.id, reactive);
+    if (embedding != null)
+      return embedding;
+
+    embedding = RegisteredCoordinateSystemEmbeddings.get(into.id, from.id, reactive);
+
+    if (embedding != null)
+      return inverse(embedding);
+
+    return DiscoveredCoordinateSystemEmbeddings.get(from.id, into.id, reactive);
+  }
+
+  // When all references to a coordinate system are gone, this cleanup function
+  // gets (eventually) called.
+  private static registry = new FinalizationRegistry((id: CoordinateSystemIdentifier) => {
+    RegisteredCoordinateSystemEmbeddings.forget(id);
+    DiscoveredCoordinateSystemEmbeddings.forget(id);
+    CoordinateSystemReachability.forget(id);
+  });
+};
+
+// A singleton registry of all explicitly registered embeddings between
+// coordinate systems.
+class RegisteredCoordinateSystemEmbeddings {
+  // Return the registered transformation ``from`` to ``into`` or ``null`` if
+  // there is no embedding registered between the two systems.
+  // When ``reactive`` is set, we touch a Vue reactive variable so that changes
+  // to that transformation lead to this code path being reevaluated.
+  // Note: Currently, reactivity is not supported when the result is "null".
+  public static get(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier, reactive: boolean) {
+    if (!this.embeddings.has(from))
+      return null;
+
+    if (!this.embeddings.get(from)!.has(into))
+      return null;
+
+    const embedding = this.embeddings.get(from)!.get(into)!;
+
+    if (reactive)
+      embedding.touch();
+
+    return embedding.embedding;
+  }
+
+  // Register a new embedding between ``from`` and ``into``.
+  public static registerEmbedding(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier, embedding: Flatten.Matrix) {
+    CoordinateSystemReachability.registerEmbedding(from, into);
+
+    if (!this.embeddings.has(from))
+      this.embeddings.set(from, new Map());
+
+    console.assert(!this.embeddings.get(from)!.has(into));
+
+    this.embeddings.get(from)!.set(into, new RegisteredEmbedding(embedding));
+  }
+
+  // Drop the registered embedding between ``from`` and ``into``.
+  public static forgetEmbedding(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier) {
+    CoordinateSystemReachability.forgetEmbedding(from, into);
+    this.embeddings.get(from)!.delete(into);
+    DiscoveredCoordinateSystemEmbeddings.invalidateDependentEmbeddings(from, into);
+  }
+
+  // Update the existing embedding between ``from`` and ``into``.
+  // This takes care of updating all the discovered embeddings that depend upon
+  // this embedding.
+  public static updateEmbedding(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier, embedding: Flatten.Matrix) {
+    const previous = this.embeddings.get(from)!.get(into)!;
+    if (previous.embedding.equalTo(embedding))
       return;
 
-    CoordinateSystem.invalidate(registered);
-
-    registered.embedding.embedding = Object.freeze(embedding);
+    previous.update(embedding);
+    DiscoveredCoordinateSystemEmbeddings.invalidateDependentEmbeddings(from, into);
   }
 
-  private static invalidate(registered: RegisteredEmbedding) {
-    if (registered.embedding.embedding === null)
-      throw Error("Cannot invalidate embedding if it is already invalidated.");
-
-    registered.embedding = {...registered.embedding, embedding: null };
-
-    for (const {domain, codomain} of registered.dependents) {
-      if (!CoordinateSystem.discovered.has(domain))
-        continue;
-      if (!CoordinateSystem.discovered.get(domain)!.has(codomain))
-        continue;
-      
-      const discovered = CoordinateSystem.discovered.get(domain)!.get(codomain)!;
-      discovered.embedding = null;
-
-      CoordinateSystem.discovered.get(domain)!.delete(codomain);
-      if (CoordinateSystem.discovered.get(domain)!.size === 0)
-        CoordinateSystem.discovered.delete(domain);
+  // Return all the coordinate system identifiers that have an embedding
+  // registered from ``from`` or into ``from``.
+  public static getNeighbors(from: CoordinateSystemIdentifier) {
+    const neighbors = []
+    for (const entry of CoordinateSystemReachability.getComponent(from)) {
+      if (this.embeddings.get(from)?.get(entry))
+        neighbors.push([from, entry]);
+      if (this.embeddings.get(entry)?.get(from))
+        neighbors.push([entry, from]);
     }
 
-    registered.dependents = [];
+    return neighbors;
   }
 
-  // The returned embedding is Vue.observable() so that users will notice when
-  // its embedding is set to null or otherwise modified.
-  private discover(into: CoordinateSystem): Flatten.Matrix {
-    let discovered = undefined;
+  // Cleanup all knowledge of the coordinate system ``id``.
+  public static forget(id: CoordinateSystemIdentifier) {
+    this.embeddings.delete(id);
 
-    console.assert(this !== into);
+    for (const from of CoordinateSystemReachability.getComponent(id))
+      this.embeddings.get(from)?.delete(id);
+  }
 
-    if (CoordinateSystem.registered.has(this) && CoordinateSystem.registered.get(this)!.has(into))
-      discovered = CoordinateSystem.registered.get(this)!.get(into)!.embedding;
-    else if (CoordinateSystem.discovered.has(this) && CoordinateSystem.discovered.get(this)!.has(into))
-      discovered = CoordinateSystem.discovered.get(this)!.get(into)!;
-    else {
-      const reachable = new Set<CoordinateSystem>();
-      const path: Array<{
-        definition: { embedding: Embedding } | { inverse: Embedding },
-        dependency: RegisteredEmbedding,
-      }> = [];
+  private static embeddings = new Map<CoordinateSystemIdentifier, Map<CoordinateSystemIdentifier, RegisteredEmbedding>>();
+};
 
-      const search = (from: CoordinateSystem): Embedding | null => {
-        if (from === into) {
-          let map = new Flatten.Matrix();
-          for (const {definition, dependency} of path) {
-            if ("embedding" in definition) {
-              console.assert(definition.embedding.embedding);
-              map = definition.embedding.embedding!.multiply(map);
-            } else {
-              console.assert(definition.inverse.embedding);
-              map = map.multiply(inverse(definition.inverse.embedding!));
-            }
-            dependency.dependents.push({ domain: this, codomain: into }); 
-          }
-          const discovered = reactive({
-            embedding: Object.freeze(map)
-          });
-
-          if (!CoordinateSystem.discovered.has(this))
-            CoordinateSystem.discovered.set(this, new Map());
-
-          CoordinateSystem.discovered.get(this)!.set(into, discovered);
-
-          return discovered;
-        }
-
-        const follow = (to: CoordinateSystem, definition: { embedding: Embedding } | { inverse: Embedding }, dependency: RegisteredEmbedding): Embedding | null => {
-          if (reachable.has(to))
-            return null;
-
-          path.push({
-            definition,
-            dependency,
-          });
-          try {
-            reachable.add(to);
-            return search(to);
-          } finally {
-            path.pop();
-          }
-        };
-
-
-        if (CoordinateSystem.registered.has(from)) {
-          for (const to of CoordinateSystem.registered.get(from)!.keys()) {
-            const dependency = CoordinateSystem.registered.get(from)!.get(to)!;
-            const embedding = follow(to, { embedding: dependency.embedding }, dependency);
-            if (embedding !== null)
-              return embedding;
-          }
-        }
-
-        // TODO: This is quite inefficient. See https://github.com/flatsurf/vue-flatsurf/issues/39.
-        for (const to of CoordinateSystem.registered.keys()) {
-          if (CoordinateSystem.registered.get(to)!.has(from)) {
-            const dependency = CoordinateSystem.registered.get(to)!.get(from)!;
-            const embedding = follow(to, { inverse: dependency.embedding }, dependency);
-            if (embedding !== null)
-              return embedding;
-          }
-        }
-
+// A singleton database of all transformations between coordinate systems that have been discovered by inverting registered embeddings and composing embeddings.
+class DiscoveredCoordinateSystemEmbeddings {
+  // Find an embedding from ``from`` into ``into`` and return the corresponding transformation.
+  // Return ``null`` if the systems are unrelated.
+  // When ``reactive`` is set, we touch a Vue reactive variable so that changes
+  // to that transformation lead to this code path being reevaluated.
+  // Note: Currently, reactivity is not supported when the result is "null".
+  public static get(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier, reactive: boolean) {
+    let embedding = null;
+    if (this.embeddings.has(from) && this.embeddings.get(from)!.has(into)) {
+      embedding = this.embeddings.get(from)!.get(into);
+    } else {
+      if (!CoordinateSystemReachability.isReachable(from, into))
         return null;
+
+      let embeddingMatrix = new Flatten.Matrix(1, 0, 0, 1);
+
+      let current = from;
+
+      for (let [from_, into_] of this.getEmbeddingPath(from, into)) {
+        this.registerDependency([from, into], [from_, into_]);
+
+        let embeddingStepMatrix = RegisteredCoordinateSystemEmbeddings.get(from_, into_, false)!;
+        if (current == into_) {
+          embeddingStepMatrix = inverse(embeddingStepMatrix);
+          [from_, into_] = [into_, from_];
+        }
+
+        embeddingMatrix = embeddingStepMatrix.multiply(embeddingMatrix);
+
+        current = into_;
       }
 
-      const embedding = search(this);
+      const embedding = new DiscoveredEmbedding(embeddingMatrix);
 
-      if (embedding === null)
-        throw Error(`No embedding could be constructed between ${this.name} and ${into.name}.`);
+      if (reactive)
+        embedding.touch();
 
-      console.assert(embedding.embedding !== null);
+      if (!this.embeddings.has(from))
+        this.embeddings.set(from, new Map());
 
-      return embedding.embedding!;
+      this.embeddings.get(from)!.set(into, embedding);
+
+      return embedding.embedding;
     }
 
-    console.assert(discovered.embedding !== null);
+    if (reactive)
+      embedding!.touch();
 
-    return discovered.embedding!;
+    return embedding!.embedding;
   }
-}
+
+  private static registerDependency([discoveredFrom, discoveredInto]: [CoordinateSystemIdentifier, CoordinateSystemIdentifier], [registeredFrom, registeredInto]: [CoordinateSystemIdentifier, CoordinateSystemIdentifier]) {
+    if (!this.dependents.has(registeredFrom))
+      this.dependents.set(registeredFrom, new Map());
+
+    if (!this.dependents.get(registeredFrom)!.has(registeredInto))
+      this.dependents.get(registeredFrom)!.set(registeredInto, []);
+
+    this.dependents.get(registeredFrom)!.get(registeredInto)!.push([discoveredFrom, discoveredInto]);
+  }
+
+  private static getEmbeddingPath(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier) {
+      type Path = Array<[CoordinateSystemIdentifier, CoordinateSystemIdentifier]>;
+      type QueueEntry = {
+        current: CoordinateSystemIdentifier,
+        path: Path
+      };
+      const queue = [] as QueueEntry[];
+      queue.push({current: from, path: []});
+
+      const seen = new Set([from]);
+
+      while (true) {
+        const {current, path} = queue.shift()!;
+
+        if (current == into)
+          return path;
+
+        for (const [from_, into_] of RegisteredCoordinateSystemEmbeddings.getNeighbors(current)) {
+          const target = from_ == current ? into_ : from_;
+          if (seen.has(target))
+            continue;
+
+          seen.add(target);
+
+          queue.push({current: target, path: path.concat([[from_, into_]])});
+        }
+      }
+  }
+
+  // Notify all consumers of ``get(reactive=true)`` that all embeddings
+  // depending upon the registered embedding ``from`` and ``into`` might have
+  // changed.
+  public static invalidateDependentEmbeddings(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier) {
+    if (!this.dependents.has(from))
+      return;
+
+    if (!this.dependents.get(from)!.has(into))
+      return;
+
+    for (const [from_, into_] of this.dependents.get(from)!.get(into)!) {
+      const embedding = this.embeddings.get(from_)!.get(into_)!;
+      embedding.invalidate();
+      this.embeddings.get(from_)!.delete(into_);
+    }
+
+    this.dependents.get(from)!.delete(into);
+  }
+
+  // Clean the coordinate system ``id`` from this database (when the coordinate
+  // system is not referenced anywhere anymore.)
+  public static forget(id: CoordinateSystemIdentifier) {
+    this.embeddings.delete(id);
+    this.dependents.delete(id);
+    for (const from of CoordinateSystemReachability.getComponent(id)) {
+      this.embeddings.get(from)?.delete(id);
+      this.dependents.get(from)?.delete(id);
+    }
+  }
+
+  private static embeddings = new Map<CoordinateSystemIdentifier, Map<CoordinateSystemIdentifier, DiscoveredEmbedding>>();
+  private static dependents = new Map<CoordinateSystemIdentifier, Map<CoordinateSystemIdentifier, Array<[CoordinateSystemIdentifier, CoordinateSystemIdentifier]>>>;
+};
+
+// A singleton database that stores which coordinate systems are related by
+// registered embeddings, i.e., it tracks the connected components of
+// coordinate systems.
+class CoordinateSystemReachability {
+  // Return whether ``from`` and ``into`` are in the same connected component.
+  public static isReachable(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier): boolean {
+    if (from == into)
+      return true;
+
+    if (!this.coordinateSystemComponents.has(from))
+      return false;
+    return this.coordinateSystemComponents.get(from)!.has(into);
+  }
+
+  // Declare that ``from`` and ``into`` are now in the same connected component
+  // (assumes that before they were not.)
+  public static registerEmbedding(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier) {
+    if (!this.embeddings.has(from))
+      this.embeddings.set(from, new Set());
+
+    this.embeddings.get(from)!.add(into);
+
+    this.mergeComponents(from, into);
+  }
+
+  private static mergeComponents(a: CoordinateSystemIdentifier, b: CoordinateSystemIdentifier) {
+    const aComponent = this.coordinateSystemComponents.get(a) || new Set([a]);
+    const bComponent = this.coordinateSystemComponents.get(b) || new Set([b]);
+
+    console.assert(!aComponent.has(b));
+    console.assert(!bComponent.has(a));
+
+    const component = new Set([...aComponent, ...bComponent]);
+
+    for (const entry of component)
+      this.coordinateSystemComponents.set(entry, component);
+  }
+
+  // Declare that ``from`` and ``into`` are not in the same connected component
+  // anymore.
+  public static forgetEmbedding(from: CoordinateSystemIdentifier, into: CoordinateSystemIdentifier) {
+    this.embeddings.get(from)!.delete(into);
+
+    const component = this.getComponent(from);
+
+    for (const entry of component)
+      this.coordinateSystemComponents.set(entry, new Set([entry]));
+
+    for (const from_ of this.embeddings.keys())
+      if (component.has(from_))
+        for (const into_ of this.embeddings.get(from_)!)
+          this.mergeComponents(from_, into_);
+
+  }
+
+  // Return all the coordinate systems that are in the same connected component
+  // as ``from``.
+  public static getComponent(from: CoordinateSystemIdentifier) {
+    return this.coordinateSystemComponents.get(from) || new Set([from]);
+  }
+
+  // Remove the coordinate system ``id`` from this database when it is not
+  // referenced anywhere anymore.
+  public static forget(id: CoordinateSystemIdentifier) {
+    for (const other of this.coordinateSystemComponents.get(id) || [])
+      this.coordinateSystemComponents.get(other)?.delete(id);
+    this.coordinateSystemComponents.delete(id);
+  }
+
+  private static coordinateSystemComponents = new Map<CoordinateSystemIdentifier, Set<CoordinateSystemIdentifier>>();
+  private static embeddings = new Map<CoordinateSystemIdentifier, Set<CoordinateSystemIdentifier>>();
+};

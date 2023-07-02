@@ -21,9 +21,10 @@
  * *****************************************************************************/
 
 import castArray from "lodash-es/castArray";
+import type { ComponentPublicInstance } from "vue";
 
 // Watch all expressions on vm and return once one of them changes.
-export default async function wait(vm: Vue, expression: string | string[]) {
+export default async function wait(vm: ComponentPublicInstance, expression: string | string[]) {
   await new Promise<void>((resolve) => {
     const unwatches = castArray(expression).map((e) => {
       return vm.$watch(e, () => {

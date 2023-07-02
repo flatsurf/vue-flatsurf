@@ -101,7 +101,7 @@ describe("Layout Triangulation", () => {
 });
 
 describe("Layout of a Disconnected Surface", () => {
-  const coordinateSystem = CoordinateSystem.make(true, "Flatsurf Coordinate System");
+  const coordinateSystem = new CoordinateSystem(true, "Flatsurf Coordinate System");
   const disconnected = FlatTriangulation.parse({
     vertices: [[1, -3, 2, -1, 3, -2], [4, -5, 6, -4, 5, -6]],
     vectors: {
