@@ -216,7 +216,9 @@ export default defineComponent({
 
     // Append a point to the path.
     append() {
-      if (this.next !== null) {
+      if (this.next == null) {
+        this.edit(false);
+      } else {
         this.points.push(this.next);
         this.next = null;
       }

@@ -79,7 +79,7 @@
             </p>
           </v-container>
           <v-container v-if="action === 'path'">
-            Click any vertex to start a path. Click half edges or vertices to draw the path. Press the escape key when the path is complete.
+            Click any vertex to start a path. Click half edges or vertices to draw the path. Press the escape key or select the last point again when the path is complete.
           </v-container>
         </v-card-text>
       </v-card>
