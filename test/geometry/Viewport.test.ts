@@ -32,8 +32,8 @@ chai.use(chaiEquals);
 
 describe("CoordinateSystem", () => {
   describe("a negative SVG coordinate system embedded into an ideal positive coordinate system such that (0, 0) are identified", () => {
-    const ideal = CoordinateSystem.make(true, "Ideal Coordinate System");
-    const svg = CoordinateSystem.make(false, "SVG Coordinate System");
+    const ideal = new CoordinateSystem(true, "Ideal Coordinate System");
+    const svg = new CoordinateSystem(false, "SVG Coordinate System");
 
     svg.embedInto(ideal);
 
@@ -47,7 +47,7 @@ describe("CoordinateSystem", () => {
 });
 
 describe("Viewport", () => {
-  const ideal = CoordinateSystem.make(true, "Ideal Coordinate System");
+  const ideal = new CoordinateSystem(true, "Ideal Coordinate System");
 
   const viewport = new Viewport(ideal, 1024, 768);
   const box = new Box(ideal, [0, 0], [1, 1]);

@@ -1,7 +1,5 @@
 <!--
-
-Visualizes a Surface.
-
+  Visualizes a Surface.
 -->
 <!--
  | Copyright (c) 2021 Julian Rüth <julian.rueth@fsfe.org>
@@ -70,7 +68,7 @@ export default defineComponent({
   computed: {
     flowComponents(): FlowComponent[] {
       if (this.show.includes('flow-components'))
-      return this.$store.state.flowComponents;
+        return this.$store.state.flowComponents!;
       return [];
     }
   },

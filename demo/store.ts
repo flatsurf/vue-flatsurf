@@ -33,12 +33,12 @@ import Vertical from "@/flatsurf/Vertical";
 const state = {
   raw: "",
   error: null as null | string,
-  triangulation: null as null | FlatTriangulation,
+  triangulation: null as null | Readonly<FlatTriangulation>,
   vertical: null as null | Vertical,
-  flowComponents: null as null | FlowComponent[],
-  automorphisms: null as null | Automorphism[],
+  flowComponents: null as null | Readonly<FlowComponent[]>,
+  automorphisms: null as null | Readonly<Automorphism[]>,
   layout: null as null | Layout,
-  coordinateSystem: CoordinateSystem.make(true, "Flatsurf Coordinate System"),
+  coordinateSystem: new CoordinateSystem(true, "Flatsurf Coordinate System"),
 };
 
 export type State = typeof state;

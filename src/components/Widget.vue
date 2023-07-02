@@ -1,4 +1,8 @@
 <!--
+  A composition of components that displays a widget and allows interaction
+  with that surface.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -171,7 +175,7 @@ const Widget = defineComponent({
 
   data() {
     return {
-      coordinateSystem: CoordinateSystem.make(true, "Flatsurf Coordinate System"),
+      coordinateSystem: new CoordinateSystem(true, "Flatsurf Coordinate System"),
       viewer: new PromisedCache<IViewer>(),
     };
   },

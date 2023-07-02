@@ -1,4 +1,7 @@
 <!--
+  Renders a visually unglued half edge of a surface for SVG.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +27,7 @@
     <g v-if="options.label" class="label">
       <segment-label :at="segment" :svg="svg">{{ options.label }}</segment-label>
     </g>
-    <arrow v-if="options.indicator != null" class="indicator" :segment="indicatorPosition(halfEdge)" :svg="svg" />
+    <arrow v-if="indicatorPosition" class="indicator" :segment="indicatorPosition" :svg="svg" />
     <arrow v-if="sourceIndicator" class="source" :segment="source" :svg="svg" />
     <segment-component :class="{ selected: options.selected }" :segment="segment" :svg="svg" />
     <segment-icon v-if="options.icon" :segment="segment" :svg="svg" :icon="options.icon" />
@@ -84,20 +87,19 @@ export default defineComponent({
           const end = segment.at(0);
           const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
       return new Segment(start, end);
-    }
-  },
+    },
 
-  methods: {
-    indicatorPosition(halfEdge: HalfEdge) {
-      const segment = this.layout.layout(halfEdge).segment;
-      let indicator = halfEdge === this.halfEdge ? this.options.indicator! : 1-this.options.indicator!;
-      if (indicator != null) {
-            const end = segment.at(indicator);
-            const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
-        return new Segment(start, end);
-      }
-      }
-  }
+    indicatorPosition(): Segment | null {
+      const segment = this.layout.layout(this.halfEdge).segment;
+      let indicator = this.options.indicator;
+      if (indicator == null)
+        return null;
+
+      const end = segment.at(indicator);
+      const start = end.translate(this.svg.embed(segment.tangentInStart.rotate90CCW()).normalize().multiply(10));
+      return new Segment(start, end);
+    },
+  },
 });
 </script>
 <style lang="scss">

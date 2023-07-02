@@ -26,7 +26,7 @@ import xor from "lodash-es/xor";
 // key in an object, i.e., T should probably be number or string.
 export default class Permutation<T> {
   public static parse(raw: string): Permutation<number> {
-    return Permutation.fromCycles<number>(raw.substr(1, raw.length - 2).split(/\)\(/).map(cycle => cycle.split(/, /).map((s) => s.replaceAll(' ', '')).map(Number)));
+    return Permutation.fromCycles<number>(raw.substring(1, raw.length - 3).split(/\)\(/).map(cycle => cycle.split(/, /).map((s) => s.replaceAll(' ', '')).map(Number)));
   }
 
   public static fromCycles<T>(cycles: Array<T[]>) : Permutation<T> {

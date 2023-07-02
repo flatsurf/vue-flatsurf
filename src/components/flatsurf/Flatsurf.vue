@@ -1,5 +1,5 @@
 <!--
-Renders objects from flatsurf as SVG.
+  Renders objects from flatsurf as SVG.
 -->
 <!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
@@ -82,7 +82,7 @@ export default defineComponent({
     },
 
     viewportCoordinateSystem: {
-      type: Object as PropType<CoordinateSystem | null>,
+      type: Object as PropType<CoordinateSystem>,
       required: true,
     },
 
@@ -117,7 +117,8 @@ export default defineComponent({
     },
 
     svgCoordinateSystem(): CoordinateSystem {
-      return this.viewportCoordinateSystem || this.triangulation.coordinateSystem;
+      console.assert(this.viewportCoordinateSystem != null);
+      return this.viewportCoordinateSystem;
     }
   },
 

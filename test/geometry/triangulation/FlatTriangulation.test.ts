@@ -68,7 +68,7 @@ const quadrilateral = {
 
 describe("Flat Triangulation", () => {
   it("can be parsed from YAML output", () => {
-    const coordinateSystem = CoordinateSystem.make(true, "Flatsurf Coordinate System");
+    const coordinateSystem = new CoordinateSystem(true, "Flatsurf Coordinate System");
     const surface = FlatTriangulation.parse(torus, coordinateSystem);
 
     expect(surface.vertices.cycles).to.deep.equal([[3, 2, -1, -3, -2, 1]]);
@@ -80,7 +80,7 @@ describe("Flat Triangulation", () => {
   });
 
   it("can be parsed from string output", () => {
-    const coordinateSystem = CoordinateSystem.make(true, "Flatsurf Coordinate System");
+    const coordinateSystem = new CoordinateSystem(true, "Flatsurf Coordinate System");
     const surface = FlatTriangulation.parse(quadrilateral.triangulation, coordinateSystem);
 
     expect(surface.vertices.cycles).to.deep.equal([[1, 8, -7, 9, -3, 10, -9, 11, -2, 12, -11, 7], [-1, -8, 6, -5, 3, -10, 5, -4, 2, -12, 4, -6]]);

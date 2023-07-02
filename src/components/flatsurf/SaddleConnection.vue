@@ -1,4 +1,7 @@
 <!--
+  Displays a saddle connection in a surface as SVG.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -55,7 +58,7 @@ export default defineComponent({
     },
 
     animated: {
-      type: Boolean as PropType<boolean>,
+      type: Boolean,
       required: false,
       default: false
     }

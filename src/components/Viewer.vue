@@ -1,5 +1,5 @@
 <!--
-Displays a surface from flatsurf and related objects such as flow components.
+  Displays a surface from flatsurf and related objects such as flow components.
 -->
 <!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
@@ -23,11 +23,11 @@ Displays a surface from flatsurf and related objects such as flow components.
  | SOFTWARE.
  -->
 <template>
-  <pan-zoom v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
+  <pan-zoomable v-if="focus != null" v-slot="{ viewport }" :coordinate-system="idealCoordinateSystem" v-model="focus">
     <flatsurf ref="flatsurf" :width="viewport.width" :height="viewport.height" @dblclick="focus = layout.hull" :triangulation="triangulation" :layout="layout" :viewport-coordinate-system="viewport.viewportCoordinateSystem" :visualization-options="visualizationOptions" :flow-components="visibleFlowComponents" :saddle-connections="saddleConnections" :paths="paths">
       <slot name="interaction" v-bind:layout="layout" v-bind:svg="viewport.viewportCoordinateSystem" v-bind:triangulation="triangulation" v-bind:options="visualizationOptions" v-bind:focus="focus" v-bind:refocus="refocus" />
     </flatsurf>
-  </pan-zoom>
+  </pan-zoomable>
 </template>
 <script lang="ts">
 import Layout from "@/layout/Layout";
@@ -42,7 +42,7 @@ import Vertical from "@/flatsurf/Vertical";
 import Path from "@/flatsurf/Path";
 import wait from "@/wait";
 
-import PanZoom from "./PanZoom.vue";
+import PanZoomable from "./PanZoomable.vue";
 
 import Flatsurf from "@/components/flatsurf/Flatsurf.vue";
 import {defineComponent, PropType} from "vue";
@@ -50,7 +50,7 @@ import CoordinateSystem from "@/geometry/CoordinateSystem";
 
 export default defineComponent({
   components: {
-    PanZoom,
+    PanZoomable,
     Flatsurf,
   },
 
@@ -139,7 +139,7 @@ export default defineComponent({
 
     async svg() {
       while (this.layout == null)
-        await wait(this as unknown as Vue, "layout");
+        await wait(this, "layout");
 
       await this.$nextTick();
 

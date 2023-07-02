@@ -1,4 +1,7 @@
 <!--
+  Renders a visually glued inner edge of a surface for SVG.
+-->
+<!--
  | Copyright (c) 2021-2023 Julian Rüth <julian.rueth@fsfe.org>
  | 
  | Permission is hereby granted, free of charge, to any person obtaining a copy
