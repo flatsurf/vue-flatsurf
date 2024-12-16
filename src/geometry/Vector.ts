@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2024 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ export default class Vector {
   public static parse(yaml: VectorSchema, coordinateSystem: CoordinateSystem): Vector;
   public static parse(data: VectorSchema | string, coordinateSystem: CoordinateSystem): Vector {
     if (typeof data === "string") {
-      data = data.trim().replaceAll(/\n/g, ' ');
+      data = data.replaceAll(/\s/g, '');
       const pattern = /^\((.*),(.*)\)$/;
       const match = data.match(pattern);
 

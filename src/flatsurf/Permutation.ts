@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2024 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ import xor from "lodash-es/xor";
 // key in an object, i.e., T should probably be number or string.
 export default class Permutation<T> {
   public static parse(raw: string): Permutation<number> {
-    return Permutation.fromCycles<number>(raw.substring(1, raw.length - 1).split(/\)\(/).map(cycle => cycle.split(/, /).map((s) => s.replaceAll(' ', '')).map(Number)));
+    raw = raw.replaceAll(/\s/g, '');
+    return Permutation.fromCycles<number>(raw.substring(1, raw.length - 1).split(/\)\(/).map(cycle => cycle.split(/,/).map(Number)));
   }
 
   public static fromCycles<T>(cycles: Array<T[]>) : Permutation<T> {

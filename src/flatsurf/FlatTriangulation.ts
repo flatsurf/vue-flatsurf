@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2024 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,8 +44,8 @@ export default class FlatTriangulation {
   public static parse(yaml: FlatTriangulationSchema, coordinateSystem: CoordinateSystem) : FlatTriangulation;
   public static parse(data: FlatTriangulationSchema | string, coordinateSystem: CoordinateSystem) : FlatTriangulation {
     if (typeof data === "string") {
-      data = data.trim().replaceAll(/\n/g, ' ');
-      const pattern = /^FlatTriangulationCombinatorial\(vertices = (.*), faces = .*\) with vectors \{(.*)\}$/;
+      data = data.replaceAll(/\s/g, '');
+      const pattern = /^FlatTriangulationCombinatorial\(vertices=(.*),faces=.*\)withvectors\{(.*)\}$/;
       const match = data.match(pattern);
 
       if (match === null)
@@ -55,7 +55,7 @@ export default class FlatTriangulation {
         Permutation.parse(match[1]),
         mapValues(
         zipObject(
-          ...partition(match[2].substring(0, match[2].length - 1).split(/(?:: \()|(?:\), (?=\d+:))/),
+          ...partition(match[2].substring(0, match[2].length - 1).split(/(?::\()|(?:\),(?=\d+:))/),
           (v: string) => !v.match(/,/)) as [string[], string[]]
         ), xy => Vector.parse(`(${xy})`, coordinateSystem)));
     } else {
