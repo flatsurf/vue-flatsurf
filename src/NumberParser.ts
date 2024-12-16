@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2022 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2022-2024 Julian Rüth <julian.rueth@fsfe.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ export const NumberLanguage = P.createLanguage({
 })
 
 export function parse(x: string) {
-  const value = NumberLanguage.Number.tryParse(x.replaceAll(/\s/g, ""));
+  const value = NumberLanguage.Number.tryParse(x.replaceAll(/\s/g, ''));
   if (typeof(value) !== "number")
     throw Error(`Parsing ${x} did not produce a number but ${value}`);
   if (isNaN(value))
