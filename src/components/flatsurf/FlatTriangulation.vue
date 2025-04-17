@@ -95,11 +95,29 @@ export default defineComponent({
     },
 
     // Return a list of vertex indicators where half edges meet that are almost collinear.
-    // TODO: Only show indicators when inner edges are not rendered, see https://github.com/flatsurf/vue-flatsurf/issues/32
     sourceIndicators(): HalfEdge[] {
       return this.halfEdges.filter((a) => {
         const s = this.layout.layout(a).segment;
         const v = s.tangentInStart;
+
+        // Do not display the indicator when there is a visible inner edge that
+        // makes it clear where the half edges meet.
+        if (this.edges.some((edge) => {
+          if (!this.options.get(edge).visible) {
+            return false;
+          }
+
+          const t = this.layout.layout(edge.positive).segment;
+
+          if (s.start.on(t)) {
+            return true;
+          }
+
+          return false;; 
+        })) {
+          return false;
+        }
+
         return this.halfEdges.some((b) => {
           if (b === a) return false;
 
@@ -111,7 +129,7 @@ export default defineComponent({
           const angle = v.angleTo(w);
           const degree = Math.PI / 180;
           return angle < degree || angle > 359 * degree;
-        })
+        });
       });
     }
   }
