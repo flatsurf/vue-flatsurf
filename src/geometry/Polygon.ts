@@ -1,5 +1,5 @@
 /* ******************************************************************************
- * Copyright (c) 2020-2021 Julian Rüth <julian.rueth@fsfe.org>
+ * Copyright (c) 2020-2025 Julian Rüth <julian.rueth@fsfe.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import CoordinateSystem, { inverse } from "./CoordinateSystem";
 import Point from "./Point";
 import Box from "./Box";
 import Vector from "./Vector";
+import convexHull from "monotone-convex-hull-2d";
 
 export default class Polygon {
   public constructor(parent: CoordinateSystem, value: Point[][]);
@@ -54,46 +55,17 @@ export default class Polygon {
     return Polygon.convexHull(this.vertices);
   }
 
-  // Compute the convex hull of the points (using the slow Jarvis march
-  // algorithm.)
   public static convexHull(points: Point[]): Polygon {
     console.assert(points.length !== 0);
 
     const coordinateSystem = points[0].parent;
 
-    const vertices = points.map((p) => coordinateSystem.embed(p).value);
+    const vertices = points.map((p) => coordinateSystem.embed(p).value).map((p) => [p.x, p.y] as [number, number]);
 
-    console.assert(vertices.some((p) => !p.equalTo(vertices[0])));
-
-    const hull = [vertices.reduce((p, q) => {
-      if (p.x < q.x)
-        return p;
-      if (p.x > q.x)
-        return q
-      if (p.y < q.y)
-        return p;
-      return q;
-    })];
-
-    do {
-      const last = hull[hull.length - 1];
-      let next = vertices[0].equalTo(last) ? vertices[1] : vertices[0];
-      for (let p of vertices) {
-        if (p.leftTo(new Flatten.Line(last, next)))
-          next = p;
-      }
-      hull.push(next);
-      // TODO: This is numerically too unstable (and hangs sometimes.) See https://github.com/flatsurf/vue-flatsurf/issues/40.
-      if (hull.length > vertices.length + 1) {
-        console.error("Convex Hull incorrect");
-        break;
-      }
-    } while(!hull[hull.length - 1].equalTo(hull[0]));
-
-    hull.pop();
+    const hull = convexHull(vertices).map((i: number) => vertices[i]).reverse();
 
     const polygon = new Flatten.Polygon();
-    polygon.addFace(hull);
+    polygon.addFace(hull.map(([x, y]) => new Flatten.Point(x, y)));
     return new Polygon(coordinateSystem, polygon);
   }
 
