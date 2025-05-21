@@ -4,6 +4,17 @@ vue-flatsurf Change Log
 
 .. current developments
 
+v0.12.2
+====================
+
+**Fixed:**
+
+* Fixed a minor layout issue when a half edge indicator overlapped with a visible inner edge.
+* Fixed numerical instabilities in the convex hull implementation.
+* Allow arbitrary whitespace when parsing a ``FlatTriangulation`` so that we can feed Catch output into the widget (which tends to add whitespace in odd places.)
+
+
+
 v0.12.1
 ====================
 
