@@ -30,7 +30,7 @@
     "lodash-es": "^4.17.15",
     "monotone-convex-hull-2d": "^1.0.1",
     "parsimmon": "^1.18.1",
-    "svgo": "^3.0.2"
+    "svgo": "^4"
   },
   "devDependencies": {
     "@mdi/font": "^6.3.95",

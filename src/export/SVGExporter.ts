@@ -20,7 +20,7 @@
  * SOFTWARE.
  * *****************************************************************************/
 
-import { optimize } from "svgo";
+import { optimize } from "svgo/browser";
 import rgba from "color-normalize";
 
 /*
